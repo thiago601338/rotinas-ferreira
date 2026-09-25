@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 import pytest
 
 import sintetico
-from rotinas import config, fila, midia, tarefas
+from rotinas import fila, midia, tarefas
 from rotinas.stories import bluestacks, pasta, pedido, postados, relatorio
 from rotinas.stories.estoque import ClienteFalso, Produto
 
@@ -198,7 +198,7 @@ def test_pasta_solta_vira_pedido_na_fila_sem_clique(cfg, sem_vigia):
 
     # 4) música só no vídeo sem áudio; figurinha só na última mídia de cada letra, sem https://
     musica = [(m["nome"], m["musica"]) for l in plano["letras"] for m in l["midias"] if m["musica"]]
-    assert musica == [("A - 1", config.carregar("stories")["audios_sem_som"][0])]
+    assert musica == [("A - 1", {"busca": "fashion", "escolha": "aleatoria"})]
     assert L["E"]["midias"][0]["tipo"] == "video" and L["E"]["midias"][0]["musica"] is None
     com_fig = {m["nome"]: m["figurinha"] for l in plano["letras"] for m in l["midias"] if m["figurinha"]}
     assert com_fig == {"A - 3": {"url": LINK_A, "texto": "Comprar"}, "E - 2": {"url": LINK_E, "texto": "Comprar agora"}}

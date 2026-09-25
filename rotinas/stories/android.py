@@ -673,6 +673,13 @@ class Tela:
     def voltar(self) -> None:
         self.d.press("back")
 
+    def rolar(self, limites: tuple[int, int, int, int]) -> None:
+        """Arrasta o dedo para cima DENTRO de ``limites`` (x0, y0, x1, y1) — ex.: os itens de um menu, para não tocar
+        fora dele (tocar fora fecha o menu). A lista rola e mostra o que está abaixo."""
+        x0, y0, x1, y1 = limites
+        x = (x0 + x1) // 2
+        self.d.swipe(x, int(y0 + 0.85 * (y1 - y0)), x, int(y0 + 0.15 * (y1 - y0)), 0.4)
+
     def tamanho(self) -> tuple[int, int]:
         if self._tamanho is None:
             w, h = self.d.window_size()

@@ -115,9 +115,13 @@ def texto_figurinha(indice: int) -> str:
     return str(_rodar("textos_figurinha", indice))
 
 
-def musica_para(indice: int) -> dict:
-    """Música do Instagram para vídeo sem som, em rodízio (``audios_sem_som``)."""
-    return dict(_rodar("audios_sem_som", indice))
+def musica_sem_som() -> dict:
+    """Música do Instagram para vídeo sem som (``musica_sem_som``): regra do usuário = buscar "fashion" e escolher
+    ao acaso qualquer uma das faixas que aparecem (o sorteio é feito na tela, pelo postador)."""
+    m = _cfg().get("musica_sem_som") or {}
+    if not str(m.get("busca") or "").strip():
+        raise ErroRegra("config/stories.json sem 'musica_sem_som' com a 'busca' (ex.: \"fashion\").")
+    return {"busca": str(m["busca"]).strip(), "escolha": str(m.get("escolha") or "aleatoria")}
 
 
 # ---------------------------------------------------------------- vestido de festa

@@ -296,6 +296,12 @@ class TelaFalsa:
         self.miniaturas_editor_extra = 0  # elementos a mais na faixa de miniaturas do editor (ex.: "+")
         self.caixa_seu_story = False  # na folha de compartilhar, a caixa marcada de "Seu story" logo acima
         self.seu_story_marcado = True
+        self.album_rolagens = 0  # quantas rolagens da lista de álbuns até a pasta da letra aparecer
+        self.rolagens = 0
+        self.rolados: list[tuple] = []  # limites de cada arrasto
+        self.sugestao_ao_redigitar = False  # digitar com texto no campo abre o balão de correção do teclado
+        self.popup_apos_digitar = 0  # quantas vezes o balão aparece logo depois de digitar (mesmo com o campo limpo)
+        self.busca_lembrada = None  # texto que já está no campo quando a busca de música abre
         self.busca_exige_enter = False  # os resultados só vêm depois da tecla de busca do teclado
         self.musicas_fora = set()  # autores que a busca não mostra (ex.: música fora do catálogo da conta)
         self.resultados_musica = [
@@ -343,7 +349,10 @@ class TelaFalsa:
             if self.selecao:
                 v |= {"avancar"} | ({"badge_selecao"} if self.numeros_na_selecao else set())
         elif e == "album_menu":
-            v = {"album_todos"} if self.album_via_todos and not self.todos_aberto else {"album_item"}
+            if self.album_via_todos and not self.todos_aberto:
+                v = {"album_todos", "itens_lista_album"}
+            else:
+                v = {"itens_lista_album"} | ({"album_item"} if self.rolagens >= self.album_rolagens else set())
         elif e == "editor":
             v = {"editor", "figurinhas", "musica", "seu_story", "miniaturas_editor"}
             if self.midias and self.midias[self.atual].get("figurinha"):
@@ -351,9 +360,9 @@ class TelaFalsa:
         elif e == "figurinhas":
             v = {"figurinha_link", "figurinha_musica", "buscar_figurinha"}
         elif e == "musica":
-            v = {"buscar_musica", "enviar_busca_musica"}
+            v = {"buscar_musica", "enviar_busca_musica"} | ({"limpar_busca_musica"} if self.busca else set())
             if self.busca and (self.busca_enviada or not self.busca_exige_enter):
-                v |= {"escolher_musica", "faixas_musica"}
+                v |= {"faixas_musica"}
             if self.musica_escolhida:
                 v.add("concluir_musica")
         elif e == "link":
@@ -366,6 +375,8 @@ class TelaFalsa:
             v = {"dispensar_aviso", "concluir_publicacao"}
         elif e == "dialogo":
             v = {"descartar"}
+        elif e == "sugestao_teclado":
+            v = {"popup_sugestao_teclado"}
         if self.quebrar and self.aberturas == self.quebrar["abertura"]:
             v.discard(self.quebrar["chave"])
         return v
@@ -409,6 +420,7 @@ class TelaFalsa:
             elif chave == "album_menu":
                 self.estado = "album_menu"
                 self.todos_aberto = False
+                self.rolagens = 0
             elif chave == "album_todos":
                 self.todos_aberto = True
             elif chave == "album_item":
@@ -422,7 +434,8 @@ class TelaFalsa:
                 self.atual = 0
                 self.estado = "editor"
             elif chave in ("musica", "figurinha_musica"):
-                self.busca, self.musica_escolhida = None, None
+                # o Instagram pode reabrir a busca com o último texto (busca_lembrada)
+                self.busca, self.busca_enviada, self.musica_escolhida = self.busca_lembrada, bool(self.busca_lembrada), None
                 self.estado = "musica"
             elif chave == "figurinhas":
                 self.estado = "figurinhas"
@@ -440,6 +453,8 @@ class TelaFalsa:
                     self.campo_texto += "\n"
             elif chave == "enviar_busca_musica":
                 self.busca_enviada = True
+            elif chave == "limpar_busca_musica":
+                self.busca, self.busca_enviada = None, False
             elif chave == "concluir_figurinha":
                 self.midias[self.atual]["figurinha"] = {"url": self.campo_url, "texto": self.campo_texto,
                                                         "teclado_confirmado": self.teclado}
@@ -510,6 +525,9 @@ class TelaFalsa:
             raise AssertionError(f"campo '{chave}' não está na tela ({self.estado})")
         self.digitados.append((chave, texto))
         if chave == "buscar_musica":
+            if (self.sugestao_ao_redigitar and self.busca) or self.popup_apos_digitar > 0:
+                self.popup_apos_digitar = max(0, self.popup_apos_digitar - 1)
+                self.estado = "sugestao_teclado"
             self.busca, self.busca_enviada = texto or None, False
         elif chave == "campo_url":
             if texto and self.url_https > 0:
@@ -548,15 +566,13 @@ class TelaFalsa:
                                     acao=lambda: self.toques.append("editor_extra")))
             for i in range(len(self.midias)):
                 els.append(Elemento(limites=(100 + i * 120, 1800, 200 + i * 120, 1900), acao=self._ir_midia(i)))
+        elif chave == "itens_lista_album":
+            for i in range(5):
+                els.append(Elemento(texto=f"item {i}", limites=(24, 250 + i * 112, 434, 362 + i * 112)))
         elif chave == "faixas_musica":
             for i, (titulo, autor) in enumerate(self._resultados()):
                 els.append(Elemento(descricao=f"Selecionar faixa {titulo} de {autor},0:30", limites=(0, 300 + i * 160, 900, 440 + i * 160),
                                     acao=self._escolher(titulo, autor)))
-        elif chave == "escolher_musica":
-            for i, (titulo, autor) in enumerate(self._resultados()):
-                topo = 300 + i * 160
-                els.append(Elemento(texto=titulo, limites=(150, topo, 900, topo + 50), acao=self._escolher(titulo, autor)))
-                els.append(Elemento(texto=autor, limites=(150, topo + 60, 900, topo + 100), acao=self._escolher(titulo, autor)))
         elif chave == "interruptores":
             if self.caixa_seu_story:
                 els.append(Elemento(texto="", marcado=self.seu_story_marcado, marcavel=True,
@@ -606,12 +622,18 @@ class TelaFalsa:
         Path(caminho).write_bytes(b"\x89PNG falso")
         self.prints.append(Path(caminho))
 
+    def rolar(self, limites):
+        self.toques.append("rolar")
+        self.rolados.append(tuple(limites))
+        if self.estado == "album_menu":
+            self.rolagens += 1
+
     def voltar(self):
         self.toques.append("voltar")
         self.estado = {
             "feed": "fora", "criacao": "feed", "camera": "feed", "galeria": "camera", "album_menu": "galeria",
             "editor": "dialogo", "dialogo": "editor", "musica": "editor", "figurinhas": "editor", "link": "editor",
-            "compartilhar": "editor", "aviso_fb": "editor", "visualizador_story": "feed",
+            "compartilhar": "editor", "aviso_fb": "editor", "visualizador_story": "feed", "sugestao_teclado": "musica",
         }.get(self.estado, self.estado)
 
     def tamanho(self):

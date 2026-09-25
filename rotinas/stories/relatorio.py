@@ -96,8 +96,7 @@ def _linha_letra(l: dict, com_musica: bool = False) -> str:
         for m in midias:
             mu = m.get("musica")
             if mu:
-                autor = f" ({mu.get('autor')})" if mu.get("autor") else ""
-                partes.append(f"música na {m['nome']}: {mu.get('nome')}{autor}")
+                partes.append(f"música na {m['nome']}: busca '{mu.get('busca')}', faixa ao acaso")
     sku = f" ({l['sku']})" if l.get("sku") else ""
     return f"- {l['letra']} · {l.get('peca')}{sku}: " + "; ".join(partes)
 

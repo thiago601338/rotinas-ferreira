@@ -18,10 +18,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 import re
 import sys
 import time
-import unicodedata
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -33,6 +33,7 @@ log = registro.obter("stories.bluestacks")
 
 dormir = time.sleep  # trocados nos testes
 agora = time.monotonic
+sortear = random.choice
 
 CHAVES_PUBLICAR = frozenset({"seu_story", "concluir_publicacao"})
 # sinais de que o toque em "criar" saiu do feed ("abrir_story" primeiro: aba "Story" de versões com "Criar")
@@ -126,35 +127,6 @@ def novo_resultado(plano: dict, ensaio: bool) -> dict:
         "parou_em": None,
         "avisos": [],
     }
-
-
-def _norm(texto: str | None) -> str:
-    t = unicodedata.normalize("NFKD", str(texto or "")).encode("ascii", "ignore").decode().lower()
-    return " ".join(re.sub(r"[^a-z0-9]+", " ", t).split())
-
-
-def _mesma_linha(ref, outro) -> bool:
-    h = max(ref.altura, 20)
-    return outro is not ref and ref.limites[1] - 1.5 * h <= outro.centro[1] <= ref.limites[3] + 1.5 * h
-
-
-def escolher_resultado_musica(textos: list, nome: str | None, autor: str | None):
-    """Entre os textos da lista de resultados, o título igual a ``nome`` com o autor na mesma linha."""
-    alvo = _norm(nome)
-    autores = [a for a in (_norm(p) for p in re.split(r"[/,&]", autor or "")) if len(a) >= 3]
-
-    def bate_autor(texto: str) -> bool:
-        n = _norm(texto)
-        return any(a in n for a in autores)
-
-    exatos = [e for e in textos if _norm(e.texto) == alvo]
-    parecidos = [e for e in textos if alvo and _norm(e.texto) != alvo and alvo in _norm(e.texto)]
-    for titulo in exatos + parecidos:
-        if not autores or bate_autor(titulo.texto):
-            return titulo
-        if any(_mesma_linha(titulo, e) and bate_autor(e.texto) for e in textos):
-            return titulo
-    return None
 
 
 # ---------------------------------------------------------------- fluxo
@@ -343,8 +315,12 @@ class Postador:
             if todos is not None:
                 todos.tocar()
                 self._pausa()
-                item = self.tela.achar("album_item", self._t("espera_padrao_s", 10), plano_b=False, album=album)
+                item = self.tela.achar("album_item", self._t("espera_lista_albuns_s", 4), plano_b=False, album=album)
         if item is None:
+            item = self._rolar_ate("album_item", album=album)
+        if item is None:
+            if self.diagnostico:
+                self._salvar_tela(f"album_{self.letra}_nao_achado")
             self.tela.voltar()  # fecha a lista de álbuns (no real, antes de parar)
             self._pausa()
             self._sem_album(album, r, res, f"o álbum {album} não apareceu na lista")
@@ -354,6 +330,23 @@ class Postador:
         item.tocar()
         self._pausa()
         r["album"] = album
+
+    def _rolar_ate(self, chave: str, **valores):
+        """Rola a lista de álbuns (ex.: "Todos os álbuns" com muitas pastas) até ``chave`` aparecer. O arrasto é dentro
+        dos itens da lista (``itens_lista_album``); sem itens na tela, não arrasta (fora do menu, fecharia o menu)."""
+        for k in range(1, int(self.cfg.get("max_rolagens_album", 4)) + 1):
+            itens = self.tela.grade("itens_lista_album")
+            if len(itens) < 2:
+                return None
+            limites = (min(e.limites[0] for e in itens), min(e.limites[1] for e in itens),
+                       max(e.limites[2] for e in itens), max(e.limites[3] for e in itens))
+            self.tela.rolar(limites)
+            self._pausa()
+            el = self.tela.achar(chave, self._t("espera_curta_s", 2), plano_b=False, **valores)
+            if el is not None:
+                log.info("Letra %s: '%s' apareceu depois de rolar a lista %d vez(es)", self.letra, chave, k)
+                return el
+        return None
 
     def _sem_album(self, album: str, r: dict, res: dict, motivo: str) -> None:
         """Sem o álbum da letra, a grade é "Recentes" (tem as outras letras e o resto do emulador).
@@ -504,40 +497,41 @@ class Postador:
                 log.warning("O campo %s mostrou %r em vez de %r; digitando de novo", chave, lido, texto)
         raise ErroPasso(f"o campo '{chave}' não ficou com o texto certo em {tentativas} tentativas (mostrou {lido!r})")
 
-    @staticmethod
-    def _opcoes_musica(pedida: dict) -> list[dict]:
-        """A música pedida e, se ela não aparecer na busca, as outras de ``audios_sem_som`` (regra do usuário:
-        vídeo sem áudio leva uma música DESSA lista), na ordem da lista a partir da pedida."""
-        lista = [dict(a) for a in config.carregar("stories").get("audios_sem_som") or []]
-        chave = (_norm(pedida.get("nome")), _norm(pedida.get("autor")))
-        pos = next((k for k, a in enumerate(lista) if (_norm(a.get("nome")), _norm(a.get("autor"))) == chave), -1)
-        resto = lista[pos + 1:] + lista[:pos] if pos >= 0 else lista
-        return [pedida] + resto
-
-    def _buscar_musica(self, musica: dict):
-        """Digita a busca, aperta a tecla de busca do teclado e espera o resultado com título + autor."""
-        self.tela.digitar("buscar_musica", musica["busca"], espera_s=self._t("espera_padrao_s", 10))
-        self._pausa()
-        enviar = self.tela.achar("enviar_busca_musica", 0)
-        if enviar is not None:
-            enviar.tocar()
+    def _fechar_sugestao_teclado(self) -> None:
+        """Balão de correção do teclado ("ADICIONAR AO DICIONÁRIO"/"EXCLUIR") por cima da busca: o Voltar fecha só ele."""
+        if self.tela.existe("popup_sugestao_teclado"):
+            log.info("Letra %s: fechei o balão de correção do teclado na busca de música", self.letra)
+            self.tela.voltar()
             self._pausa()
+
+    @staticmethod
+    def _nome_faixa(el) -> str:
+        """"Selecionar faixa Home de Sunset Exotic,sem royalties,3:14" → "Home de Sunset Exotic"."""
+        d = re.sub(r"(?i)^selecionar faixa\s+", "", el.descricao or el.texto or "")
+        return re.sub(r"(?i),\s*sem royalties", "", re.sub(r",\s*\d+:\d+$", "", d)).strip()
+
+    def _faixas(self) -> list:
+        return self.tela.grade("faixas_musica")
+
+    def _esperar_faixas(self, antes: set[str]) -> list:
+        """Espera a lista de faixas mudar depois da busca; se não mudar em ``espera_resultados_musica_s``, fica com a
+        que está na tela."""
         limite = agora() + self._t("espera_resultados_musica_s", 10)
         while True:
-            escolhido = escolher_resultado_musica(self.tela.grade("escolher_musica"), musica.get("nome"), musica.get("autor"))
-            if escolhido is not None or agora() >= limite:
-                return escolhido
+            faixas = self._faixas()
+            if faixas and {self._nome_faixa(e) for e in faixas} != antes:
+                return faixas
+            if agora() >= limite:
+                if faixas:
+                    log.warning("Letra %s: a lista de músicas não mudou depois da busca; sorteio entre as da tela",
+                                self.letra)
+                return faixas
             dormir(self._t("intervalo_busca_s", 0.4))
 
-    def _faixas_na_tela(self) -> list[str]:
-        faixas = []
-        for el in self.tela.grade("faixas_musica")[:4]:
-            d = re.sub(r"(?i)^selecionar faixa\s+", "", el.descricao or el.texto or "")
-            faixas.append(re.sub(r",\s*\d+:\d+$", "", d))
-        return faixas
-
     def _musica(self, m: dict, r: dict, res: dict) -> None:
-        pedida = m["musica"]
+        """Regra do usuário: busca "fashion" (``musica_sem_som``) e escolhe AO ACASO qualquer uma das faixas que
+        aparecem (entre as ``musica_aleatoria_entre`` primeiras, que cabem na tela)."""
+        busca = (m.get("musica") or {}).get("busca")
         icone = self.tela.achar("musica", self._t("espera_curta_s", 2), plano_b=False)
         if icone is not None:
             icone.tocar()
@@ -545,31 +539,34 @@ class Postador:
         else:
             self._tocar("figurinhas")
             self._tocar("figurinha_musica")
-        nao_achadas = []
-        for musica in self._opcoes_musica(pedida):
-            escolhido = self._buscar_musica(musica)
-            if escolhido is not None:
-                break
-            nao_achadas.append(f"'{musica.get('nome')}' de {musica.get('autor')}")
-            log.warning("Letra %s: não achei %s na busca '%s'", self.letra, nao_achadas[-1], musica.get("busca"))
+        antes = {self._nome_faixa(e) for e in self._faixas()}
+        # limpar antes: digitar tocando numa palavra sublinhada abre o balão de correção do teclado (ensaio 19:25)
+        self._fechar_sugestao_teclado()
+        limpar = self.tela.achar("limpar_busca_musica", 0, plano_b=False)
+        if limpar is not None:
+            limpar.tocar()
+            self._pausa()
+        self.tela.digitar("buscar_musica", busca, espera_s=self._t("espera_padrao_s", 10))
+        self._pausa()
+        self._fechar_sugestao_teclado()
+        enviar = self.tela.achar("enviar_busca_musica", 0)
+        if enviar is not None:
+            enviar.tocar()
+            self._pausa()
+        faixas = self._esperar_faixas(antes)
+        if not faixas:
             if self.diagnostico:
-                self._salvar_tela(f"busca_musica_{self.letra}_{len(nao_achadas)}")
-        else:
-            faixas = self._faixas_na_tela()
-            raise ErroPasso(f"não achei nenhuma música da lista na busca do Instagram (tentei {', '.join(nao_achadas)})"
-                            + (f"; a busca mostrou: {' | '.join(faixas)}" if faixas else ""))
+                self._salvar_tela(f"busca_musica_{self.letra}")
+            raise ErroPasso(f"a busca de música '{busca}' não trouxe nenhuma faixa")
+        entre = faixas[: max(1, int(self.cfg.get("musica_aleatoria_entre", 6)))]
+        escolhido = sortear(entre)
+        nome = self._nome_faixa(escolhido)
+        log.info("Letra %s: música sorteada entre %d da busca '%s': %s", self.letra, len(entre), busca, nome)
         escolhido.tocar()
         self._pausa()
         self._tocar("concluir_musica")
         self._esperar_editor("a música")
-        nome = f"{musica.get('nome')} ({musica.get('autor')})"
-        item = {"midia": m.get("nome"), "musica": nome, "na_tela": escolhido.texto}
-        if nao_achadas:
-            item["pedida"] = f"{pedida.get('nome')} ({pedida.get('autor')})"
-            res["avisos"].append(f"Letra {self.letra}, {m.get('nome')}: não achei {', '.join(nao_achadas)} na busca "
-                                  f"do Instagram; usei {nome}")
-            log.warning(res["avisos"][-1])
-        r.setdefault("musicas", []).append(item)
+        r.setdefault("musicas", []).append({"midia": m.get("nome"), "busca": busca, "musica": nome, "entre": len(entre)})
 
     def _conferir_figurinha(self, fig: dict) -> None:
         if self.tela.existe("figurinha_na_tela"):
@@ -1085,7 +1082,7 @@ def plano_sintetico(pasta: Path) -> dict:
         fotos.append(foto)
     peca = "Peça de Teste"
     midias = [{"nome": "T - 1", "arquivo": video.name, "caminho": str(video), "tipo": "video", "hash": midia.hash_arquivo(video),
-               "cores": ["Teste"], "precisa_musica": True, "musica": link.musica_para(0), "figurinha": None}]
+               "cores": ["Teste"], "precisa_musica": True, "musica": link.musica_sem_som(), "figurinha": None}]
     for i, foto in enumerate(fotos):
         ultima = i == len(fotos) - 1
         midias.append({"nome": foto.stem, "arquivo": foto.name, "caminho": str(foto), "tipo": "foto",

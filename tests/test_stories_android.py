@@ -289,10 +289,11 @@ def test_seletores_da_config_sao_validos_e_publicar_nunca_tem_plano_b(cfg):
         assert not any("coordenada_relativa" in alt for alt in seletores[chave]), chave
     usados = {"feed", "dispensar_aviso", "criar", "abrir_story", "abrir_galeria", "album_menu", "album_item",
               "selecionar_varios", "miniaturas_galeria", "badge_selecao", "contador_selecao", "avancar", "editor",
-              "miniaturas_editor", "musica", "figurinhas", "figurinha_musica", "buscar_musica", "escolher_musica",
+              "miniaturas_editor", "musica", "figurinhas", "figurinha_musica", "buscar_musica",
               "concluir_musica", "buscar_figurinha", "figurinha_link", "campo_url", "personalizar_texto",
               "campo_texto_figurinha", "confirmar_teclado", "concluir_figurinha", "figurinha_na_tela", "seu_story",
-              "enviar_busca_musica", "faixas_musica",
+              "enviar_busca_musica", "faixas_musica", "limpar_busca_musica", "popup_sugestao_teclado",
+              "itens_lista_album",
               "compartilhar_facebook_toggle", "interruptores", "concluir_publicacao", "descartar"}
     assert usados <= set(seletores)
     d = json.loads((Path(config.RAIZ) / "config" / "bluestacks.json").read_text(encoding="utf-8"))

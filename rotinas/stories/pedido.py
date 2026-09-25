@@ -103,24 +103,6 @@ def carregar_manifesto(data: str) -> dict:
         raise ErroPedido(f"manifesto.json inválido em {caminho}: {e}. Rode stories-preparar de novo.") from e
 
 
-def _musica_da_ident(valor, letra: str, problemas: list[str]):
-    """Índice (começa em 0) na lista ``audios_sem_som`` ou objeto ``{"nome", "autor", "busca"}``."""
-    if valor is None:
-        return None
-    audios = config.carregar("stories").get("audios_sem_som") or []
-    if isinstance(valor, int) and not isinstance(valor, bool):
-        if 0 <= valor < len(audios):
-            return dict(audios[valor])
-        opcoes = "; ".join(f"{i} = {a.get('nome')} ({a.get('autor')})" for i, a in enumerate(audios))
-        problemas.append(f"Letra {letra}: música {valor} não existe. Opções: {opcoes}")
-        return None
-    if isinstance(valor, dict) and (valor.get("busca") or valor.get("nome")):
-        m = {"nome": valor.get("nome") or valor.get("busca"), "autor": valor.get("autor") or "", "busca": valor.get("busca") or valor.get("nome")}
-        return {k: str(v) for k, v in m.items()}
-    problemas.append(f"Letra {letra}: música inválida {valor!r} (use o índice de audios_sem_som ou {{\"nome\", \"autor\", \"busca\"}})")
-    return None
-
-
 def validar_identificacao(manifesto: dict, identificacao: dict) -> dict:
     """Confere a identificação contra o manifesto e devolve a versão normalizada.
 
@@ -177,7 +159,8 @@ def validar_identificacao(manifesto: dict, identificacao: dict) -> dict:
         if info.get("peca"):
             item["peca"] = " ".join(str(info["peca"]).split())
         if info.get("musica") is not None:
-            item["musica"] = _musica_da_ident(info["musica"], letra, problemas)
+            problemas.append(f"Letra {letra}: tire \"musica\" da identificação: a música do vídeo sem som é sempre a "
+                             "busca 'fashion' com faixa escolhida ao acaso na tela (regra do usuário)")
         saida[letra] = item
     if problemas:
         raise ErroPedido("Identificação com problema (nada foi gravado na fila):\n- " + "\n- ".join(problemas), problemas)
@@ -360,18 +343,14 @@ def _sem_postagem_duplicada(data: str, letras: list[dict]) -> None:
         )
 
 
-def _musica_e_figurinha(letras: list[dict], ident: dict) -> None:
-    """Música nos vídeos sem som e figurinha na última mídia de cada letra que leva link (na ordem final)."""
-    i_musica = i_texto = 0
+def _musica_e_figurinha(letras: list[dict]) -> None:
+    """Música nos vídeos sem som (busca 'fashion', faixa ao acaso na tela) e figurinha na última mídia de cada letra
+    que leva link (na ordem final)."""
+    i_texto = 0
     for l in letras:
-        escolhida = ident[l["letra"]].get("musica")
         for m in l["midias"]:
             if m["precisa_musica"]:
-                if escolhida:
-                    m["musica"] = dict(escolhida)
-                else:
-                    m["musica"] = link.musica_para(i_musica)
-                    i_musica += 1
+                m["musica"] = link.musica_sem_som()
         if link.leva_link(l["categoria"]):  # ErroRegra (vestido de festa não confirmado) sobe com a mensagem
             l["midias"][-1]["figurinha"] = link.figurinha(l["peca"], i_texto)
             i_texto += 1
@@ -424,7 +403,7 @@ def montar(
         raise ErroPedido("Estoque/identificação com problema (nada foi gravado na fila):\n\n" + "\n\n".join(erros), erros)
 
     letras = ordenar(_sem_modelo_repetido(letras, permitir, cortes), ordem, avisos)
-    _musica_e_figurinha(letras, ident)
+    _musica_e_figurinha(letras)
     _conferir_arquivos(letras)
     _conferir_limite(letras)
     if postar and letras and not ensaio:

@@ -1,6 +1,5 @@
 import pytest
 
-from rotinas import config
 from rotinas.stories import link
 from rotinas.stories.link import ErroRegra
 
@@ -69,13 +68,12 @@ def test_rodizio_do_texto_da_figurinha(cfg):
     assert textos == ["Comprar", "Comprar agora", "Comprar pelo Whatsapp", "Comprar"]
 
 
-def test_rodizio_da_musica(cfg):
-    audios = config.carregar("stories")["audios_sem_som"]
-    assert link.musica_para(1) == audios[1]
-    assert link.musica_para(len(audios)) == audios[0]
-    m = link.musica_para(0)
-    m["nome"] = "mexido"
-    assert link.musica_para(0)["nome"] != "mexido"  # devolve cópia
+def test_musica_do_video_sem_som_e_busca_fashion_ao_acaso(cfg):
+    """Regra do usuário (25/09/2026): buscar "fashion" e escolher qualquer uma das faixas, ao acaso."""
+    assert link.musica_sem_som() == {"busca": "fashion", "escolha": "aleatoria"}
+    m = link.musica_sem_som()
+    m["busca"] = "mexido"
+    assert link.musica_sem_som()["busca"] == "fashion"  # devolve cópia
 
 
 def test_lista_vazia_na_config(cfg):

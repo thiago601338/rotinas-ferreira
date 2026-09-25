@@ -11,7 +11,7 @@ import types
 
 import pytest
 
-from rotinas import config, tarefas
+from rotinas import tarefas
 from rotinas.contexto import Contexto
 from rotinas.stories import link, pedido, postados
 from rotinas.stories.estoque import ClienteFalso, Produto
@@ -106,7 +106,7 @@ def test_cor_sem_estoque_corta_e_figurinha_vai_para_a_nova_ultima(ambiente):
     assert not a["midias"][1]["figurinha"]["url"].startswith("http")
     assert a["midias"][0]["cores"] == ["Verde"]  # grafia do cadastro
     assert a["midias"][0]["precisa_musica"] is True
-    assert a["midias"][0]["musica"] == config.carregar("stories")["audios_sem_som"][0]
+    assert a["midias"][0]["musica"] == {"busca": "fashion", "escolha": "aleatoria"}
     assert a["midias"][1]["musica"] is None
     corte = [c for c in plano["cortes"] if c["nome"] == "A - 3"][0]
     assert (corte["letra"], corte["motivo"], corte["detalhe"]) == ("A", "cor sem estoque", "Preto")
@@ -151,13 +151,13 @@ def test_excluir_midia(ambiente):
     assert plano["cortes"][0]["nome"] == "A - 3" and plano["cortes"][0]["detalhe"] == "tremida"
 
 
-def test_musica_escolhida_na_identificacao(ambiente):
+def test_musica_na_identificacao_e_recusada(ambiente):
+    """A música não é escolha da IA: é sempre a busca "fashion" com faixa ao acaso na tela."""
     manifesto(ambiente, {"A": ["video_mudo", "foto", "foto"]})
-    plano = pedido.montar(DATA, ident_a(musica=3), cliente=cliente())["plano"]
-    assert plano["letras"][0]["midias"][0]["musica"] == config.carregar("stories")["audios_sem_som"][3]
-    obj = {"nome": "Áudio original", "autor": "fulana", "busca": "fulana"}
-    plano = pedido.montar(DATA, ident_a(musica=obj), cliente=cliente())["plano"]
-    assert plano["letras"][0]["midias"][0]["musica"] == obj
+    for valor in (3, {"nome": "Áudio original", "autor": "fulana", "busca": "fulana"}):
+        with pytest.raises(ErroPedido, match="tire \"musica\" da identificação"):
+            pedido.montar(DATA, ident_a(musica=valor), cliente=cliente())
+    assert pendentes(ambiente) == []
 
 
 def test_video_com_audio_nao_recebe_musica(ambiente):
@@ -283,8 +283,7 @@ def test_ordem_por_categorias_e_rodizio(ambiente):
     assert fig["B"] is None  # vestido de festa: sem link (config false)
     assert all(m["figurinha"] is None for l in plano["letras"] for m in l["midias"][:-1])
     assert [fig[x]["texto"] for x in ("C", "A", "D")] == ["Comprar", "Comprar agora", "Comprar pelo Whatsapp"]
-    audios = config.carregar("stories")["audios_sem_som"]
-    assert [l["midias"][0]["musica"] for l in plano["letras"][:3]] == audios[:3]
+    assert all(l["midias"][0]["musica"] == {"busca": "fashion", "escolha": "aleatoria"} for l in plano["letras"][:3])
 
 
 def test_ordem_por_letras(ambiente):
@@ -362,12 +361,6 @@ def test_cor_inexistente_vira_erro_sem_cortar(ambiente):
     with pytest.raises(ErroPedido, match="Letra A"):
         pedido.montar(DATA, ident, cliente=cliente())
     assert pendentes(ambiente) == []
-
-
-def test_musica_invalida(ambiente):
-    manifesto(ambiente, {"A": ["video_mudo", "foto", "foto"]})
-    with pytest.raises(ErroPedido, match="música 99 não existe"):
-        pedido.montar(DATA, ident_a(musica=99), cliente=cliente())
 
 
 def _foto_da_pasta_do_dia(cfg, data=DATA):

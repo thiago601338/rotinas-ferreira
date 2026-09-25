@@ -14,7 +14,7 @@ from rotinas.stories import android, bluestacks, postados
 
 LETRAS_POSTADAS = postados.letras_postadas  # a de verdade (o ``ambiente`` troca por um dublê)
 URL = "wa.me/5582988748649?text=Quero+comprar+o+Vestido+Midi+Al%C3%A7a"
-MUSICA = {"nome": "Áudio original", "autor": "petermarkoski", "busca": "petermarkoski"}
+MUSICA = {"busca": "fashion", "escolha": "aleatoria"}
 
 
 # ---------------------------------------------------------------- montagem
@@ -148,6 +148,29 @@ def test_sem_diagnostico_toque_que_nao_pega_nao_gera_print_extra(ambiente):
     res = rodar(a, montar_plano(a.midias, {"A": ["video_mudo", "foto"]}), ensaio=True)
     assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
     assert not list(a.ctx.pasta_saida.glob("selecao_*"))
+
+
+def test_pasta_da_letra_fora_da_vista_rola_a_lista_dentro_do_menu(ambiente):
+    """Como no ensaio sintético de 25/09 19:25: a pasta não apareceu em "Todos os álbuns" sem rolar."""
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.album_via_todos = True
+    a.tela.album_rolagens = 2
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto", "foto"]}, ensaio=False), ensaio=False)
+    assert res["publicadas"] == ["A"] and a.tela.publicacoes[0]["album"] == "2026-09-22_A"
+    assert a.tela.toques.count("rolar") == 2
+    assert all(24 <= (x0 + x1) / 2 <= 434 for x0, _, x1, _ in a.tela.rolados)  # arrasto dentro do menu
+
+
+def test_pasta_que_nunca_aparece_rola_no_maximo_4_vezes_e_salva_print(ambiente):
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.album_via_todos = True
+    a.tela.album_rolagens = 99
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True, diagnostico=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"] and res["letras"][0].get("recuo_recentes")
+    assert a.tela.toques.count("rolar") == 4
+    assert (a.ctx.pasta_saida / "album_A_nao_achado.png").is_file()
 
 
 def test_selecao_ja_ligada_nao_e_desligada(ambiente):
@@ -430,7 +453,8 @@ def test_figurinha_so_na_ultima_e_musica_so_nos_videos_mudos(ambiente):
     a = ambiente
     rodar(a, montar_plano(a.midias, PADRAO, ensaio=False), ensaio=False)
     pa, pb, pc = a.tela.publicacoes
-    assert [m["musica"] for m in pa["midias"]] == ["Áudio original | petermarkoski", None, None]
+    musicas_da_busca = {f"{t} | {au}" for t, au in a.tela.resultados_musica}
+    assert pa["midias"][0]["musica"] in musicas_da_busca and [m["musica"] for m in pa["midias"][1:]] == [None, None]
     assert [bool(m["figurinha"]) for m in pa["midias"]] == [False, False, True]
     assert [m["musica"] for m in pb["midias"]] == [None, None]  # vídeo com som não recebe música
     assert [bool(m["figurinha"]) for m in pb["midias"]] == [False, True]
@@ -650,74 +674,87 @@ def test_mov_nao_vai_para_a_galeria(ambiente):
         rodar(a, plano)
 
 
-def _plano_video_com_musica(a, indice=0):
-    plano = montar_plano(a.midias, {"A": ["video_mudo", "foto"]})
+def _plano_video_com_musica(a):
     from rotinas.stories import link
 
-    plano["letras"][0]["midias"][0]["musica"] = link.musica_para(indice)
+    plano = montar_plano(a.midias, {"A": ["video_mudo", "foto"]})
+    plano["letras"][0]["midias"][0]["musica"] = link.musica_sem_som()
     return plano
 
 
-def test_busca_de_musica_aperta_a_tecla_de_busca(ambiente):
-    """Como no ensaio sintético de 25/09 19:08: o texto ficou no campo e a lista não mudou (resultados só com a
-    tecla de busca do teclado)."""
+def test_musica_busca_fashion_aperta_a_tecla_de_busca_e_sorteia_uma_faixa(ambiente, monkeypatch):
+    """Regra do usuário (25/09/2026): buscar "fashion" e escolher ao acaso qualquer uma das faixas. Como no ensaio
+    de 25/09 19:08, os resultados só vêm com a tecla de busca do teclado."""
     a = ambiente
     a.tela.busca_exige_enter = True
-    res = rodar(a, _plano_video_com_musica(a, 0), ensaio=True)
+    sorteios = []
+    monkeypatch.setattr(bluestacks, "sortear", lambda faixas: sorteios.append(faixas) or faixas[2])
+    res = rodar(a, _plano_video_com_musica(a), ensaio=True)
     assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert [t for c, t in a.tela.digitados if c == "buscar_musica"] == ["fashion"]
     assert "enviar_busca_musica" in a.tela.toques
-    assert res["letras"][0]["musicas"][0]["musica"] == "I know what you want (Madison Beer/Calley)"
-    assert not res["avisos"]
-
-
-def test_musica_que_nao_aparece_usa_a_proxima_da_lista_com_aviso(ambiente):
-    a = ambiente
-    a.tela.musicas_fora = {"Madison Beer, Calley"}
-    res = rodar(a, _plano_video_com_musica(a, 0), ensaio=True)
-    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    titulo, autor = a.tela.resultados_musica[2]
+    assert f"musica:{titulo}|{autor}" in a.tela.toques
     (musica,) = res["letras"][0]["musicas"]
-    assert musica["musica"] == "Áudio original (petermarkoski)"  # a seguinte em audios_sem_som
-    assert musica["pedida"] == "I know what you want (Madison Beer/Calley)"
-    assert any("não achei 'I know what you want'" in x and "usei Áudio original (petermarkoski)" in x
-               for x in res["avisos"])
-    assert [t for c, t in a.tela.digitados if c == "buscar_musica"][:2] == ["I know what you want Madison Beer",
-                                                                            "petermarkoski"]
+    assert musica == {"midia": "A - 1", "busca": "fashion", "musica": f"{titulo} de {autor}",
+                      "entre": len(sorteios[0])}
 
 
-def test_nenhuma_musica_da_lista_na_busca_para_e_mostra_o_que_apareceu(ambiente):
+def test_sorteio_so_entre_as_primeiras_faixas_que_cabem_na_tela(ambiente, monkeypatch):
     a = ambiente
-    a.tela.musicas_fora = {autor for _, autor in a.tela.resultados_musica if autor != "LAVLO"}
-    with pytest.raises(bluestacks.ErroPostagem) as e:
-        rodar(a, _plano_video_com_musica(a, 3), ensaio=True, diagnostico=True)
-    msg = str(e.value)
-    assert "não achei nenhuma música da lista" in msg and "a busca mostrou: I Like That de LAVLO" in msg
-    assert len([c for c, _ in a.tela.digitados if c == "buscar_musica"]) == 5  # as 5 da lista, cada uma uma vez
-    assert (a.ctx.pasta_saida / "busca_musica_A_5.png").is_file()
+    a.tela.resultados_musica = [(f"Faixa {k}", f"Autor {k}") for k in range(10)]
+    sorteios = []
+    monkeypatch.setattr(bluestacks, "sortear", lambda faixas: sorteios.append(faixas) or faixas[-1])
+    res = rodar(a, _plano_video_com_musica(a), ensaio=True)
+    assert [bluestacks.Postador._nome_faixa(e) for e in sorteios[0]] == [f"Faixa {k} de Autor {k}" for k in range(6)]
+    assert res["letras"][0]["musicas"][0]["musica"] == "Faixa 5 de Autor 5"
+
+
+def test_sorteio_de_verdade_escolhe_uma_das_faixas(ambiente):
+    a = ambiente
+    res = rodar(a, _plano_video_com_musica(a), ensaio=True)
+    nomes = {f"{t} de {au}" for t, au in a.tela.resultados_musica[:6]}
+    assert res["letras"][0]["musicas"][0]["musica"] in nomes
+
+
+def test_nome_da_faixa_pela_descricao_do_instagram():
+    from rotinas.stories.android import Elemento
+
+    el = Elemento(descricao="Selecionar faixa All Night Long (Instrumental) de Tony Dark Eyes,sem royalties,1:58")
+    assert bluestacks.Postador._nome_faixa(el) == "All Night Long (Instrumental) de Tony Dark Eyes"
+
+
+def test_busca_lembrada_e_limpa_antes_de_digitar(ambiente):
+    """Como no ensaio de 25/09 19:25: digitar sobre a palavra sublinhada que estava no campo abriu o balão de correção
+    do teclado, que cobriu a busca."""
+    a = ambiente
+    a.tela.busca_lembrada = "neetunomusic"
+    a.tela.sugestao_ao_redigitar = True
+    res = rodar(a, _plano_video_com_musica(a), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert a.tela.toques.count("limpar_busca_musica") == 1
+    i = a.tela.toques.index("musica")
+    j = next(k for k, t in enumerate(a.tela.toques) if t.startswith("musica:"))
+    assert "voltar" not in a.tela.toques[i:j]
+
+
+def test_balao_de_correcao_depois_de_digitar_e_fechado_com_voltar(ambiente):
+    a = ambiente
+    a.tela.popup_apos_digitar = 1
+    res = rodar(a, _plano_video_com_musica(a), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    i = a.tela.toques.index("musica")
+    j = next(k for k, t in enumerate(a.tela.toques) if t.startswith("musica:"))
+    assert a.tela.toques[i:j].count("voltar") == 1  # só o balão foi fechado; a busca seguiu aberta
+
+
+def test_busca_sem_nenhuma_faixa_para_sem_publicar(ambiente):
+    a = ambiente
+    a.tela.musicas_fora = {autor for _, autor in a.tela.resultados_musica}
+    with pytest.raises(bluestacks.ErroPostagem, match="não trouxe nenhuma faixa"):
+        rodar(a, _plano_video_com_musica(a), ensaio=True, diagnostico=True)
+    assert (a.ctx.pasta_saida / "busca_musica_A.png").is_file()
     assert a.tela.publicacoes == []
-
-
-def test_opcoes_de_musica_comecam_pela_pedida_e_seguem_a_lista(cfg):
-    from rotinas.stories import link
-
-    pedida = link.musica_para(3)
-    nomes = [(o["nome"], o["autor"]) for o in bluestacks.Postador._opcoes_musica(pedida)]
-    lista = [(o["nome"], o["autor"]) for o in (link.musica_para(k) for k in range(5))]
-    assert nomes == [lista[3], lista[4], lista[0], lista[1], lista[2]]
-    fora = {"nome": "Outra", "autor": "alguém", "busca": "outra"}  # escolhida pela IA, fora da lista
-    assert [o["nome"] for o in bluestacks.Postador._opcoes_musica(fora)][:2] == ["Outra", lista[0][0]]
-
-
-def test_escolher_musica_pelo_autor_na_mesma_linha():
-    textos = TelaFalsa().resultados_musica
-    tela = TelaFalsa()
-    tela.estado, tela.busca = "musica", "x"
-    grade = tela.grade("escolher_musica")
-    assert len(grade) == 2 * len(textos)
-    el = bluestacks.escolher_resultado_musica(grade, "Áudio original", "petermarkoski")
-    assert el.texto == "Áudio original" and el.limites[1] == 300 + 160 * textos.index(("Áudio original", "petermarkoski"))
-    el = bluestacks.escolher_resultado_musica(grade, "I know what you want", "Madison Beer/Calley")
-    assert el.texto == "I Know What You Want"
-    assert bluestacks.escolher_resultado_musica(grade, "Áudio original", "enfermeira_vitoria0") is None
 
 
 # ---------------------------------------------------------------- entradas (tarefa, cli, testes do PC)

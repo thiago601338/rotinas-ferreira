@@ -22,7 +22,7 @@ def plano(ensaio=True):
         "ordem": "letras",
         "letras": [
             {"letra": "A", "sku": "FB-0123", "peca": "Vestido Midi Alça", "categoria": "Vestidos", "midias": [
-                m("A - 1", "video", musica={"nome": "Áudio original", "autor": "petermarkoski", "busca": "petermarkoski"}),
+                m("A - 1", "video", musica={"busca": "fashion", "escolha": "aleatoria"}),
                 m("A - 2"),
                 m("A - 4", figurinha={"url": URL_A, "texto": "Comprar agora"}),
             ]},
@@ -99,7 +99,7 @@ def test_texto_plano(cfg):
     assert t.startswith("Stories de 22/09/2026 — ENSAIO")
     assert "Vai subir: 2 letras, 5 mídias" in t
     assert '- A · Vestido Midi Alça (FB-0123): 3 mídias; link na A - 4 ("Comprar agora")' in t
-    assert "música na A - 1: Áudio original (petermarkoski)" in t
+    assert "música na A - 1: busca 'fashion', faixa ao acaso" in t
     assert "- B · Vestido Longo de Festa (FB-0200): 2 mídias; sem link (vestido de festa)" in t
     assert "A - 3 com cor sem estoque (Preto), avisar se repor" in t
     assert "- C · Conjunto Linho: modelo FB-0300 já postado em 20/09/2026, letra B (B - 2.jpg)" in t

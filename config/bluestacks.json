@@ -307,14 +307,25 @@
         "className": "android.widget.EditText"
       }
     ],
+    "limpar_busca_musica": [
+      {
+        "description": "Limpar texto"
+      }
+    ],
+    "popup_sugestao_teclado": [
+      {
+        "text": "ADICIONAR AO DICIONÁRIO"
+      },
+      {
+        "textContains": "DICIONÁRIO"
+      },
+      {
+        "textContains": "dicionário"
+      }
+    ],
     "enviar_busca_musica": [
       {
         "tecla": "enter"
-      }
-    ],
-    "escolher_musica": [
-      {
-        "className": "android.widget.TextView"
       }
     ],
     "faixas_musica": [
@@ -490,6 +501,11 @@
         "text": "Cancelar"
       }
     ],
+    "itens_lista_album": [
+      {
+        "resourceId": "com.instagram.android:id/context_menu_item"
+      }
+    ],
     "album_todos": [
       {
         "text": "Todos os álbuns"
@@ -509,6 +525,11 @@
   "tentativas_selecao": 3,
   "_entrar_no_story": "Depois de tocar 'criar', espera até espera_abrir_story_s pela aba 'Story', pela galeria ou pela câmera; se a tela continuar no feed (toque ignorado com o feed carregando), toca de novo, até tentativas_criar vezes.",
   "espera_abrir_story_s": 8,
+  "_album": "Depois de 'Todos os álbuns', espera espera_lista_albuns_s pela pasta da letra; se não aparece, rola a lista (arrasto dentro dos itens do menu, itens_lista_album) até max_rolagens_album vezes.",
+  "espera_lista_albuns_s": 4,
+  "max_rolagens_album": 4,
+  "_musica": "Música do vídeo sem som: busca de config/stories.json (musica_sem_som, 'fashion') e sorteio entre as musica_aleatoria_entre primeiras faixas (as que cabem na tela acima do teclado).",
+  "musica_aleatoria_entre": 6,
   "tentativas_criar": 3,
   "_sintetico_video_ffmpeg": "Argumentos do ffmpeg (antes do arquivo de saída) do vídeo da letra de teste do 'testar.bat stories-ensaio --sintetico'. Imita vídeo de celular: H.264 Main sem B-frames, áudio AAC em silêncio, faststart. Em 25/09 o H.264 High com B-frames e sem áudio ficou cinza na galeria do BlueStacks e não selecionava.",
   "sintetico_video_ffmpeg": [
