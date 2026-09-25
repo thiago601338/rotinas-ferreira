@@ -16,10 +16,11 @@ Complementa `edicao-video-capcut.md`. Origem: mapeamento feito no PC do usuário
 | pyCapCut (v0.0.3, 08/2025) | Python: modo modelo (troca mídia e texto), mídia, animações, efeitos, filtros, máscaras, keyframes, fades | só rascunho não criptografado; módulos "em migração" |
 | pyJianYingDraft | o mesmo, para JianYing | foco no JianYing |
 | capcut-mcp | lista rascunhos, lê a linha do tempo, adiciona, move, apara e divide clipes, texto e áudio; salva com backup `.mcpbak`; aceita `CAPCUT_DRAFTS_DIR` | CapCut fechado; efeitos e transições são "melhor esforço"; texto exige modelo com camada de texto |
-| capcut-cli (v0.17.x, 08/2026) | CLI determinística: detecta criptografia, testada com 8.7 e 9.x, importa OpenTimelineIO, gera rascunhos em lote | não descriptografa |
+| capcut-cli (v0.26.0 em 25/09/2026; era 0.17.x em 08/2026) | CLI determinística (Node): detecta criptografia, testada com 8.7 e 9.x, importa OpenTimelineIO, gera rascunhos em lote, registra no `root_meta_info.json`; tem `lint` | não descriptografa; duração do material errada (usa a do trecho) |
 | capcut-ai-editor | remove silêncios e tomadas repetidas de vídeo falado e gera projeto | foco em vídeo de "cabeça falante" |
 
 - **Nenhuma exporta MP4** e não existe API oficial.
+- Avaliação rodada de cada uma e a decisão (gerador próprio sobre o gabarito "0925", `rotinas/video/rascunho.py`): `capcut-avaliacao-ferramentas.md`.
 - Regras: CapCut fechado ao gravar, backup antes, validação antes de salvar. Depois, abrir no app, revisar e exportar.
 
 ## Exportação (modal "Exportar-<nome do projeto>", Ctrl+E)

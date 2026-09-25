@@ -1,0 +1,206 @@
+{
+  "_comentario": "Rascunho do CapCut (B3) e exportação (B4). Formato e decisões em conhecimento/capcut-avaliacao-ferramentas.md. O gabarito real é o projeto '0925' do PC (vem no diagnóstico); enquanto não chega, os testes usam tests/dados/gabarito_provisorio/.",
+  "versao_capcut": "9.5",
+  "processo": "CapCut.exe",
+  "gabarito_projeto": "0925",
+  "gabarito_pasta": "gabaritos/capcut-9.5",
+  "gabarito_procurar_execucoes": true,
+  "gabarito_usar_projeto_do_pc": true,
+  "arquivos_linha_do_tempo": [
+    "draft_info.json",
+    "draft_content.json",
+    "template-2.tmp"
+  ],
+  "arquivo_meta": "draft_meta_info.json",
+  "arquivo_indice": "root_meta_info.json",
+  "timelines": "omitir",
+  "_timelines": "omitir: não leva a pasta Timelines/ do gabarito (o app monta a dele a partir dos arquivos da raiz, relatado na 8.4 e 9.3); espelhar: recria Timelines/<id>/ com a linha do tempo nova",
+  "registrar_no_indice": "auto",
+  "_registrar_no_indice": "auto: registra no root_meta_info.json só se ele existir na pasta de rascunhos e já listar projetos; sempre; nunca",
+  "nao_copiar": [
+    "Timelines",
+    ".locked",
+    "draft_cover.jpg",
+    ".DS_Store",
+    "*.bak",
+    "*.mcpbak",
+    "*.snap",
+    ".capcut-cli-history",
+    ".rotinas-tmp-*"
+  ],
+  "extensoes_midia": [
+    ".mp4",
+    ".mov",
+    ".m4v",
+    ".3gp",
+    ".mkv",
+    ".avi",
+    ".webm",
+    ".mp3",
+    ".wav",
+    ".m4a",
+    ".aac",
+    ".flac",
+    ".ogg",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+    ".gif",
+    ".heic",
+    ".heif"
+  ],
+  "max_mb_arquivo_auxiliar": 5,
+  "ids_maiusculos": true,
+  "separador_caminho": "auto",
+  "tipo_audio_local": "extract_music",
+  "foto_duracao_us": 10800000000,
+  "omitir_materiais": [
+    "transitions",
+    "video_effects",
+    "effects",
+    "filters",
+    "audio_effects",
+    "stickers",
+    "text_templates",
+    "masks",
+    "common_mask",
+    "flowers",
+    "handwrites",
+    "chromas",
+    "green_screens",
+    "digital_humans",
+    "ai_translates",
+    "plugin_effects",
+    "hsl",
+    "color_curves",
+    "primary_color_wheels",
+    "log_color_wheels",
+    "manual_deformations",
+    "shapes",
+    "smart_relights",
+    "video_trackings",
+    "tail_leaders",
+    "drafts"
+  ],
+  "limpar_campos_origem": [
+    "resource_id",
+    "third_resource_id",
+    "category_id",
+    "effect_id",
+    "formula_id",
+    "request_id",
+    "search_id",
+    "query",
+    "source_from",
+    "video_id",
+    "text_id",
+    "music_source",
+    "pgc_id",
+    "pgc_name",
+    "material_url",
+    "origin_material_id",
+    "local_id",
+    "team_id",
+    "aigc_history_id",
+    "aigc_item_id",
+    "intensifies_path",
+    "intensifies_audio_path",
+    "reverse_path",
+    "reverse_intensifies_path"
+  ],
+  "texto_px_por_unidade": 3.0,
+  "_texto_px_por_unidade": "PROVISÓRIO: pixels de altura do texto no quadro 1080×1920 por unidade de 'size' do CapCut (aproximação do capcut-cli: altura/640). Calibrar com a régua (edicao-video-capcut.md §5) e o gabarito real. Vale só para 9:16: no feed 1080×1350 não se sabe se o 'size' acompanha a altura ou a largura do canvas (calibrar também).",
+  "estilos_texto": {
+    "padrao": {
+      "cor": "#FFFFFF",
+      "negrito": true,
+      "contorno_cor": "#000000",
+      "contorno_largura": 40,
+      "alinhamento": 1
+    },
+    "gancho": {
+      "cor": "#FFFFFF",
+      "negrito": true,
+      "contorno_cor": "#000000",
+      "contorno_largura": 40,
+      "alinhamento": 1
+    },
+    "legenda": {
+      "cor": "#FFFFFF",
+      "negrito": true,
+      "contorno_cor": "#000000",
+      "contorno_largura": 40,
+      "alinhamento": 1
+    },
+    "preco": {
+      "cor": "#FFFFFF",
+      "negrito": true,
+      "contorno_cor": "#000000",
+      "contorno_largura": 40,
+      "alinhamento": 1
+    },
+    "cta": {
+      "cor": "#FFFFFF",
+      "negrito": true,
+      "contorno_cor": "#000000",
+      "contorno_largura": 40,
+      "alinhamento": 1
+    },
+    "contador": {
+      "cor": "#FFFFFF",
+      "negrito": true,
+      "contorno_cor": "#000000",
+      "contorno_largura": 40,
+      "alinhamento": 1
+    },
+    "titulo": {
+      "cor": "#FFFFFF",
+      "negrito": true,
+      "contorno_cor": "#000000",
+      "contorno_largura": 40,
+      "alinhamento": 1
+    },
+    "regancho": {
+      "cor": "#FFFFFF",
+      "negrito": true,
+      "contorno_cor": "#000000",
+      "contorno_largura": 40,
+      "alinhamento": 1
+    },
+    "rotulo": {
+      "cor": "#FFFFFF",
+      "negrito": true,
+      "contorno_cor": "#000000",
+      "contorno_largura": 40,
+      "alinhamento": 1
+    }
+  },
+  "legenda_padrao": {
+    "x": 540,
+    "y": 1100,
+    "tamanho_px": 64,
+    "estilo": "legenda"
+  },
+  "nome_padrao": "{projeto} {data}",
+  "backup_max_mb_por_arquivo": 200,
+  "teste_real": {
+    "pasta_trabalho": "teste-rascunho",
+    "duracao_s": 5,
+    "largura": 1080,
+    "altura": 1920,
+    "fps": 30,
+    "nome": "Teste Rotinas {carimbo}"
+  },
+  "exportacao": {
+    "pasta": "exportado",
+    "pastas_extra": [
+      "%LOCALAPPDATA%\\CapCut\\Videos"
+    ],
+    "_pastas_extra": "pasta padrão do 'Exportar para' do CapCut (o mapeamento só mostrou o começo: C:/Users/V15/AppData/Local/CapCut…); confirmar no PC",
+    "estavel_s": 5,
+    "intervalo_s": 1,
+    "espera_max_min": 30,
+    "aceitar_outro_nome": true
+  }
+}
