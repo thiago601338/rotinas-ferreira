@@ -1,0 +1,100 @@
+---
+name: editar-video-ferreira
+description: Editar vídeo da Ferreira Boutique (Reels, Stories, TikTok) com rascunho do CapCut gerado por script a partir de receitas — prepara o bruto, a IA escolhe receita, tomadas e textos, o script monta o rascunho e confere o arquivo exportado. Usar quando o usuário pedir para editar, montar ou conferir um vídeo da loja no CapCut.
+---
+
+# Editar vídeo — Ferreira Boutique (CapCut 9.5)
+
+Você (IA no Cowork) só lê e grava arquivos nas pastas do PC; quem executa é o **vigia** no Windows. Pedido JSON em
+`C:\Users\V15\Documents\Rotinas Ferreira\fila\pendente\`, resultado em `fila\feito\` ou `fila\erro\` — formato e
+exemplos em `...\Rotinas Ferreira\sistema\fila\README.md`. Guia completo de edição (vale por inteiro):
+`...\sistema\conhecimento\edicao-video-capcut.md`; rascunho e exportação: `capcut-rascunho-e-exportacao.md` e
+`capcut-avaliacao-ferramentas.md` na mesma pasta.
+
+## Quando usar
+"Edita esse vídeo do vestido verde para Reels", "monta um provador com preço", "confere o vídeo exportado".
+
+## Pré-requisitos (pedir ao usuário UMA coisa por vez, com o passo exato)
+- Vigia vivo (`fila\vigia.vivo` muda entre duas leituras); parado → dois cliques em `...\sistema\atualizar.bat`.
+- Bruto copiado **sem compressão** (cabo, Drive, Quick Share; nunca WhatsApp) para
+  `C:\Users\V15\Documents\Rotinas Ferreira\videos\bruto\<projeto>\` (projeto = nome curto, ex. `vestido-verde`).
+- Faixa-guia (se a receita corta na batida) em `...\videos\musicas\` ou no próprio bruto.
+- **CapCut fechado** quando for gerar o rascunho.
+
+## Como pedir e esperar
+Gravar `fila\pendente\<id>.json.tmp` e renomear para `<id>.json`: `{"id", "tipo", "args", "ensaio": false,
+"diagnostico": false, "criado_em": "<ISO com fuso>", "origem": "cowork"}` (`id` = nome do arquivo, nunca reutilizar).
+Ler `fila\feito\<id>.json` ou `fila\erro\<id>.json` a cada ~10 s (só aparece quando terminou).
+
+## Passo a passo (o que é script e o que você decide)
+**1. Preparar o bruto** — `tipo: "video.preparar"`, `args: {"projeto": "vestido-verde", "musica": "guia.mp3"}`
+   (`musica` só se houver faixa-guia; fps variável → `"normalizar_vfr": true`).
+   - Script: inventário com avisos (HDR, fps variável, 25/50 fps, horizontal, baixa resolução, sem áudio), tomadas
+     `T01…`, silêncios, transcrição local + legendas `.srt`, batidas, folhas de contato.
+   - Você lê `videos\trabalho\<projeto>\bruto.json` e olha SÓ as folhas `videos\trabalho\<projeto>\folhas\tomadas-NN.jpg`.
+   - Aviso grave do bruto (HDR, peça com cor errada, sem a tomada que a receita exige) → dizer ao usuário em uma linha.
+**2. Escolher receita, tomadas e textos** — **você decide** (objetivo, destino, duração; guia §3–§5 e §4.4):
+   | receita | para | duração |
+   |---|---|---|
+   | r01 troca de look na batida · r02 provador com preço · r04 detalhe que vende · r07 antes e depois · r09 congela e recorta | vender | 6–25 s |
+   | r03 uma peça, três formas | ensinar | 20–35 s |
+   | r05 photo dump · r06 vitrine cinematográfica · r10 velocity de passarela · r11 embalando seu pedido | inspirar | 8–30 s |
+   | r08 clone indecisa · r12 escolha o look | divertir | 10–15 s |
+   Os papéis de cada bloco estão em `...\sistema\receitas\<id>.json` (`estrutura`). Preço: `stories.estoque` com o SKU
+   (`args: {"consultas": [{"sku": "FB-0123"}]}`) → campo `preco` do produto.
+**3. Planejar** — `tipo: "video.planejar"`, `args`:
+   ```json
+   {"projeto": "vestido-verde", "receita": "r02",
+    "escolhas": {"destino": "reels", "sku": "FB-0123", "preco": 229.99, "cta": "Chama no WhatsApp", "legendas": true,
+      "blocos": [
+        {"papel": "gancho", "tomada": "T03", "ini_s": 0.4, "fim_s": 1.6, "texto": "Esse verde esgota rápido"},
+        {"papel": "prova", "tomada": "T05"}, {"papel": "prova", "tomadas": ["T07", "T08"]},
+        {"papel": "detalhe", "tomada": "T10"}, {"papel": "bolso", "tomada": "T11", "texto": "bolso embutido"},
+        {"papel": "preco", "tomada": "T02"}]}}
+   ```
+   - `ini_s/fim_s` são tempos **do arquivo** dentro da tomada; `"tomadas": [...]` seguidas juntam uma tomada picotada.
+   - Script: monta a linha do tempo, corta na batida, põe textos na zona segura, preço "R$229,99" + "3x sem juros",
+     legendas retimadas, volumes; **valida** (gancho no quadro 1, ritmo 1–3 s, zona segura, tempo e tamanho de texto,
+     orçamento de efeitos, ≤ 3 flashes/s, duração do destino). Violação → erro com a lista: corrigir as escolhas e repetir.
+**4. Gerar o rascunho** — `tipo: "video.rascunho"`, `args: {"projeto": "vestido-verde"}` (CapCut fechado). Script:
+   backup, rascunho novo (nunca sobrescreve; nome repetido vira "(2)") e `relatorio_rascunho.txt` com o que fica para
+   o acabamento manual (efeitos/transições da biblioteca, quadro congelado, faixa-guia muda).
+**5. Acabamento e exportação** — `tipo: "video.exportar"`, `args: {"projeto": "vestido-verde", "destino": "reels"}`.
+   O script grava `videos\trabalho\<projeto>\instrucoes_exportacao.txt` (preset do destino, nome e pasta do arquivo) e
+   **espera** o `.mp4` aparecer. Passe ao usuário as instruções + a lista do acabamento manual. Ele abre o projeto no
+   CapCut, faz o acabamento e exporta (Ctrl+E).
+**6. Conferir** — o próprio `video.exportar` confere quando o arquivo chega (ou `tipo: "video.conferir"`,
+   `args: {"arquivo": "<nome>.mp4", "destino": "reels", "duracao_esperada_s": 18.5}`): duração, 1080×1920, fps,
+   H.264, taxa de bits, áudio, −14 LUFS, pico ≤ −1 dBTP, tamanho (stories ~100 MB), SDR. Relatório em `texto`.
+
+## Regras fixas (resumo; detalhes no guia)
+- O produto manda: nada cobre a peça nem muda cor/caimento; um plano com cor real; cor fiel ao cadastro.
+- Gancho no quadro 1 (texto 3–7 palavras em y 300–700); mudança visual a cada 1–3 s; CTA ≤ 2 s.
+- Texto e figurinhas no retângulo seguro x 80–920, y 280–1400 (stories: nada nos 270 px de cima nem nos 380 de baixo).
+- Preço "R$229,99" (cifrão colado), igual ao cadastro; parcelas: até R$149,99 em 2x, até R$319,98 em 3x, acima em 5x,
+  sem juros. Só cores e tamanhos com estoque.
+- Música: exportar sem música do CapCut e pôr no Instagram (ou faixa licenciada). Item da biblioteca do CapCut só com
+  marca "comercial" — um item não comercial restringe o vídeo inteiro. Decisão final é do dono.
+- Mix ≈ −14 LUFS (o CapCut do usuário está em −23 LUFS: subir o ganho). Exportar `.mp4` H.264 1080×1920 30 fps.
+- Não mudar configurações do CapCut sem o dono pedir. Nunca Ctrl+Q nem Menu > Conta.
+- Não dar conselho de SEO nem sugerir mudança de escopo.
+
+## Aviso final ao usuário (curto)
+```
+Rascunho "Vestido verde – R02" pronto no CapCut (18,5 s, Reels).
+Falta à mão: lupa no tecido (0:07), seta no bolso (0:10). Exportar: Personalizado 16.000 Kbps, H.264, mp4, 30 fps,
+nome "vestido-verde_reels.mp4" em Rotinas Ferreira\videos\exportado.
+Conferência: APROVADO (ou: volume −22 LUFS → subir ~8 dB no clipe e exportar de novo).
+```
+
+## Erros conhecidos e solução
+| Erro | Solução |
+|---|---|
+| "CapCut aberto" | Pedir para fechar o CapCut (Menu ▾ > Sair, não Ctrl+Q no meio da edição sem salvar) e repetir com outro id. |
+| "Gabarito do CapCut não encontrado" | Pedir `diagnostico.bat` (copia o projeto "0925"). |
+| Violação no plano | Corrigir as escolhas (tomada mais curta/longa, texto menor, outro papel) e planejar de novo. |
+| "ini_s fora da tomada" | Os tempos são do arquivo: conferir `ini_s`/`fim_s` da tomada no `bruto.json`. |
+| "Música … não encontrada" | Pôr a faixa em `videos\musicas\` ou passar o caminho completo. |
+| Sem transcrição (faster-whisper/modelo) | Seguir sem legendas ou pedir `atualizar.bat`; o modelo baixa no primeiro uso (~480 MB). |
+| Conferência reprovada em áudio/volume com música pelo Instagram | Esperado: o arquivo sai mudo de propósito; ignorar esses itens. |
+| Mídia perdida ao abrir o rascunho | Não mover/renomear o bruto depois do rascunho; se aconteceu, avisar e gerar de novo. |

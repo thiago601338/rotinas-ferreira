@@ -506,6 +506,9 @@ def test_tarefa_real_publica(sem_emulador):
     ctx = Contexto(a.ctx.pasta_saida / "pedido", ensaio=False, id_pedido="p2")
     res = bluestacks.tarefa({"plano": montar_plano(a.midias, {"A": ["foto"]}, ensaio=False)}, ctx)
     assert res["publicadas"] == ["A"] and a.registros[0]["pedido"] == "p2"
+    # a IA do Cowork não roda comandos: o aviso e o JS de conferência vêm prontos no resultado
+    assert "CONFERE" in res["js_conferencia"] and "slice(-" in res["js_conferencia"]
+    assert res["relatorio"] and (ctx.pasta_saida / "relatorio.txt").exists()
 
 
 def test_cli_padrao_e_ensaio_e_real_precisa_de_flag(sem_emulador, cfg, capsys):

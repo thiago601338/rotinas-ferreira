@@ -33,4 +33,9 @@ Todo erro resolvido e toda regra nova do usuário entram, **no mesmo commit**, n
 - `conhecimento/stories.md` — todas as regras de postagem de stories (obrigatórias).
 - `conhecimento/edicao-video-capcut.md` — guia de edição no CapCut do usuário: mapa real da interface, atalhos, receitas de moda, cor, áudio, exportação, checklist, zonas seguras, rascunho em JSON (§11).
 - `conhecimento/capcut-rascunho-e-exportacao.md` — formato do rascunho da 9.x, ferramentas comunitárias e seus limites, modal de exportação com posições e bloqueios.
-- `.claude/skills/` — skills das rotinas (criar conforme o `BRIEFING.md` §7).
+- `conhecimento/capcut-avaliacao-ferramentas.md` — avaliação rodada de pyCapCut, VectCutAPI, capcut-cli e capcut-mcp, decisão pelo gerador próprio e o que falta confirmar com o gabarito real.
+- `conhecimento/pc-instalacao-e-fila.md` — instalação no Windows, vigia, fila e ciclo de teste (armadilhas do PC).
+- `README.md` — instalação e uso em uma página. `fila/README.md` — formato dos pedidos da fila, com exemplos.
+- `rotinas/` — código (`stories/`, `video/`, fila, núcleo). `config/*.json` — configuração. `receitas/` — R1–R12 em JSON.
+- `.claude/skills/postar-stories-ferreira/` e `.claude/skills/editar-video-ferreira/` — skills das rotinas.
+- `execucoes/` — resultados do `testar.bat`/`diagnostico.bat` enviados pelo PC (dar `git pull` para ver).

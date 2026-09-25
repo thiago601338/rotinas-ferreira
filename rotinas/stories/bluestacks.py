@@ -723,7 +723,29 @@ def tarefa(args: dict, ctx: Contexto) -> dict:
     ensaio = bool(ctx.ensaio) or bool(plano.get("ensaio", False))
     if ensaio and not ctx.ensaio:
         log.warning("O plano foi montado em ENSAIO; rodando em ensaio. Para publicar, monte de novo com --real.")
-    return executar(plano, ctx, ensaio=ensaio, diagnostico=bool(ctx.diagnostico), repostar=args.get("repostar") or ())
+    try:
+        resultado = executar(plano, ctx, ensaio=ensaio, diagnostico=bool(ctx.diagnostico), repostar=args.get("repostar") or ())
+    except ErroPostagem as e:
+        if isinstance(e.resultado_parcial, dict):
+            _anexar_relatorio(plano, e.resultado_parcial, ctx)
+        raise
+    return _anexar_relatorio(plano, resultado, ctx)
+
+
+def _anexar_relatorio(plano: dict, resultado: dict, ctx: Contexto) -> dict:
+    """Põe no resultado o aviso pronto e o JS de conferência (a IA do Cowork não roda comandos no PC)."""
+    from . import relatorio
+
+    try:
+        texto = relatorio.texto_resultado(plano, resultado)
+        publicadas = list(resultado.get("publicadas") or [])
+        incertas = [r.get("letra") for r in resultado.get("letras") or [] if r.get("estado") == "incerta"]
+        resultado["relatorio"] = texto
+        resultado["js_conferencia"] = relatorio.js_conferencia(plano, publicadas + [x for x in incertas if x not in publicadas])
+        ctx.arquivo("relatorio.txt").write_text(texto + "\n", encoding="utf-8")
+    except Exception as e:  # noqa: BLE001 - o relatório nunca pode esconder o resultado da postagem
+        log.warning("Não consegui montar o relatório: %s", e)
+    return resultado
 
 
 def cli(argv: list[str]) -> int:

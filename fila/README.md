@@ -107,19 +107,17 @@ Segredos (valores do `.env`, chaves, tokens) nunca aparecem: viram `***`.
 
 ## Tipos de pedido
 
-Os tipos marcados com * ainda estão sendo escritos: os args serão conferidos quando o módulo ficar pronto.
-
 | tipo | o que faz | args |
 |---|---|---|
 | `diagnostico` | versões, ADB, tela do Instagram, rascunho do CapCut, sem segredos | `{}`. Opcionais: `instagram`, `u2`, `supabase`, `verificar` (padrão `true`), `projeto` (projeto do CapCut) |
 | `stories.preparar` | nomeia as mídias novas na próxima letra livre, converte `.mov` → `.mp4`, detecta vídeo sem áudio ou em silêncio, gera a folha de contato de cada letra; devolve o manifesto | `{"data": "2026-09-22"}`. Opcionais: `simular` (só mostra, não mexe na pasta), `grupos` (`[["IMG_1.MOV","IMG_2.JPG"], ...]`) |
 | `stories.estoque` | produtos, cores e estoque (só leitura) | `{"consultas": [{"sku": "FB-0123"}, {"termo": "vestido midi"}]}` |
-| `stories.montar` | corta cores sem estoque e já postados, monta os links e grava o pedido `stories.postar` na fila; o resultado traz `pedido_postagem` (id desse pedido: espere por ele também) | `{"data", "identificacao": {letra: {"sku" ou "termo", "midias": {"A - 1": ["verde"], ...}}}, "postar": true, "ensaio": true}`. Opcionais: `ordem` (`"letras"` ou `"categorias"`), `permitir_repeticao` (`["B"]`) |
-| `stories.postar`* | posta pelo BlueStacks; com `"ensaio": true` para antes de publicar e salva um print de cada mídia | `{"plano": {...}}` gerado pelo `stories.montar`. Não escreva à mão |
+| `stories.montar` | corta cores sem estoque e já postados, monta os links e grava o pedido `stories.postar` na fila; o resultado traz `pedido_postagem` (id desse pedido: espere por ele também) | `{"data", "identificacao": {letra: {"sku" ou "termo", "midias": {"A - 1": ["verde"], ...}}}, "postar": true, "ensaio": true}`. Opcionais: `ordem` (`"letras"` ou `"categorias"`), `permitir_repeticao` (`["B"]`); na letra: `excluir` (`{"A - 3": "motivo"}`), `musica` (índice de `audios_sem_som` ou objeto), `peca` (nome na mensagem) |
+| `stories.postar` | posta pelo BlueStacks; em ensaio para antes de publicar e salva um print de cada mídia | `{"plano": {...}}` gerado pelo `stories.montar` (não escreva à mão). Opcional: `repostar` (`["A"]`, só quando o usuário mandar repetir) |
 | `video.preparar` | inventário do bruto, tomadas, silêncios, transcrição, batidas, folhas de contato | `{"projeto": "nome"}`. Opcionais: `musica` (arquivo), `transcrever` (padrão `true`), `normalizar_vfr` |
-| `video.planejar`* | plano da linha do tempo a partir de receita + escolhas da IA | `{"projeto", "receita", "escolhas"}` |
-| `video.rascunho`* | gera o rascunho do CapCut a partir do plano | `{"projeto"}` |
-| `video.exportar`* | exporta pelo CapCut com o preset do destino | `{"projeto", "destino": "reels" \| "stories" \| "tiktok"}` |
+| `video.planejar` | plano da linha do tempo a partir de receita + escolhas da IA; violação vira erro | `{"projeto", "receita": "r02", "escolhas": {...}}` (sem `escolhas`, usa `trabalho\<projeto>\escolhas.json`) |
+| `video.rascunho` | gera o rascunho do CapCut a partir do `plano.json` (CapCut fechado) | `{"projeto"}`. Opcionais: `nome` (nome no CapCut), `gabarito`. Com `"ensaio": true` grava só na pasta do pedido |
+| `video.exportar` | grava as instruções de exportação com o preset e espera o `.mp4` para conferir | `{"projeto", "destino": "reels" \| "stories" \| "tiktok" \| "feed"}`. Opcionais: `rascunho`, `nome_arquivo`, `duracao_esperada_s`, `esperar` (padrão `true`), `timeout_min` |
 | `video.conferir` | confere o arquivo exportado (duração, 1080×1920, fps, bitrate, áudio, loudness, tamanho) | `{"arquivo", "destino"}`. Opcional: `duracao_esperada_s` |
 
 **Stories: ensaio é o padrão.** `stories.montar` monta o `stories.postar` em ensaio se `ensaio` for `true`
