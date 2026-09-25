@@ -99,6 +99,8 @@ Você precisa: nada.   (ou: repor Preto / aprovar o ensaio / fechar o postados.c
 |---|---|
 | montar: "cor 'X' não existe no cadastro" / "é ambígua" (vem com "Cores válidas do cadastro") | Usar um nome da lista. Nada foi cortado nem gravado na fila. |
 | montar: "Mais de um produto para termo …. Informe o SKU." | Passar o `sku`. |
+| "O Supabase recusou o e-mail ou a senha do usuário das rotinas" / "Falta SUPABASE_… no .env" | Pedir ao usuário para conferir no `.env` o usuário das rotinas (`SUPABASE_EMAIL`, `SUPABASE_SENHA`) e a `SUPABASE_KEY`; nunca pedir a senha no chat. |
+| "Login ok, mas a leitura veio vazia" | O usuário das rotinas não enxerga os produtos (RLS): avisar o usuário; não postar sem estoque. |
 | montar: "B - 3 sem identificação" | Pôr a mídia em `midias` (cores) ou em `excluir` (motivo). |
 | `ErroRegra` sobre vestido de festa | `link_em_vestido_de_festa` voltou a `null` na config: não decidir; perguntar ao usuário (a resposta vai para `config/stories.json` no repositório; vale no pedido seguinte depois do `atualizar.bat`). |
 | montar: "Sem manifesto.json" | Gravar o `stories.preparar` real (sem `simular`, com os mesmos `grupos`) e depois o montar. Nada foi alterado. |

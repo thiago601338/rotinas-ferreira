@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 
 import requests
 
-from .. import config, registro
+from .. import banco, config, registro
 
 log = registro.obter("stories.estoque")
 
@@ -260,40 +260,29 @@ def _conferir_params(params: list[tuple[str, str]]) -> None:
 
 
 class ClienteSupabase(ClienteEstoque):
-    """Consulta de leitura pelo PostgREST do Supabase (``SUPABASE_URL``/``SUPABASE_KEY`` do ``.env``)."""
+    """Consulta de leitura pelo PostgREST do Supabase, logado com o usuário das rotinas (``rotinas/banco.py``).
 
-    def __init__(self, url: str | None = None, chave: str | None = None, timeout_s: float | None = None):
-        url = url or config.segredo("SUPABASE_URL")
-        chave = chave or config.segredo("SUPABASE_KEY")
-        faltando = [n for n, v in (("SUPABASE_URL", url), ("SUPABASE_KEY", chave)) if not (v or "").strip()]
-        if faltando:
-            raise ErroEstoque(
-                f"Falta {' e '.join(faltando)} no .env ({config.caminho_env()}). "
-                "Abra o .env no Bloco de Notas e preencha (chave só de leitura do Supabase)."
-            )
-        url = url.strip().rstrip("/")
-        if url.endswith("/rest/v1"):
-            url = url[: -len("/rest/v1")]
-        if not url.startswith(("https://", "http://")):
-            raise ErroEstoque("SUPABASE_URL no .env precisa começar com https:// (ex.: https://<projeto>.supabase.co).")
-        self._base = url + "/rest/v1"
-        self._chave = chave.strip()
+    As tabelas têm RLS só para ``authenticated``: ``.env`` com ``SUPABASE_URL``, ``SUPABASE_KEY`` (chave pública),
+    ``SUPABASE_EMAIL`` e ``SUPABASE_SENHA``.
+    """
+
+    def __init__(self, url: str | None = None, chave: str | None = None, timeout_s: float | None = None,
+                 email: str | None = None, senha: str | None = None):
         self.timeout_s = float(timeout_s or _cfg().get("timeout_s") or 20)
+        try:
+            self._sessao = banco.Sessao(url, chave, email, senha, timeout_s=self.timeout_s, http=requests)
+        except banco.ErroBanco as e:
+            raise ErroEstoque(str(e)) from e
 
-    def __repr__(self) -> str:  # nunca mostrar a chave
+    def __repr__(self) -> str:  # nunca mostrar a chave nem a senha
         return "ClienteSupabase()"
-
-    def _cabecalhos(self) -> dict[str, str]:
-        return {"apikey": self._chave, "Authorization": f"Bearer {self._chave}", "Accept": "application/json"}
 
     def _get(self, tabela: str, params: list[tuple[str, str]]) -> list[dict]:
         _conferir_params(params)
         try:
-            r = requests.get(f"{self._base}/{tabela}", params=params, headers=self._cabecalhos(), timeout=self.timeout_s)
-        except requests.Timeout as e:
-            raise ErroEstoque(f"O Supabase não respondeu em {self.timeout_s:g} s. Confira a internet e tente de novo.") from e
-        except requests.RequestException as e:
-            raise ErroEstoque(f"Sem conexão com o Supabase: {registro.ocultar(str(e))[:300]}") from e
+            r = self._sessao.get(tabela, params)
+        except banco.ErroBanco as e:
+            raise ErroEstoque(str(e)) from e
         if not 200 <= r.status_code < 300:  # PGRST201 (relação ambígua) vem com HTTP 300
             corpo = _json_ou_nada(r)
             codigo = corpo.get("code") if isinstance(corpo, dict) else None
@@ -301,8 +290,8 @@ class ClienteSupabase(ClienteEstoque):
             detalhe = registro.ocultar(str(detalhe or r.text or ""))[:300]
             if r.status_code in (401, 403):
                 raise ErroConsulta(
-                    f"O Supabase recusou o acesso (HTTP {r.status_code}). Confira SUPABASE_KEY no .env "
-                    f"(tem que ser a chave de leitura do projeto). Detalhe: {detalhe}",
+                    f"O Supabase recusou a leitura (HTTP {r.status_code}). Confira no .env o usuário das rotinas "
+                    f"(SUPABASE_EMAIL/SUPABASE_SENHA) e a SUPABASE_KEY. Detalhe: {detalhe}",
                     r.status_code, codigo,
                 )
             raise ErroConsulta(f"Erro do Supabase (HTTP {r.status_code}, {codigo or 'sem código'}): {detalhe}", r.status_code, codigo)

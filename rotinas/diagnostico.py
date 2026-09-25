@@ -720,33 +720,11 @@ def capcut(pasta_saida: Path, projeto: str | None = None) -> dict:
 
 # ---------------------------------------------------------------- Supabase (só leitura)
 
-def _http_get(url: str, **kwargs):
-    import requests
-
-    return requests.get(url, **kwargs)
-
-
 def supabase() -> dict:
-    """Leitura de teste: só o status HTTP. Seleciona só ``id`` (nunca ``cost_price``)."""
-    url, chave = config.segredo("SUPABASE_URL"), config.segredo("SUPABASE_KEY")
-    if not url or not chave:
-        return {"configurado": False, "ok": False, "mensagem": "SUPABASE_URL ou SUPABASE_KEY vazio no .env."}
-    r = _http_get(
-        url.rstrip("/") + "/rest/v1/products",
-        params={"select": "id", "limit": "1"},
-        headers={"apikey": chave, "Authorization": f"Bearer {chave}"},
-        timeout=float(_cfg()["supabase_timeout_s"]),
-    )
-    status = int(r.status_code)
-    if 200 <= status < 300:
-        mensagem = "Leitura do banco ok."
-    elif status in (401, 403):
-        mensagem = "O Supabase recusou a chave: confira SUPABASE_KEY no .env."
-    elif status == 404:
-        mensagem = "Endereço não encontrado: confira SUPABASE_URL no .env."
-    else:
-        mensagem = f"O Supabase respondeu {status}."
-    return {"configurado": True, "status_http": status, "ok": 200 <= status < 300, "mensagem": mensagem}
+    """Login do usuário das rotinas + leitura de 1 ``id`` de ``products`` (nunca ``cost_price``)."""
+    from . import banco
+
+    return banco.testar_leitura(float(_cfg()["supabase_timeout_s"]))
 
 
 # ---------------------------------------------------------------- execução e resumo

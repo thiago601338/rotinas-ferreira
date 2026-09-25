@@ -5,6 +5,7 @@ import requests
 
 from rotinas.contexto import Contexto
 from rotinas.stories import estoque
+from conftest import TOKEN_FALSO
 from rotinas.stories.estoque import ClienteFalso, ClienteSupabase, ErroEstoque, Produto
 
 
@@ -38,7 +39,13 @@ def http(monkeypatch):
                 raise r
             return r
 
+    def post(url, params=None, headers=None, json=None, timeout=None):  # login do usuário das rotinas
+        Http.logins.append({"url": url, "params": params, "headers": dict(headers or {}), "json": json})
+        return Resposta(200, {"access_token": TOKEN_FALSO, "expires_in": 3600})
+
+    Http.logins = []
     monkeypatch.setattr(estoque.requests, "get", Http.get)
+    monkeypatch.setattr(estoque.requests, "post", post)
     return Http
 
 
@@ -80,7 +87,10 @@ def test_consulta_por_sku_url_params_e_cabecalhos(cfg, http):
     assert "cost_price" not in _texto_da_chamada(c)
     assert "*" not in p["select"]
     assert c["headers"]["apikey"] == cfg.segredo
-    assert c["headers"]["Authorization"] == f"Bearer {cfg.segredo}"
+    assert c["headers"]["Authorization"] == f"Bearer {cfg.token}"  # token do usuário das rotinas, não a chave
+    (login,) = http.logins
+    assert login["url"] == "https://exemplo.supabase.co/auth/v1/token" and login["params"] == {"grant_type": "password"}
+    assert login["json"] == {"email": "rotinas@exemplo.com", "password": cfg.senha}
     assert c["timeout"] and c["timeout"] > 0
     assert len(produtos) == 1
     prod = produtos[0]
@@ -133,13 +143,15 @@ def test_url_com_rest_v1_e_barra_final(cfg, http, monkeypatch):
 
 
 def test_erro_401_nao_vaza_a_chave(cfg, http):
-    http.respostas = [Resposta(401, {"message": f"Invalid API key {cfg.segredo}", "hint": "confira"})]
+    # 401 na leitura: renova o login uma vez e tenta de novo; recusado de novo → erro
+    http.respostas = [Resposta(401, {"message": f"Invalid API key {cfg.segredo}", "hint": "confira"})] * 2
     with pytest.raises(ErroEstoque) as e:
         ClienteSupabase().buscar(sku="FB-0123")
     msg = str(e.value)
     assert "401" in msg and "SUPABASE_KEY" in msg
     assert cfg.segredo not in msg
     assert cfg.segredo not in repr(ClienteSupabase())
+    assert len(http.logins) == 2 and cfg.senha not in msg
 
 
 def test_erro_403_e_outros_status(cfg, http):
@@ -166,7 +178,7 @@ def test_sem_chave_no_env(cfg, tmp_path, monkeypatch):
     env = tmp_path / "vazio.env"
     env.write_text("SUPABASE_URL=https://exemplo.supabase.co\nSUPABASE_KEY=\n", encoding="utf-8")
     monkeypatch.setenv("ROTINAS_ENV", str(env))
-    with pytest.raises(ErroEstoque, match="Falta SUPABASE_KEY no .env"):
+    with pytest.raises(ErroEstoque, match="Falta SUPABASE_KEY"):
         ClienteSupabase()
 
 

@@ -133,7 +133,7 @@ def _foto_da_pasta(pasta: Path) -> dict:
 
 
 @pytest.fixture
-def pc(cfg, tmp_path, monkeypatch):
+def pc(cfg, tmp_path, monkeypatch, supabase_falso):
     conf = tmp_path / "ProgramData" / "bluestacks.conf"
     conf.parent.mkdir(parents=True)
     conf.write_text(
@@ -182,14 +182,7 @@ def pc(cfg, tmp_path, monkeypatch):
         return d
 
     monkeypatch.setitem(sys.modules, "uiautomator2", types.SimpleNamespace(connect=conectar_u2))
-    chamadas_http = []
-
-    def http_get(url, **kwargs):
-        chamadas_http.append((url, kwargs))
-        return types.SimpleNamespace(status_code=200)
-
-    monkeypatch.setattr(diagnostico, "_http_get", http_get)
-    falso.http = chamadas_http
+    falso.http = supabase_falso
     falso.u2 = dispositivos
     falso.rascunhos = rasc
     return falso
@@ -207,7 +200,11 @@ def test_diagnostico_completo(pc, cfg, tmp_path):
             conteudo = arq.read_bytes()
             assert cfg.segredo.encode() not in conteudo, arq
             assert b"exemplo.supabase.co" not in conteudo, arq
-    assert dados["env"]["variaveis"] == {"SUPABASE_KEY": "preenchida", "SUPABASE_URL": "preenchida"}
+    assert dados["env"]["variaveis"] == {"SUPABASE_KEY": "preenchida", "SUPABASE_URL": "preenchida",
+                                         "SUPABASE_EMAIL": "preenchida", "SUPABASE_SENHA": "preenchida"}
+    for arq in saida.rglob("*"):
+        if arq.is_file():
+            assert cfg.senha.encode() not in arq.read_bytes(), arq
 
     v = dados["versoes"]
     assert v["bluestacks"]["registro"]["Version"] == "5.21.580.1019"
@@ -256,10 +253,11 @@ def test_diagnostico_completo(pc, cfg, tmp_path):
     assert _foto_da_pasta(pc.rascunhos) == foto_antes  # nada gravado na pasta do CapCut
 
     s = dados["supabase"]
-    assert s == {"configurado": True, "status_http": 200, "ok": True, "mensagem": "Leitura do banco ok."}
-    url, kwargs = pc.http[0]
-    assert url.endswith("/rest/v1/products") and kwargs["params"]["select"] == "id"
-    assert "cost_price" not in json.dumps(pc.http, default=str)
+    assert s == {"configurado": True, "status_http": 200, "ok": True, "mensagem": "Login e leitura do estoque ok."}
+    leitura = pc.http.gets[0]
+    assert leitura["url"].endswith("/rest/v1/products") and dict(leitura["params"])["select"] == "id"
+    assert leitura["headers"]["Authorization"] == f"Bearer {cfg.token}"
+    assert "cost_price" not in json.dumps(pc.http.gets, default=str)
 
     assert any("draft_info.json" in p and "criptografado" in p for p in dados["problemas"])
     texto = (saida / "resumo.txt").read_text(encoding="utf-8")
@@ -335,13 +333,28 @@ def test_supabase_sem_env(cfg, monkeypatch, tmp_path):
     monkeypatch.setenv("ROTINAS_ENV", str(env))
     assert diagnostico.supabase()["configurado"] is False
     e = diagnostico.env()
-    assert e["variaveis"] == {"SUPABASE_KEY": "vazia", "SUPABASE_URL": "vazia"}
+    assert {k: e["variaveis"][k] for k in ("SUPABASE_KEY", "SUPABASE_URL")} == {"SUPABASE_KEY": "vazia", "SUPABASE_URL": "vazia"}
+    assert set(e["variaveis"]) == {"SUPABASE_URL", "SUPABASE_KEY", "SUPABASE_EMAIL", "SUPABASE_SENHA"}
 
 
-def test_supabase_chave_recusada(cfg, monkeypatch):
-    monkeypatch.setattr(diagnostico, "_http_get", lambda url, **kw: types.SimpleNamespace(status_code=401))
+def test_supabase_chave_recusada(cfg, supabase_falso):
+    from conftest import RespostaFalsa
+
+    supabase_falso.login = RespostaFalsa(401, {"message": "Invalid API key"})
     s = diagnostico.supabase()
-    assert s["ok"] is False and "SUPABASE_KEY" in s["mensagem"]
+    assert s["ok"] is False and "SUPABASE_KEY" in s["mensagem"] and cfg.senha not in json.dumps(s)
+
+
+def test_supabase_login_recusado_e_leitura_vazia(cfg, supabase_falso):
+    from conftest import RespostaFalsa
+
+    supabase_falso.login = RespostaFalsa(400, {"error_code": "invalid_credentials", "msg": "Invalid login credentials"})
+    s = diagnostico.supabase()
+    assert s["ok"] is False and "SUPABASE_EMAIL" in s["mensagem"]
+    supabase_falso.login = None
+    supabase_falso.leituras = [RespostaFalsa(200, [])]  # RLS barrou: 200 com lista vazia não é "ok"
+    s = diagnostico.supabase()
+    assert s["ok"] is False and "vazia" in s["mensagem"]
 
 
 def test_formato_rascunho(tmp_path):

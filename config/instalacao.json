@@ -20,8 +20,17 @@
     "nome": "PC Ferreira Boutique",
     "email": "pc-ferreira@users.noreply.github.com"
   },
-  "subpastas_videos": ["bruto", "exportado", "trabalho"],
-  "env_obrigatorias": ["SUPABASE_URL", "SUPABASE_KEY"],
+  "subpastas_videos": [
+    "bruto",
+    "exportado",
+    "trabalho"
+  ],
+  "env_obrigatorias": [
+    "SUPABASE_URL",
+    "SUPABASE_KEY",
+    "SUPABASE_EMAIL",
+    "SUPABASE_SENHA"
+  ],
   "python_minimo": "3.10",
   "pacotes_python": {
     "PIL": "pillow",

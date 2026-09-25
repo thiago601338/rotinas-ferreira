@@ -199,13 +199,17 @@ def test_env_criado_do_exemplo_e_aberto_no_bloco_de_notas(windows, tmp_path, mon
     monkeypatch.setenv("ROTINAS_ENV", str(env))
     passo = instalacao.passo_env(abrir=True)
     assert env.read_bytes() == (RAIZ / ".env.example").read_bytes()
-    assert "criado" in passo.detalhe and "SUPABASE_URL" in passo.detalhe
+    assert "criado" in passo.detalhe and "SUPABASE_EMAIL" in passo.detalhe and "SUPABASE_URL" not in passo.detalhe  # URL já vem preenchida
     assert windows.iniciados == [["notepad.exe", str(env)]]
 
     env.write_text("SUPABASE_URL=https://x.supabase.co\nSUPABASE_KEY=chave-do-usuario-123\n", encoding="utf-8")
+    instalacao.passo_env(abrir=True)  # falta o usuário das rotinas: abre de novo
+    assert len(windows.iniciados) == 2
+    env.write_text("SUPABASE_URL=https://x.supabase.co\nSUPABASE_KEY=chave-do-usuario-123\n"
+                   "SUPABASE_EMAIL=rotinas@loja.com\nSUPABASE_SENHA=senha-123456\n", encoding="utf-8")
     instalacao.passo_env(abrir=True)
     assert "chave-do-usuario-123" in env.read_text(encoding="utf-8")
-    assert len(windows.iniciados) == 1
+    assert len(windows.iniciados) == 2
 
 
 # ------------------------------------------------------------ pastas
@@ -421,16 +425,9 @@ def test_parar_vigia_ocupado_devolve_3_e_nao_deixa_flag(cfg, capsys):
 # ------------------------------------------------------------ verificar
 
 @pytest.fixture
-def sem_rede(monkeypatch):
-    chamadas = []
-
-    def http(url, cabecalhos, timeout):
-        chamadas.append((url, dict(cabecalhos)))
-        return 200
-
-    monkeypatch.setattr(instalacao, "consultar_http", http)
+def sem_rede(monkeypatch, supabase_falso):
     monkeypatch.setattr(instalacao, "_importavel", lambda m: (True, "1.0"))
-    return chamadas
+    return supabase_falso
 
 
 def test_verificar_json_sem_segredo_e_codigo_de_saida(cfg, sem_rede, capsys):
@@ -443,7 +440,10 @@ def test_verificar_json_sem_segredo_e_codigo_de_saida(cfg, sem_rede, capsys):
     itens = {i["chave"]: i for i in dados["itens"]}
     assert itens["env:SUPABASE_URL"]["detalhe"] == "preenchido"
     assert itens["env:SUPABASE_KEY"]["detalhe"] == "preenchido"
-    assert itens["supabase"] == {"chave": "supabase", "nome": "Supabase (leitura)", "estado": "ok", "detalhe": "HTTP 200", "acao": ""}
+    assert itens["env:SUPABASE_EMAIL"]["detalhe"] == "preenchido" and itens["env:SUPABASE_SENHA"]["detalhe"] == "preenchido"
+    assert cfg.senha not in saida
+    assert itens["supabase"] == {"chave": "supabase", "nome": "Supabase (leitura)", "estado": "ok",
+                                 "detalhe": "Login e leitura do estoque ok.", "acao": ""}
     assert itens["pastas"]["estado"] == "ok"
     # fora do Windows: itens do Windows não contam como problema
     assert itens["vigia_registrado"]["estado"] == "na" and itens["vigia_vivo"]["estado"] == "na"
@@ -455,25 +455,30 @@ def test_verificar_json_sem_segredo_e_codigo_de_saida(cfg, sem_rede, capsys):
 def test_verificar_supabase_so_le_id_nunca_cost_price(cfg, sem_rede, capsys):
     instalacao.cli_verificar(["--json"])
     capsys.readouterr()
-    (url, cabecalhos), = sem_rede
-    assert url == "https://exemplo.supabase.co/rest/v1/products?select=id&limit=1"
-    assert "cost_price" not in url and "*" not in url
-    assert cabecalhos == {"apikey": cfg.segredo, "Authorization": f"Bearer {cfg.segredo}"}
+    (leitura,) = sem_rede.gets
+    assert leitura["url"] == "https://exemplo.supabase.co/rest/v1/products"
+    assert leitura["params"] == [("select", "id"), ("limit", "1")]
+    assert "cost_price" not in str(leitura) and "*" not in str(leitura["params"])
+    assert leitura["headers"]["apikey"] == cfg.segredo and leitura["headers"]["Authorization"] == f"Bearer {cfg.token}"
 
 
-def test_verificar_supabase_chave_recusada(cfg, monkeypatch):
-    monkeypatch.setattr(instalacao, "consultar_http", lambda *a: 401)
+def test_verificar_supabase_chave_recusada(cfg, supabase_falso):
+    from conftest import RespostaFalsa
+
+    supabase_falso.login = RespostaFalsa(401, {"message": "Invalid API key"})
     (item,) = instalacao._v_supabase()
-    assert item.estado == "falha" and item.detalhe == "HTTP 401" and "SUPABASE_KEY" in item.acao
+    assert item.estado == "falha" and "SUPABASE_KEY" in item.detalhe and "SUPABASE_KEY" in item.acao
 
 
 def test_verificar_supabase_sem_conexao_mostra_so_o_tipo_do_erro(cfg, monkeypatch):
-    def quebra(*a):
-        raise OSError(f"falhou em https://exemplo.supabase.co com {cfg.segredo}")
+    import requests
 
-    monkeypatch.setattr(instalacao, "consultar_http", quebra)
+    def quebra(*a, **k):
+        raise requests.ConnectionError(f"falhou com apikey={cfg.segredo}")
+
+    monkeypatch.setattr(requests, "post", quebra)
     (item,) = instalacao._v_supabase()
-    assert item.estado == "falha" and item.detalhe == "sem conexão (OSError)"
+    assert item.estado == "falha" and "Sem conexão" in item.detalhe and cfg.segredo not in item.detalhe
 
 
 def test_verificar_env_vazio_nao_testa_conexao(cfg, sem_rede, tmp_path, monkeypatch, capsys):
@@ -485,7 +490,7 @@ def test_verificar_env_vazio_nao_testa_conexao(cfg, sem_rede, tmp_path, monkeypa
     itens = {i["chave"]: i for i in dados["itens"]}
     assert itens["env:SUPABASE_KEY"]["detalhe"] == "vazio" and itens["env:SUPABASE_KEY"]["estado"] == "falha"
     assert itens["supabase"]["estado"] == "falha"
-    assert sem_rede == []
+    assert sem_rede.posts == [] and sem_rede.gets == []
     assert codigo == dados["resumo"]["falhas"] >= 3
 
 
@@ -540,9 +545,8 @@ def test_verificar_com_config_quebrada_nao_explode(cfg, sem_rede, capsys):
     assert any("erro ao conferir" in i["detalhe"] for i in dados["itens"])
 
 
-def test_verificar_de_verdade_nao_quebra(cfg, monkeypatch, capsys):
-    """Sem mocks (só a rede): roda na nuvem e devolve um número."""
-    monkeypatch.setattr(instalacao, "consultar_http", lambda *a: 200)
+def test_verificar_de_verdade_nao_quebra(cfg, supabase_falso, capsys):
+    """Sem mocks (só a rede do Supabase é falsa): roda na nuvem e devolve um número."""
     codigo = instalacao.cli_verificar([])
     assert isinstance(codigo, int) and "Verificação da instalação" in capsys.readouterr().out
 

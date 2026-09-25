@@ -13,7 +13,7 @@ passe o mesmo nome como argumento do `instalar.bat`.)
 
 O instalador instala Git, Python 3.12, ffmpeg e adb (winget), clona o sistema em
 `C:\Users\V15\Documents\Rotinas Ferreira\sistema\`, cria a `.venv`, abre o `.env` para preencher
-(`SUPABASE_URL`, `SUPABASE_KEY` só leitura), registra o **vigia** para iniciar no logon e termina com uma tabela
+(`SUPABASE_KEY` = chave pública do projeto; `SUPABASE_EMAIL`/`SUPABASE_SENHA` = usuário das rotinas no Supabase Auth, porque o estoque só abre para usuário logado; o script só lê), registra o **vigia** para iniciar no logon e termina com uma tabela
 ✓/✗. Pode rodar de novo quando quiser (pula o que já existe).
 
 | Arquivo (em `sistema\`) | Para quê |

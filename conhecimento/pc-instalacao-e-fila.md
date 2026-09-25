@@ -19,7 +19,7 @@ ainda não foi confirmado no PC real está marcado "(a confirmar)".
   está gravado). `chcp 65001` antes de qualquer acento.
 - Enquanto a `main` não tiver o código, o instalador roda com o ramo como argumento:
   `instalar.bat claude/fase-1-briefing-x8e3im`.
-- `.env` nunca é sobrescrito; o Bloco de Notas abre enquanto `SUPABASE_URL`/`SUPABASE_KEY` estiverem vazios.
+- `.env` nunca é sobrescrito; o Bloco de Notas abre enquanto `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_EMAIL` ou `SUPABASE_SENHA` estiverem vazios (o estoque só abre para usuário logado: ver `stories.md`, "Como o script lê o estoque").
 
 ## Vigia (programa sem janela que executa a fila)
 - Inicia no logon: tarefa agendada (PowerShell `Register-ScheduledTask`; se negar, `schtasks /XML`; se negar,

@@ -25,8 +25,6 @@ import subprocess
 import sys
 import tempfile
 import time
-import urllib.error
-import urllib.request
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -44,7 +42,6 @@ OK, FALHOU, PULADO = "ok", "falhou", "pulado"
 VERDE, VERMELHO, NAO_SE_APLICA = "ok", "falha", "na"
 
 # Consulta de teste do Supabase: só a coluna id (nunca cost_price, nunca *).
-CONSULTA_SUPABASE = "/rest/v1/products?select=id&limit=1"
 DESCRICAO_VIGIA = "Vigia da fila das Rotinas Ferreira: executa os pedidos gravados em fila\\pendente."
 
 _RESET = "\x1b[0m"
@@ -102,16 +99,6 @@ def iniciar_destacado(cmd: list, cwd: Path | None = None) -> int | None:
             erro = e
     log.warning("Não consegui iniciar %s: %s", Path(cmd[0]).name, erro)
     return None
-
-
-def consultar_http(url: str, cabecalhos: dict, timeout: float) -> int:
-    """GET simples que devolve só o status HTTP (o corpo não interessa)."""
-    pedido = urllib.request.Request(url, headers=cabecalhos, method="GET")
-    try:
-        with urllib.request.urlopen(pedido, timeout=timeout) as resposta:
-            return int(resposta.status)
-    except urllib.error.HTTPError as e:
-        return int(e.code)
 
 
 def _importavel(modulo: str) -> tuple[bool, str]:
@@ -794,29 +781,20 @@ def _v_env() -> list[Item]:
     return itens
 
 
-def url_teste_supabase(url: str) -> str:
-    return url.rstrip("/") + CONSULTA_SUPABASE
-
-
 def _v_supabase() -> list[Item]:
+    """Login do usuário das rotinas + leitura de 1 produto (as tabelas têm RLS só para usuário logado)."""
+    from . import banco
+
     nome = "Supabase (leitura)"
-    url, chave = config.segredo("SUPABASE_URL"), config.segredo("SUPABASE_KEY")
-    if not url or not chave:
-        return [Item("supabase", nome, VERMELHO, "não testei: falta SUPABASE_URL ou SUPABASE_KEY no .env",
-                     "Preencha o .env e rode de novo.")]
-    try:
-        status = consultar_http(url_teste_supabase(url), {"apikey": chave, "Authorization": f"Bearer {chave}"},
-                                float(_conf().get("supabase_timeout_s", 15)))
-    except Exception as e:  # noqa: BLE001 - só o tipo do erro: a mensagem pode trazer o endereço
-        return [Item("supabase", nome, VERMELHO, f"sem conexão ({e.__class__.__name__})",
-                     "Confira a internet e o SUPABASE_URL no .env (https://<projeto>.supabase.co).")]
-    if 200 <= status < 300:
-        return [Item("supabase", nome, VERDE, f"HTTP {status}")]
-    if status in (401, 403):
-        acao = "A chave foi recusada. Confira o SUPABASE_KEY no .env (chave só de leitura do projeto da loja)."
-    else:
-        acao = "Confira o SUPABASE_URL no .env (https://<projeto>.supabase.co, sem /rest no fim)."
-    return [Item("supabase", nome, VERMELHO, f"HTTP {status}", acao)]
+    r = banco.testar_leitura(float(_conf().get("supabase_timeout_s", 15)))
+    if r["ok"]:
+        return [Item("supabase", nome, VERDE, r["mensagem"])]
+    if not r["configurado"]:
+        return [Item("supabase", nome, VERMELHO, "não testei: " + r["mensagem"],
+                     "Preencha no .env SUPABASE_URL, SUPABASE_KEY (chave pública), SUPABASE_EMAIL e SUPABASE_SENHA "
+                     "(usuário das rotinas) e rode de novo.")]
+    return [Item("supabase", nome, VERMELHO, r["mensagem"],
+                 "Confira no .env o usuário das rotinas (SUPABASE_EMAIL/SUPABASE_SENHA), a SUPABASE_KEY e a internet.")]
 
 
 def estado_registro_vigia() -> tuple[str | None, str]:

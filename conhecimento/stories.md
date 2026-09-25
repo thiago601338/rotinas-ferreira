@@ -30,6 +30,12 @@ Esquema lido em 25/09/2026 (projeto Supabase `nailfzcujyxydqldktgg`, schema `pub
 - `products`: id, name, sku, category, fabric, gender, sale_price, cost_price (**não ler**), status, notes, photo_url, created_at, updated_at, catalog_media (jsonb), catalog_attributes (jsonb), search_aliases (text[]), deleted_at, deleted_by, deleted_reason.
 - `product_variations`: id, product_id, size, color, stock, created_at, updated_at.
 
+### Como o script lê o estoque (decidido em 25/09/2026)
+- `products` e `product_variations` têm RLS: só o papel `authenticated` lê (a chave pública sozinha recebe lista vazia, sem erro). As mesmas políticas deixam qualquer usuário logado também inserir, alterar e (nas variações) apagar.
+- O script entra com um **usuário próprio das rotinas** (Supabase Auth, e-mail e senha) e usa o token dele; nunca a chave de serviço. Código em `rotinas/banco.py`: login pelo `/auth/v1/token?grant_type=password`, token em memória até perto de expirar, só **GET** e só nessas duas tabelas, colunas explícitas (nunca `cost_price`).
+- `.env`: `SUPABASE_URL`, `SUPABASE_KEY` (chave pública: "Publishable key" `sb_publishable_…` ou a legada "anon"), `SUPABASE_EMAIL`, `SUPABASE_SENHA`.
+- O teste do `verificar`/diagnóstico só dá verde com login aceito **e** pelo menos 1 produto lido (lista vazia = RLS barrou).
+
 ## Regra fixa 2 — não repetir
 Antes de postar, sempre verificar se o modelo já não foi postado antes (letras já existentes nas pastas de data e stories recentes).
 
