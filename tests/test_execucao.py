@@ -313,3 +313,19 @@ def test_cli_repassa_argumentos_e_sem_git(monkeypatch, capsys):
     assert execucao.cli(["stories-ensaio", "--data", "2026-09-22", "--sem-git"]) == 0
     assert visto == {"alvo": "stories-ensaio", "extra": ["--data", "2026-09-22"], "enviar_git": False}
     assert "--sem-git" in capsys.readouterr().out
+
+
+def test_todo_alvo_aponta_para_funcao_que_existe():
+    """Cada alvo do testar.bat resolve para uma função importável (pega texto trocado por engano na tabela)."""
+    import importlib
+
+    from rotinas import execucao
+
+    for alvo, destino in execucao.ALVOS.items():
+        if not isinstance(destino, str):
+            assert callable(destino), alvo
+            continue
+        assert ":" in destino, f"{alvo}: {destino!r}"
+        modulo, funcao = destino.split(":", 1)
+        assert callable(getattr(importlib.import_module(modulo), funcao)), alvo
+    assert set(execucao.DESCRICOES) >= set(execucao.ALVOS) - {"enviar"}

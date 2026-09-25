@@ -37,7 +37,7 @@ ALVOS: dict[str, str] = {
     "verificar": "rotinas.execucao:alvo_verificar",
     "pytest": "rotinas.execucao:alvo_pytest",
     "bluestacks": "rotinas.stories.bluestacks:teste_real",
-    "stories-ensaio": "stories em modo ensaio (--data D, --plano arquivo ou --sintetico): monta tudo e para antes de publicar",
+    "stories-ensaio": "rotinas.stories.bluestacks:teste_ensaio",
     "capcut-rascunho": "rotinas.video.rascunho:teste_real",
     "conferir": "rotinas.video.conferencia:teste_real",
 }
@@ -47,7 +47,7 @@ DESCRICOES: dict[str, str] = {
     "verificar": "confere a instalação (python -m rotinas verificar --json)",
     "pytest": "roda os testes automáticos aqui no PC",
     "bluestacks": "teste real no BlueStacks (stories, A5)",
-    "stories-ensaio": "stories em modo ensaio: monta tudo e para antes de publicar",
+    "stories-ensaio": "stories em modo ensaio (--data D, --plano arquivo ou --sintetico): monta tudo e para antes de publicar",
     "capcut-rascunho": "gera um rascunho de teste no CapCut (B3)",
     "conferir": "confere um vídeo exportado (B4)",
     ENVIAR: "tenta de novo enviar pelo git as execuções que ficaram só no PC",
