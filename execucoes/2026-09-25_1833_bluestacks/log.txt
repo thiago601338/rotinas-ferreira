@@ -1,0 +1,12 @@
+2026-09-25 18:33:19 INFO    rotinas.execucao: Teste 'bluestacks' começou. Pasta: C:\Users\V15\Documents\Rotinas Ferreira\sistema\execucoes\2026-09-25_1833_bluestacks
+2026-09-25 18:33:20 INFO    rotinas.stories.android: adb usado nesta execução: C:\Program Files\BlueStacks_nxt\HD-Adb.exe
+2026-09-25 18:33:20 INFO    rotinas.stories.android: Conectado ao BlueStacks em 127.0.0.1:5555
+2026-09-25 18:33:20 INFO    rotinas.stories.bluestacks: BlueStacks: {'serial': '127.0.0.1:5555', 'adb': 'C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe', 'android': '9', 'sdk': '28', 'modelo': 'SM-S908E', 'tela': 'Physical size: 1600x900', 'densidade': 'Physical density: 240\nOverride density: 320', 'instagram': '448.0.0.52.84'}
+2026-09-25 18:33:21 INFO    rotinas.stories.bluestacks: Letra teste: abrir instagram
+2026-09-25 18:33:27 INFO    rotinas.stories.bluestacks: Letra teste: entrar no story
+2026-09-25 18:33:28 INFO    rotinas.stories.bluestacks: Letra teste: criar
+2026-09-25 18:33:29 INFO    rotinas.stories.bluestacks: Letra teste: a câmera de story abriu direto (sem escolher 'Story')
+2026-09-25 18:33:29 INFO    rotinas.stories.bluestacks: Letra teste: abrir galeria
+2026-09-25 18:33:30 INFO    rotinas.stories.bluestacks: Letra teste: selecionar varios
+2026-09-25 18:33:32 INFO    rotinas.stories.bluestacks: Letra teste: album menu
+2026-09-25 18:33:36 INFO    rotinas.execucao: Teste 'bluestacks' terminou bem em 16.5 s
