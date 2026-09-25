@@ -98,15 +98,22 @@ def test_consulta_por_termo_usa_ilike_sem_aspas(cfg, http):
     assert ClienteSupabase().buscar(termo="vestido, midi (alça)") == []
     p = _params(http.chamadas[0])
     # filtro simples: valor literal (aspas entrariam na busca)
-    assert p["name"] == "ilike.*vestido, midi (alça)*"
+    assert p["name"] == "ilike.*vestido,*midi*(alça)*"  # espaço vira curinga: palavras em sequência
     assert "sku" not in p
+
+
+def test_termo_com_palavras_separadas_acha_nome_com_palavra_no_meio(cfg):
+    cliente = ClienteFalso([Produto(1, "FB-0410", "Vestido Longo Festa Cetim", "Vestidos de Festa", 399.9,
+                                    [{"cor": "Azul Marinho", "tamanho": "M", "estoque": 1}], status="Ativo")])
+    assert [p.sku for p in cliente.buscar(termo="vestido festa")] == ["FB-0410"]
+    assert cliente.buscar(termo="festa vestido") == []  # a ordem das palavras vale
 
 
 def test_sku_e_termo_juntos_usam_or_com_citacao(cfg, http):
     http.respostas = [Resposta(200, [])]
     ClienteSupabase().buscar(sku="FB-0123", termo='Vestido, "midi" (alça)')
     p = _params(http.chamadas[0])
-    assert p["or"] == '(sku.eq.FB-0123,name.ilike."*Vestido, \\"midi\\" (alça)*")'
+    assert p["or"] == '(sku.eq.FB-0123,name.ilike."*Vestido,*\\"midi\\"*(alça)*")'
     assert p["status"] == "eq.Ativo" and p["deleted_at"] == "is.null"
 
 

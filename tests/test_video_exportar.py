@@ -153,6 +153,29 @@ def test_tarefa_sem_esperar_grava_instrucoes(cfg, tmp_path):
     assert not ensaio["esperou"]
 
 
+def test_tarefa_so_com_projeto_usa_o_nome_do_rascunho_gerado(cfg, tmp_path):
+    # Teste da skill (25/09/2026): sem 'rascunho', as instruções mandavam abrir "vestido-verde", mas o
+    # video.rascunho grava "vestido-verde <data>" (ou o 'nome' pedido). O nome vem do relatorio_rascunho.txt.
+    trabalho = cfg.p.videos / "trabalho" / "vestido-verde"
+    trabalho.mkdir(parents=True)
+    (trabalho / "plano.json").write_text('{"duracao_s": 13.0}', encoding="utf-8")  # plano trocado depois
+    ctx = Contexto(tmp_path / "exec")
+    r = exportar.tarefa({"destino": "reels", "projeto": "vestido-verde", "esperar": False}, ctx)
+    assert r["rascunho"] == "vestido-verde"  # sem relatório: continua o nome do projeto
+    assert r["duracao_esperada_s"] == 13.0
+    (trabalho / "relatorio_rascunho.txt").write_text(
+        "Rascunho do CapCut: Vestido verde – R02\nGerado em 25/09/2026 18:57\nProjeto: vestido-verde\n"
+        "Pasta: x\nGabarito: y\nDuração: 18,00 s · 1080×1920 · 30 fps\n", encoding="utf-8")
+    r = exportar.tarefa({"destino": "reels", "projeto": "vestido-verde", "esperar": False}, Contexto(tmp_path / "e2"))
+    texto = (trabalho / "instrucoes_exportacao.txt").read_text(encoding="utf-8")
+    assert r["rascunho"] == "Vestido verde – R02" and 'o projeto "Vestido verde – R02"' in texto
+    assert r["duracao_esperada_s"] == 18.0  # a do rascunho, não a do plano.json mais novo
+    assert r["nome_arquivo"] == "vestido-verde_reels" and "Nome: vestido-verde_reels" in texto  # nome do arquivo igual
+    r = exportar.tarefa({"destino": "reels", "projeto": "vestido-verde", "rascunho": "Outro", "esperar": False},
+                        Contexto(tmp_path / "e3"))
+    assert r["rascunho"] == "Outro" and r["nome_arquivo"] == "Outro_reels"
+
+
 def test_tarefa_espera_e_confere(cfg, tmp_path, monkeypatch, conferencia_falsa):
     relogio = Relogio(monkeypatch)
     cfg.alterar("capcut", exportacao={**exportar._cfg(), "pastas_extra": [], "estavel_s": 2})

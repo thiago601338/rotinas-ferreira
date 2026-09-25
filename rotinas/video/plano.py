@@ -905,7 +905,10 @@ def _legendas(video: list[dict], receita: dict, escolhas: dict, palavras: dict[s
         return [], falas
     tem_fala = any(it["fala"] for it in video)
     if not retimadas:
-        if tem_fala:
+        if not palavras:
+            avisos.append("Legendas pedidas, mas não há transcrição no bruto.json: nenhuma legenda foi gerada "
+                          "(rodar video.preparar com a transcrição ou gerar no CapCut: Legendas > Legendas automáticas).")
+        elif tem_fala:
             avisos.append("Blocos com fala sem transcrição: gerar as legendas no CapCut (Legendas > Legendas automáticas) "
                           "e revisar nome da peça, preço e tamanhos.")
         return [], falas
@@ -1062,8 +1065,8 @@ def _efeitos_e_sons(blocos: list[dict], fps: float, bq: list[int], total_q: int,
             faltando.add(s["som"])
     if faltando:
         pasta = config.pastas().videos / rs["subpasta"]
-        avisos.append(f"Efeitos sonoros sem arquivo ({', '.join(sorted(faltando))}): pôr {', '.join(sorted(faltando))}"
-                      f".mp3 com licença comercial (Pixabay, Meta Sound Collection) em {pasta}, ou usar SFX com a marca "
+        avisos.append(f"Efeitos sonoros sem arquivo ({', '.join(sorted(faltando))}): pôr "
+                      f"{', '.join(f'{s}.mp3' for s in sorted(faltando))} com licença comercial (Pixabay, Meta Sound Collection) em {pasta}, ou usar SFX com a marca "
                       "\"comercial\" no CapCut (§7). Ficaram marcados no plano.")
     return audio_sons
 
@@ -1175,6 +1178,10 @@ def planejar(projeto: str, receita_id: str, escolhas: dict) -> dict:
         sem_transcricao = f0["arquivo"] not in palavras
         falado = bool(b["def"].get("fala"))
         b["fala"] = bool(ditas) or (falado and sem_transcricao and f0["fala_arquivo"])
+        if sem_transcricao and f0["fala_arquivo"] and not b["fala"] and not b["foto"]:
+            avisos.append(f"bloco {b['i'] + 1} ({b['papel']}): {f0['arquivo']} tem som e não foi transcrito; se houver "
+                          "fala nesse trecho, ela ficou muda (a receita não marca fala neste bloco). Rodar video.preparar "
+                          "com a transcrição ou ajustar o volume no CapCut.")
         if b["fala"] and not falado and b["vel"] != 1:
             # voz em câmera lenta/timelapse não serve como fala: o bloco é visual (som tratado como sem fala)
             b["fala"] = False
@@ -1302,8 +1309,8 @@ def planejar(projeto: str, receita_id: str, escolhas: dict) -> dict:
     violacoes, avisos_plano = conferir_plano(plano)
     plano["violacoes"] = violacoes
     plano["avisos"] = list(dict.fromkeys(avisos + avisos_plano))
-    _gravar_json(p["trabalho"] / "plano.json", plano)
-    log.info("plano.json de %s (%s, %s): %s s, %d clipe(s), %d texto(s), %d legenda(s), %d aviso(s), %d violação(ões)",
+    _gravar_json(arquivo_do_plano(plano, p), plano)
+    log.info("plano de %s (%s, %s): %s s, %d clipe(s), %d texto(s), %d legenda(s), %d aviso(s), %d violação(ões)",
              plano["projeto"], receita["id"], destino, _n(total_s), len(video), len(textos), len(legendas),
              len(plano["avisos"]), len(violacoes))
     return plano
@@ -1561,6 +1568,11 @@ def _escolhas_de(args_escolhas, p: dict[str, Path]) -> dict:
     return args_escolhas
 
 
+def arquivo_do_plano(plano: dict, p: dict[str, Path]) -> Path:
+    """``plano.json`` só para plano sem violação; o que viola vai para ``plano-com-violacoes.json`` e não apaga o bom."""
+    return p["trabalho"] / ("plano-com-violacoes.json" if plano.get("violacoes") else "plano.json")
+
+
 def tarefa(args: dict, ctx: Contexto) -> dict:
     """Pedido ``video.planejar``: args ``{"projeto", "receita", "escolhas"?}`` (objeto, caminho ou nada = escolhas.json).
     Violação vira erro (com o resumo em ``resultado_parcial``); avisos não bloqueiam."""
@@ -1570,7 +1582,7 @@ def tarefa(args: dict, ctx: Contexto) -> dict:
     p = _pastas(projeto)
     escolhas = _escolhas_de(args.get("escolhas"), p)
     plano = planejar(projeto, receita, escolhas)
-    caminho = p["trabalho"] / "plano.json"
+    caminho = arquivo_do_plano(plano, p)
     ctx.arquivo("plano.json").write_text(json.dumps(plano, ensure_ascii=False, indent=2), encoding="utf-8")
     ctx.arquivo("plano.txt").write_text(texto(plano, caminho) + "\n", encoding="utf-8")
     res = resumo(plano, caminho)
@@ -1594,6 +1606,6 @@ def cli(argv: list[str]) -> int:
     except (ErroPlano, receitas.ErroReceita, config.ErroConfig, ValueError, OSError) as e:
         print(f"Erro: {e}", file=sys.stderr)
         return 2
-    caminho = p["trabalho"] / "plano.json"
+    caminho = arquivo_do_plano(plano, p)
     print(json.dumps(plano, ensure_ascii=False, indent=2) if a.json else texto(plano, caminho))
     return 1 if plano["violacoes"] else 0

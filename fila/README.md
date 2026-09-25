@@ -111,18 +111,29 @@ Segredos (valores do `.env`, chaves, tokens) nunca aparecem: viram `***`.
 |---|---|---|
 | `diagnostico` | versões, ADB, tela do Instagram, rascunho do CapCut, sem segredos | `{}`. Opcionais: `instagram`, `u2`, `supabase`, `verificar` (padrão `true`), `projeto` (projeto do CapCut) |
 | `stories.preparar` | nomeia as mídias novas na próxima letra livre, converte `.mov` → `.mp4`, detecta vídeo sem áudio ou em silêncio, gera a folha de contato de cada letra; devolve o manifesto | `{"data": "2026-09-22"}`. Opcionais: `simular` (só mostra, não mexe na pasta), `grupos` (`[["IMG_1.MOV","IMG_2.JPG"], ...]`) |
-| `stories.estoque` | produtos, cores e estoque (só leitura) | `{"consultas": [{"sku": "FB-0123"}, {"termo": "vestido midi"}]}` |
-| `stories.montar` | corta cores sem estoque e já postados, monta os links e grava o pedido `stories.postar` na fila; o resultado traz `pedido_postagem` (id desse pedido: espere por ele também) | `{"data", "identificacao": {letra: {"sku" ou "termo", "midias": {"A - 1": ["verde"], ...}}}, "postar": true, "ensaio": true}`. Opcionais: `ordem` (`"letras"` ou `"categorias"`), `permitir_repeticao` (`["B"]`); na letra: `excluir` (`{"A - 3": "motivo"}`), `musica` (índice de `audios_sem_som` ou objeto), `peca` (nome na mensagem) |
+| `stories.estoque` | produtos, cores e estoque (só leitura) | `{"consultas": [{"sku": "FB-0123"}, {"termo": "vestido midi"}]}`. `sku` é exato (maiúsculas como no cadastro); `termo` procura no **nome** (não na categoria) as palavras na ordem, com qualquer coisa entre elas (`"vestido festa"` acha "Vestido Longo Festa"); maiúsculas tanto faz, acento conta. Nada achado = `encontrados: 0`, sem erro |
+| `stories.montar` | corta cores sem estoque e já postados, monta os links e grava o pedido `stories.postar` na fila; o resultado traz `pedido_postagem` (id desse pedido: espere por ele também) | `{"data", "identificacao": {letra: {"sku" ou "termo", "midias": {"A - 1": ["Verde"], ...}}}, "postar": true, "ensaio": true}`. Cores com o nome do cadastro (`estoque_por_cor`); nome parecido é aceito com aviso "cor aproximada", desconhecido dá erro sem gravar nada. Toda mídia da letra em `midias` ou `excluir`; letra fora de `identificacao` fica de fora (aviso). Opcionais: `ordem` (`"letras"` ou `"categorias"`), `permitir_repeticao` (`["B"]`); na letra: `excluir` (`{"A - 3": "motivo"}`), `musica` (índice de `audios_sem_som` ou objeto), `peca` (nome na mensagem) |
 | `stories.postar` | posta pelo BlueStacks; em ensaio para antes de publicar e salva um print de cada mídia | `{"plano": {...}}` gerado pelo `stories.montar` (não escreva à mão). Opcional: `repostar` (`["A"]`, só quando o usuário mandar repetir) |
-| `video.preparar` | inventário do bruto, tomadas, silêncios, transcrição, batidas, folhas de contato | `{"projeto": "nome"}`. Opcionais: `musica` (arquivo), `transcrever` (padrão `true`), `normalizar_vfr` |
-| `video.planejar` | plano da linha do tempo a partir de receita + escolhas da IA; violação vira erro | `{"projeto", "receita": "r02", "escolhas": {...}}` (sem `escolhas`, usa `trabalho\<projeto>\escolhas.json`) |
-| `video.rascunho` | gera o rascunho do CapCut a partir do `plano.json` (CapCut fechado) | `{"projeto"}`. Opcionais: `nome` (nome no CapCut), `gabarito`. Com `"ensaio": true` grava só na pasta do pedido |
-| `video.exportar` | grava as instruções de exportação com o preset e espera o `.mp4` para conferir | `{"projeto", "destino": "reels" \| "stories" \| "tiktok" \| "feed"}`. Opcionais: `rascunho`, `nome_arquivo`, `duracao_esperada_s`, `esperar` (padrão `true`), `timeout_min` |
-| `video.conferir` | confere o arquivo exportado (duração, 1080×1920, fps, bitrate, áudio, loudness, tamanho) | `{"arquivo", "destino"}`. Opcional: `duracao_esperada_s` |
+| `video.preparar` | inventário do bruto, tomadas, silêncios, transcrição, batidas, folhas de contato; grava `videos\trabalho\<projeto>\bruto.json` | `{"projeto": "nome"}` (pasta `videos\bruto\<projeto>`). Opcionais: `musica` (arquivo em `videos\musicas\` ou no bruto), `transcrever` (padrão `true`), `normalizar_vfr` |
+| `video.planejar` | plano da linha do tempo a partir de receita + escolhas da IA; violação vira erro (lista em `erro`, causa em `resultado_parcial.avisos`). Plano sem violação substitui `plano.json`; o que viola vai para `plano-com-violacoes.json` (o bom fica). `escolhas.json` é sempre o último | `{"projeto", "receita": "r02", "escolhas": {...}}` (sem `escolhas`, usa `trabalho\<projeto>\escolhas.json`) |
+| `video.rascunho` | gera o rascunho do CapCut a partir do `plano.json` (CapCut fechado); devolve `rascunho` (nome no CapCut), `resumo`, `manual` (acabamento à mão) | `{"projeto"}`. Opcionais: `nome` (nome no CapCut; padrão `"<projeto> <data>"`), `gabarito`. Com `"ensaio": true` grava só na pasta do pedido |
+| `video.exportar` | grava `trabalho\<projeto>\instrucoes_exportacao.txt` e espera o `.mp4` em `videos\exportado` para conferir. O resultado só sai depois do arquivo (ou do `timeout_min`, padrão 30): leia as instruções com o pedido em `andamento`. A fila fica parada enquanto espera | `{"projeto", "destino": "reels" \| "stories" \| "tiktok" \| "feed"}`. Opcionais: `rascunho` (padrão: nome e duração do último rascunho do projeto), `nome_arquivo` (padrão `<projeto>_<destino>`), `duracao_esperada_s`, `esperar` (padrão `true`; `false` só grava as instruções), `timeout_min` |
+| `video.conferir` | confere o arquivo exportado (duração, 1080×1920, fps, bitrate, áudio, loudness, tamanho); `resultado.aprovado` e `texto` com o que fazer | `{"arquivo" (nome em videos\exportado), "destino"}`. Opcional: `duracao_esperada_s` |
 
 **Stories: ensaio é o padrão.** `stories.montar` monta o `stories.postar` em ensaio se `ensaio` for `true`
 no pedido **ou** nos `args` (ou se faltar nos `args`). Postagem real só depois de um ensaio aprovado pelo
 usuário, com `"ensaio": false` nos dois lugares.
+
+**`stories.postar` com erro:** o resultado traz `resultado_parcial` com `letras` (estado de cada uma),
+`publicadas`, `parou_em`, `relatorio` e `js_conferencia`. Para tentar de novo, resolva a causa e grave um
+**novo `stories.montar`** (outro id): ele gera outro `stories.postar`. Não copie nem edite o plano à mão.
+
+**Testar sem banco (só no PC/terminal, a IA não usa):** com `ROTINAS_ESTOQUE_FALSO=<arquivo.json>` no ambiente
+do vigia, `stories.estoque` e `stories.montar` leem o estoque desse arquivo em vez do Supabase. Formato:
+`{"produtos": [{"id": 1, "sku": "FB-0123", "name": "Vestido Midi Alça", "category": "Vestidos", "status": "Ativo",
+"product_variations": [{"color": "Verde", "size": "M", "stock": 2}]}]}` (também aceita a lista sem `produtos`
+e os nomes `nome`/`categoria`/`variacoes` com `cor`/`tamanho`/`estoque`). Produto com `deleted_at` ou
+`status` diferente de `Ativo` é ignorado, como no banco.
 
 ## Exemplos de pedido
 
@@ -160,8 +171,8 @@ usuário, com `"ensaio": false` nos dois lugares.
   "args": {
     "data": "2026-09-22",
     "identificacao": {
-      "A": {"sku": "FB-0123", "midias": {"A - 1": ["verde"], "A - 2": ["verde"], "A - 3": ["preto"]}},
-      "B": {"termo": "vestido midi", "midias": {"B - 1": ["azul"], "B - 2": ["azul"]}}
+      "A": {"sku": "FB-0123", "midias": {"A - 1": ["Verde"], "A - 2": ["Verde"], "A - 3": ["Preto"]}},
+      "B": {"termo": "vestido midi", "midias": {"B - 1": ["Azul"], "B - 2": ["Azul"]}}
     },
     "postar": true,
     "ensaio": true

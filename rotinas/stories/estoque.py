@@ -221,7 +221,8 @@ class ClienteEstoque:
 
 def _validar_busca(sku: str | None, termo: str | None) -> tuple[str, str]:
     sku = (sku or "").strip()
-    termo = (termo or "").strip()
+    # palavras do termo em sequência, com qualquer coisa entre elas: "vestido festa" acha "Vestido Longo Festa"
+    termo = re.sub(r"\s+", "*", (termo or "").strip())
     if not sku and not termo:
         raise ErroEstoque("Informe o SKU ou um termo do nome da peça.")
     return sku, termo

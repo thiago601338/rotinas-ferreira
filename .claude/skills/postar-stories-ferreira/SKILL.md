@@ -33,9 +33,16 @@ Regras completas: `...\sistema\conhecimento\stories.md` (obrigatórias).
      só. Errado → refazer com `"grupos": [["IMG_1.MOV","IMG_2.JPG"], ["IMG_3.JPG"]]` (nomes originais).
    - Certo → mesmo pedido sem `simular` (com `grupos` se usou). O script renomeia (`A - 1` vídeo, `A - 2`… fotos, na
      próxima letra livre), converte `.mov`→`.mp4`, guarda originais em `_originais` e marca vídeo sem áudio.
+   - Anote as letras com `"nova": true` no resultado do preparar **real**: são as de hoje. Letra que já existia
+     (`nova: false`, mídias com `origem: null`) não se identifica, a não ser que o usuário peça; no montar ela sai como
+     aviso "Letra A sem identificação: ficou de fora" (normal). Rodar o preparar de novo mostra todas como `nova: false`.
 **2. Identificar peça e cor** — **você decide**, pelas folhas: qual peça é cada letra e qual cor aparece em cada mídia.
    - Confirmar no cadastro: `tipo: "stories.estoque"`, `args: {"consultas": [{"sku": "FB-0123"}, {"termo": "vestido midi"}]}`.
-     Use o SKU e os **nomes de cor exatamente como vêm no resultado**.
+     Use o SKU e os **nomes de cor exatamente como vêm no resultado** (`estoque_por_cor`; `texto` traz a tabela pronta).
+   - `termo` procura só no **nome** (não na categoria): as palavras na ordem, com qualquer coisa entre elas ("vestido
+     festa" acha "Vestido Longo Festa"; "festa vestido" não). Maiúsculas tanto faz; acento conta ("alça" ≠ "alca").
+     `sku` é exato, como no cadastro (`FB-0410`; `fb-0410` não acha). `encontrados: 0` não é erro: tente outro termo.
+   - Modelo zerado (`total: 0`) ou cor zerada: **ponha mesmo assim** no montar; o script corta e registra no relatório.
 **3. Montar em ensaio** — `tipo: "stories.montar"`, `"ensaio": true`, `args`:
    ```json
    {"data": "2026-09-22", "postar": true, "ensaio": true,
@@ -45,9 +52,16 @@ Regras completas: `...\sistema\conhecimento\stories.md` (obrigatórias).
     }}
    ```
    - Toda mídia da letra entra em `midias` (≥ 1 cor) ou em `excluir` (com motivo). Compilação de modelos: `"ordem": "categorias"`.
+   - Mande **todas** as letras novas num pedido só: letra fora de `identificacao` fica de fora e o `stories.postar` já vai
+     para a fila sem ela.
    - Script: corta cor sem estoque e modelo zerado, bloqueia já postado, monta o link, escolhe a música dos vídeos sem som
      e grava o pedido `stories.postar`. O resultado traz `relatorio` e `pedido_postagem` (id): espere por esse também.
+   - Conferir no `relatorio` (e em `plano.letras`): cortes certos, festa "sem link", link `wa.me/…` sem `https://` só na
+     última mídia de cada letra, música nos vídeos sem som. Aviso "cor aproximada: 'verde' → 'Verde Bandeira'" = o script
+     aceitou um nome parecido: confira se é a cor certa; se não, refaça com o nome exato.
    - O `stories.postar` de ensaio monta cada letra no Instagram e **para antes de publicar**; prints `ensaio_<L>_<n>.png`.
+   - `stories.postar` deu erro → ler `erro` e `resultado_parcial.relatorio` / `parou_em` (tabela abaixo). Para repetir,
+     resolver a causa e gravar **outro `stories.montar`** (novo id); nunca reenviar nem escrever o `stories.postar` à mão.
 **4. Aprovação** — mostrar ao usuário o relatório do ensaio (e os prints, se ele quiser ver). Só publicar com o "pode postar" dele.
 **5. Publicar** — repetir o passo 3 com `"ensaio": false` **no pedido e nos args**. Esperar o `stories.postar` real.
 **6. Conferir no Instagram (obrigatório)** — o resultado do `stories.postar` traz `resultado.relatorio` (aviso pronto)
@@ -79,11 +93,13 @@ Você precisa: nada.   (ou: repor Preto / aprovar o ensaio / fechar o postados.c
 ## Erros conhecidos e solução
 | Erro | Solução |
 |---|---|
-| `ErroEstoque` "cor … não encontrada" / ambígua | Usar o nome da cor como vem em `stories.estoque`. Nada foi cortado. |
-| "termo ambíguo: N produtos" | Passar o `sku`. |
+| montar: "cor 'X' não existe no cadastro" / "é ambígua" (vem com "Cores válidas do cadastro") | Usar um nome da lista. Nada foi cortado nem gravado na fila. |
+| montar: "Mais de um produto para termo …. Informe o SKU." | Passar o `sku`. |
+| montar: "B - 3 sem identificação" | Pôr a mídia em `midias` (cores) ou em `excluir` (motivo). |
 | `ErroRegra` sobre vestido de festa | `link_em_vestido_de_festa` voltou a `null` na config: não decidir; perguntar ao usuário. |
 | Pedido em `pendente` há mais de 1 min | Vigia parado → `atualizar.bat`. |
-| "ADB do BlueStacks desligado" / sem dispositivo | Pedir para ligar o ADB (caminho acima) com o BlueStacks aberto. |
+| "Não consegui conectar ao BlueStacks pelo ADB" / sem dispositivo | Pedir para abrir o BlueStacks e ligar o ADB (caminho acima); depois novo montar. |
+| "Não encontrei o adb (nem o HD-Adb.exe do BlueStacks)" | Pedir dois cliques em `sistema\instalar.bat`; depois novo montar. |
 | "a galeria não mostrou …" | Envio pelo ADB falhou para algum arquivo; pedir de novo com outro id. |
 | Letra `falhou` em um passo (`parou_em`) | Nada daquela letra foi publicado; as anteriores sim (ver `resultado_parcial`). Se for seletor da tela, pedir ao usuário `testar.bat bluestacks` e ajustar `config\bluestacks.json`. |
 | Letra `incerta` | Pode ter subido: rodar o JS **antes** de repetir; repetir só o que não subiu. |

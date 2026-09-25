@@ -226,6 +226,30 @@ def exportar_por_atalhos(rascunho: str, destino: str) -> None:
 
 # ---------------------------------------------------------------- fila e terminal
 
+def _rascunho_do_projeto(projeto: str | None) -> tuple[str | None, float | None]:
+    """Nome e duração do último rascunho gerado para o projeto (``relatorio_rascunho.txt``).
+
+    O ``plano.json`` pode ter sido trocado depois do rascunho (outro planejar, até com violação);
+    o relatório é do rascunho que o usuário vai abrir."""
+    if not projeto:
+        return None, None
+    arq = config.pastas().videos / "trabalho" / projeto / "relatorio_rascunho.txt"
+    try:
+        linhas = arq.read_text(encoding="utf-8-sig").splitlines()
+    except (OSError, UnicodeDecodeError):
+        return None, None
+    nome = duracao = None
+    for linha in linhas[:10]:
+        if linha.startswith("Rascunho do CapCut:"):
+            nome = linha.split(":", 1)[1].strip() or None
+        elif linha.startswith("Duração:"):
+            try:
+                duracao = float(linha.split(":", 1)[1].split("s", 1)[0].strip().replace(",", "."))
+            except ValueError:
+                pass
+    return nome, duracao
+
+
 def _duracao_do_plano(projeto: str | None) -> float | None:
     if not projeto:
         return None
@@ -242,12 +266,15 @@ def tarefa(args: dict, ctx: Contexto) -> dict:
     "esperar"?, "timeout_min"?}``. Grava as instruções e (salvo ``esperar: false`` ou ensaio) vigia e confere."""
     destino = args.get("destino") or "reels"
     projeto = args.get("projeto")
-    rascunho = args.get("rascunho") or projeto
-    if not rascunho:
+    if not (args.get("rascunho") or projeto):
         raise ErroExportacao("Informe 'rascunho' (nome do projeto no CapCut) ou 'projeto'.")
-    nome = args.get("nome_arquivo") or nome_arquivo(rascunho, destino)
+    nome = args.get("nome_arquivo") or nome_arquivo(args.get("rascunho") or projeto, destino)
+    # o rascunho no CapCut se chama "<projeto> <data>" (ou o 'nome' do video.rascunho), não "<projeto>";
+    # sem 'rascunho', nome e duração vêm do último relatorio_rascunho.txt do projeto
+    nome_rel, dur_rel = (None, None) if args.get("rascunho") else _rascunho_do_projeto(projeto)
+    rascunho = args.get("rascunho") or nome_rel or projeto
     duracao = args.get("duracao_esperada_s")
-    duracao = float(duracao) if duracao is not None else _duracao_do_plano(projeto)
+    duracao = float(duracao) if duracao is not None else (dur_rel or _duracao_do_plano(projeto))
     desde = agora()
     texto = instrucoes(destino, rascunho, nome, duracao)
     arquivos = [ctx.arquivo("instrucoes_exportacao.txt")]

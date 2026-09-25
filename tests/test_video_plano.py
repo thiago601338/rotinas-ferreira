@@ -176,6 +176,13 @@ def test_planejar_r1_corta_na_batida(cfg, bruto_r1):
     assert gravado == p
 
 
+def test_aviso_de_efeito_sonoro_sem_arquivo_da_o_nome_de_cada_arquivo(cfg, bruto_r1):
+    # Teste da skill (25/09/2026): saía "pôr pop, whoosh.mp3" (parecia um arquivo só).
+    p = plano.planejar(PROJETO, "r01", copy.deepcopy(ESCOLHAS_R1))
+    aviso = next(a for a in p["avisos"] if a.startswith("Efeitos sonoros sem arquivo"))
+    assert "pôr pop.mp3, whoosh.mp3 com licença comercial" in aviso
+
+
 def test_r1_tomada_curta_e_recorte_fora_da_tomada(cfg, bruto_r1):
     esc = copy.deepcopy(ESCOLHAS_R1)
     esc["blocos"][1].update(ini_s=0.4, fim_s=1.0)  # tempos relativos à tomada, não ao arquivo
@@ -432,6 +439,23 @@ def test_tarefa_grava_escolhas_e_bloqueia_violacao(cfg, bruto_r2, tmp_path):
         plano.tarefa({"projeto": PROJETO, "receita": "r02", "escolhas": ruim}, ctx)
     assert "Texto do gancho com 1 palavra(s)" in str(e.value)
     assert e.value.resultado_parcial["violacoes"]
+    # o plano com violação não apaga o último plano bom (é ele que o rascunho e a exportação usam)
+    assert json.loads((trabalho / "plano.json").read_text(encoding="utf-8"))["violacoes"] == []
+    assert json.loads((trabalho / "plano-com-violacoes.json").read_text(encoding="utf-8"))["violacoes"]
+
+
+def test_sem_transcricao_avisa_fala_muda_e_legenda_vazia(cfg):
+    bruto = {
+        "projeto": PROJETO, "gerado_em": "2026-09-25T10:00:00-03:00",
+        "arquivos": [_arquivo("IMG_0003.MOV", fala=True)],
+        "tomadas": _tomadas(("IMG_0003.MOV", 0.0, 2.0), ("IMG_0003.MOV", 2.0, 5.0), ("IMG_0003.MOV", 5.0, 8.0),
+                            ("IMG_0003.MOV", 8.0, 11.0), ("IMG_0003.MOV", 11.0, 13.0), ("IMG_0003.MOV", 13.0, 20.0)),
+        "transcricao": None, "musica": None, "folhas": [], "avisos": [],
+    }
+    gravar(cfg, bruto)
+    p = plano.planejar(PROJETO, "r02", dict(copy.deepcopy(ESCOLHAS_R2), legendas=True))
+    assert any("não foi transcrito" in a for a in p["avisos"])
+    assert any("não há transcrição" in a for a in p["avisos"]) and p["legendas"] == []
 
 
 def test_cli(cfg, bruto_r2, capsys):
