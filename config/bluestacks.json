@@ -490,5 +490,8 @@
   "descricao_nao_selecionado": "Não selecionado",
   "descricao_numero_selecao": "(?i)selecionada\\s+(\\d+)",
   "espera_selecao_s": 4,
-  "tentativas_selecao": 3
+  "tentativas_selecao": 3,
+  "_entrar_no_story": "Depois de tocar 'criar', espera até espera_abrir_story_s pela aba 'Story', pela galeria ou pela câmera; se a tela continuar no feed (toque ignorado com o feed carregando), toca de novo, até tentativas_criar vezes.",
+  "espera_abrir_story_s": 8,
+  "tentativas_criar": 3
 }

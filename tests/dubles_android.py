@@ -286,6 +286,7 @@ class TelaFalsa:
         self.story_abre_rascunho = False  # "Story" reabre um rascunho no editor (em vez da câmera)
         self.criar_abre_camera = False  # Instagram 448: "Adicionar ao story" já abre a câmera de story
         self.criar_abre_galeria = False  # Instagram 448 no PC: "Adicionar ao story" já abre a galeria
+        self.criar_ignorado = 0  # toques em "criar" que não fazem nada (feed ainda carregando, ensaio de 25/09 18:51)
         self.album_via_todos = False  # Instagram 448: as pastas ficam em "Todos os álbuns" dentro do menu
         self.numeros_na_selecao = True  # False: sem número na miniatura; só a descrição muda
         self.selecao_ja_ativa = False  # a galeria abre com "Selecionar várias" já ligado (botão "Cancelar")
@@ -374,7 +375,9 @@ class TelaFalsa:
         def tocar():
             self.toques.append(chave)
             e = self.estado
-            if chave == "criar":
+            if chave == "criar" and self.criar_ignorado > 0:
+                self.criar_ignorado -= 1
+            elif chave == "criar":
                 self.estado = "criacao"
                 if self.criar_abre_galeria:
                     self.aberturas += 1

@@ -144,6 +144,28 @@ def test_sem_numero_e_com_uma_miniatura_ignorada_nao_publica(ambiente):
     assert a.tela.publicacoes == []
 
 
+def test_toque_em_adicionar_ao_story_ignorado_toca_de_novo(ambiente):
+    """Como no ensaio sintético de 25/09 18:51: o toque caiu com o feed ainda carregando e a tela ficou no feed.
+    O script confere que a galeria não abriu e toca de novo; nunca procura a aba "Story" no feed."""
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.criar_ignorado = 1
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto", "foto"]}), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert a.tela.toques.count("criar") == 2 and "abrir_story" not in a.tela.toques
+
+
+def test_adicionar_ao_story_que_nunca_abre_para_com_mensagem_clara(ambiente):
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.criar_ignorado = 99
+    with pytest.raises(bluestacks.ErroPostagem) as e:
+        rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)
+    assert "Adicionar ao story" in str(e.value) and "abrir_story" not in a.tela.toques
+    assert a.tela.toques.count("criar") == 3  # tentativas_criar (padrão 3)
+    assert a.tela.publicacoes == []
+
+
 def test_versao_com_aba_criar_ainda_escolhe_story(ambiente):
     a = ambiente
     res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)

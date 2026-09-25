@@ -35,6 +35,8 @@ dormir = time.sleep  # trocados nos testes
 agora = time.monotonic
 
 CHAVES_PUBLICAR = frozenset({"seu_story", "concluir_publicacao"})
+# sinais de que o toque em "criar" saiu do feed ("abrir_story" primeiro: aba "Story" de versões com "Criar")
+CHAVES_STORY_ABERTO = ("abrir_story", "selecionar_varios", "album_menu", "abrir_galeria")
 RE_LETRA = re.compile(r"^[A-Z]{1,2}$")
 
 
@@ -247,18 +249,40 @@ class Postador:
         return el
 
     # -- navegação
+    def _esperar_uma(self, chaves: tuple[str, ...], espera: float) -> str | None:
+        """Primeira das ``chaves`` que aparecer (só seletor real, nunca coordenada) em até ``espera`` segundos."""
+        limite = agora() + espera
+        while True:
+            for chave in chaves:
+                if self.tela.existe(chave):
+                    return chave
+            if agora() >= limite:
+                return None
+            dormir(self._t("intervalo_busca_s", 0.4))
+
     def _entrar_no_story(self) -> None:
-        """Feed → câmera de story. No Instagram 448 o "Adicionar ao story" do "Seu story" já abre a câmera de story;
-        em versões com a aba "Criar", ainda é preciso escolher "Story". A aba só é tocada se a galeria não apareceu."""
-        with self._passo("criar"):
-            self._tocar("criar")
-        espera = self._t("espera_curta_s", 2)
-        if (self.tela.achar("selecionar_varios", espera, plano_b=False) is not None
-                or self.tela.achar("abrir_galeria", 0, plano_b=False) is not None):
-            log.info("Letra %s: 'Adicionar ao story' abriu direto a galeria/câmera (sem escolher 'Story')", self.letra)
-            return
-        with self._passo("abrir_story"):
-            self._tocar("abrir_story")
+        """Feed → galeria/câmera de story. No Instagram 448 o "Adicionar ao story" do "Seu story" já abre a galeria;
+        em versões com a aba "Criar", ainda é preciso escolher "Story" (conferido primeiro, para não cair no modo
+        publicação). Se o toque não abriu nada (feed ainda carregando, como no ensaio de 25/09 18:51), toca de novo."""
+        tentativas = max(1, int(self.cfg.get("tentativas_criar", 3)))
+        for tentativa in range(1, tentativas + 1):
+            with self._passo("criar"):
+                self._tocar("criar")
+            aberta = self._esperar_uma(CHAVES_STORY_ABERTO, self._t("espera_abrir_story_s", 8))
+            if aberta == "abrir_story":
+                with self._passo("abrir_story"):
+                    self._tocar("abrir_story")
+                return
+            if aberta is not None:
+                log.info("Letra %s: 'Adicionar ao story' abriu direto a galeria/câmera (sem escolher 'Story')",
+                         self.letra)
+                return
+            if tentativa < tentativas and self.tela.existe("criar"):
+                log.warning("Letra %s: o toque em 'Adicionar ao story' não abriu a galeria (o feed ainda estava "
+                            "carregando?); tocando de novo (%d de %d)", self.letra, tentativa + 1, tentativas)
+                continue
+            break
+        raise ErroPasso(f"toquei {tentativas} vez(es) em 'Adicionar ao story' e a galeria/câmera do story não abriu")
 
     def _ir_para_feed(self, espera_inicial: float | None = None) -> None:
         for tentativa in range(int(self.cfg.get("max_voltar_saida", 8))):
