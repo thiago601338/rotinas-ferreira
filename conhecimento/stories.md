@@ -87,5 +87,7 @@ Isso também mostra quantos itens subiram de verdade. Foi assim que se descobriu
 - Só entram modelos e cores com estoque (regra fixa 1).
 - Primeira compilação: `Documents\Stories da Loja\2026-09-22`.
 
-## Ponto a confirmar com o usuário antes de automatizar
-- Um registro de 22/09 anotou a letra C (só 2 vídeos, C-1 e C-2, sem fotos; "vestido com duas argolas laterais") como "vestido comum, recebe link — não é de festa". Não está claro se vestido de festa leva figurinha de link. **Perguntar ao usuário** antes de o script decidir isso.
+## Vestido de festa não leva figurinha de link (confirmado em 25/09/2026)
+- Letra de **vestido de festa** (categorias `Vestidos de Festa` e `VESTIDO DE FESTA`) é postada **sem** figurinha de link. As demais peças levam o link na última mídia da letra.
+- Origem: um registro de 22/09 anotou a letra C ("vestido com duas argolas laterais") como "vestido comum, recebe link — não é de festa"; o usuário confirmou a regra em 25/09.
+- No código: `config/stories.json` → `link_em_vestido_de_festa: false` e `categorias_vestido_de_festa`. A categoria vem do cadastro (`products.category`), não da aparência da peça: se o cadastro disser `Vestidos` ou `Vestidos Casuais`, leva link.

@@ -65,7 +65,7 @@
       "busca": "enfermeira_vitoria0"
     }
   ],
-  "link_em_vestido_de_festa": null,
+  "link_em_vestido_de_festa": false,
   "categorias_vestido_de_festa": [
     "Vestidos de Festa",
     "VESTIDO DE FESTA"
