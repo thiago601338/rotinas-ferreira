@@ -3,6 +3,10 @@
   "whatsapp": "5582988748649",
   "link_modelo": "wa.me/{numero}?text={mensagem}",
   "mensagem_modelo": "Quero comprar {artigo} {peca}",
+  "link": {
+    "_comentario": "A4 (rotinas/stories/link.py): nome da peça em CAIXA ALTA vira Título; estas palavras ficam minúsculas (menos a primeira).",
+    "palavras_minusculas": ["de", "da", "do", "das", "dos", "e", "com", "c/", "em", "na", "no", "nas", "nos", "para", "sem", "por", "ao", "à"]
+  },
   "artigos": {
     "padrao": "o",
     "femininas": [
@@ -119,5 +123,48 @@
   "conferencia_instagram": {
     "uid": "54614123599",
     "app_id": "936619743392459"
+  },
+  "estoque": {
+    "_comentario": "A2 (rotinas/stories/estoque.py): consulta só de leitura, nunca cost_price. ordem_tamanhos só muda a ordem das colunas na tabela.",
+    "status_ativo": "Ativo",
+    "timeout_s": 20,
+    "ordem_tamanhos": ["PP", "P", "M", "G", "GG", "XG", "XGG", "EG", "EGG", "G1", "G2", "G3", "G4", "U", "Único"]
+  },
+  "postados": {
+    "_comentario": "A3 (rotinas/stories/postados.py): arquivos dentro da pasta registros/ (pastas.json → rotinas).",
+    "arquivo": "postados.csv",
+    "cache_hashes": "cache_hashes.json"
+  },
+  "preparar": {
+    "_comentario": "A1 (rotinas/stories/pasta.py). O registro fica em <pasta do dia>/<pasta_originais>/. Folha: células em pixels [largura, altura]; célula de vídeo mais larga porque o vídeo vira uma tira de quadros.",
+    "registro_renomeacoes": "renomeados.json",
+    "converter_para_mp4": [
+      ".mov",
+      ".m4v",
+      ".3gp"
+    ],
+    "converter_para_jpg": [
+      ".heic",
+      ".heif"
+    ],
+    "jpg_qualidade": 95,
+    "folha": {
+      "celula_foto": [
+        300,
+        533
+      ],
+      "celula_video": [
+        600,
+        533
+      ],
+      "colunas_max": 5,
+      "quadros_video": [
+        0.1,
+        0.5,
+        0.9
+      ],
+      "miniatura_px": 1000,
+      "qualidade": 85
+    }
   }
 }
