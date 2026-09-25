@@ -253,6 +253,9 @@
     ],
     "musica": [
       {
+        "resourceId": "com.instagram.android:id/music_button"
+      },
+      {
         "description": "Música"
       },
       {
@@ -292,6 +295,9 @@
     ],
     "buscar_musica": [
       {
+        "resourceId": "com.instagram.android:id/row_search_edit_text"
+      },
+      {
         "text": "Pesquisar música"
       },
       {
@@ -301,9 +307,19 @@
         "className": "android.widget.EditText"
       }
     ],
+    "enviar_busca_musica": [
+      {
+        "tecla": "enter"
+      }
+    ],
     "escolher_musica": [
       {
         "className": "android.widget.TextView"
+      }
+    ],
+    "faixas_musica": [
+      {
+        "descriptionStartsWith": "Selecionar faixa"
       }
     ],
     "concluir_musica": [
@@ -486,7 +502,7 @@
       }
     ]
   },
-  "_seletores_conferidos": "25/09/2026, Instagram 448.0.0.52.84 (Android 9, tela 900×1600 em pé), testar.bat bluestacks: feed_tab 'Página inicial'; sem aba 'Criar' — 'Adicionar ao story' (reel_empty_badge) abre direto a galeria (gallery_title_text 'Adicionar ao story'); 'Selecionar' = gallery_menu_multi_select_button (vira 'Cancelar' quando ligado); 'Recentes ▾' = gallery_folder_menu_tv, menu com Recentes/Fotos/Vídeos/Todos os álbuns/Dos apps da Meta; miniaturas = gallery_grid_item_thumbnail com descrição 'Não selecionado Miniatura de foto/vídeo…' (a célula 'Abrir câmera' não tem esse id); o círculo gallery_grid_item_selection_circle existe em todas. Do editor em diante ainda são chutes.",
+  "_seletores_conferidos": "25/09/2026, Instagram 448.0.0.52.84 (Android 9, tela 900×1600 em pé), testar.bat bluestacks: feed_tab 'Página inicial'; sem aba 'Criar' — 'Adicionar ao story' (reel_empty_badge) abre direto a galeria (gallery_title_text 'Adicionar ao story'); 'Selecionar' = gallery_menu_multi_select_button (vira 'Cancelar' quando ligado); 'Recentes ▾' = gallery_folder_menu_tv, menu com Recentes/Fotos/Vídeos/Todos os álbuns/Dos apps da Meta; miniaturas = gallery_grid_item_thumbnail com descrição 'Não selecionado Miniatura de foto/vídeo…' (a célula 'Abrir câmera' não tem esse id); o círculo gallery_grid_item_selection_circle existe em todas. Ensaio de 25/09 19:08: seleção marcada = descrição 'Número da mídia selecionada N'; editor com music_button ('Músicas'), asset_button ('Figurinhas'), media_thumbnail_tray_button ('Avançar'); busca de música = row_search_edit_text, faixas com descrição 'Selecionar faixa <título> de <autor>,…'. Do escolher a música em diante ainda são chutes.",
   "descricao_nao_selecionado": "Não selecionado",
   "descricao_numero_selecao": "(?i)selecionada\\s+(\\d+)",
   "espera_selecao_s": 4,

@@ -296,7 +296,10 @@ class TelaFalsa:
         self.miniaturas_editor_extra = 0  # elementos a mais na faixa de miniaturas do editor (ex.: "+")
         self.caixa_seu_story = False  # na folha de compartilhar, a caixa marcada de "Seu story" logo acima
         self.seu_story_marcado = True
+        self.busca_exige_enter = False  # os resultados só vêm depois da tecla de busca do teclado
+        self.musicas_fora = set()  # autores que a busca não mostra (ex.: música fora do catálogo da conta)
         self.resultados_musica = [
+            ("I Like That", "LAVLO"),  # como no PC: faixa "sem royalties" que aparece em qualquer busca
             ("Áudio original", "neetunomusic"),
             ("Áudio original", "petermarkoski"),
             ("I Know What You Want", "Madison Beer, Calley"),
@@ -312,6 +315,7 @@ class TelaFalsa:
         self.midias: list[dict] = []
         self.atual = 0
         self.busca = None
+        self.busca_enviada = False
         self.musica_escolhida = None
         self.campo_url = ""
         self.campo_texto = None
@@ -347,7 +351,9 @@ class TelaFalsa:
         elif e == "figurinhas":
             v = {"figurinha_link", "figurinha_musica", "buscar_figurinha"}
         elif e == "musica":
-            v = {"buscar_musica"} | ({"escolher_musica"} if self.busca else set())
+            v = {"buscar_musica", "enviar_busca_musica"}
+            if self.busca and (self.busca_enviada or not self.busca_exige_enter):
+                v |= {"escolher_musica", "faixas_musica"}
             if self.musica_escolhida:
                 v.add("concluir_musica")
         elif e == "link":
@@ -432,6 +438,8 @@ class TelaFalsa:
                 self.teclado = True
                 if self.enter_quebra_linha and self.campo_texto:
                     self.campo_texto += "\n"
+            elif chave == "enviar_busca_musica":
+                self.busca_enviada = True
             elif chave == "concluir_figurinha":
                 self.midias[self.atual]["figurinha"] = {"url": self.campo_url, "texto": self.campo_texto,
                                                         "teclado_confirmado": self.teclado}
@@ -502,7 +510,7 @@ class TelaFalsa:
             raise AssertionError(f"campo '{chave}' não está na tela ({self.estado})")
         self.digitados.append((chave, texto))
         if chave == "buscar_musica":
-            self.busca = texto or None
+            self.busca, self.busca_enviada = texto or None, False
         elif chave == "campo_url":
             if texto and self.url_https > 0:
                 self.url_https -= 1
@@ -540,8 +548,12 @@ class TelaFalsa:
                                     acao=lambda: self.toques.append("editor_extra")))
             for i in range(len(self.midias)):
                 els.append(Elemento(limites=(100 + i * 120, 1800, 200 + i * 120, 1900), acao=self._ir_midia(i)))
+        elif chave == "faixas_musica":
+            for i, (titulo, autor) in enumerate(self._resultados()):
+                els.append(Elemento(descricao=f"Selecionar faixa {titulo} de {autor},0:30", limites=(0, 300 + i * 160, 900, 440 + i * 160),
+                                    acao=self._escolher(titulo, autor)))
         elif chave == "escolher_musica":
-            for i, (titulo, autor) in enumerate(self.resultados_musica):
+            for i, (titulo, autor) in enumerate(self._resultados()):
                 topo = 300 + i * 160
                 els.append(Elemento(texto=titulo, limites=(150, topo, 900, topo + 50), acao=self._escolher(titulo, autor)))
                 els.append(Elemento(texto=autor, limites=(150, topo + 60, 900, topo + 100), acao=self._escolher(titulo, autor)))
@@ -552,6 +564,9 @@ class TelaFalsa:
             els.append(self._elemento("interruptores"))
         els = sorted(els, key=lambda e: (e.limites[1], e.limites[0]))
         return [e for e in els if filtro is None or filtro(e)]
+
+    def _resultados(self):
+        return [(t, a) for t, a in self.resultados_musica if a not in self.musicas_fora]
 
     def _tocar_miniatura(self, i):
         def tocar():

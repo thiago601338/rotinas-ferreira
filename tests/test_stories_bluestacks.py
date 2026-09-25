@@ -650,6 +650,63 @@ def test_mov_nao_vai_para_a_galeria(ambiente):
         rodar(a, plano)
 
 
+def _plano_video_com_musica(a, indice=0):
+    plano = montar_plano(a.midias, {"A": ["video_mudo", "foto"]})
+    from rotinas.stories import link
+
+    plano["letras"][0]["midias"][0]["musica"] = link.musica_para(indice)
+    return plano
+
+
+def test_busca_de_musica_aperta_a_tecla_de_busca(ambiente):
+    """Como no ensaio sintético de 25/09 19:08: o texto ficou no campo e a lista não mudou (resultados só com a
+    tecla de busca do teclado)."""
+    a = ambiente
+    a.tela.busca_exige_enter = True
+    res = rodar(a, _plano_video_com_musica(a, 0), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert "enviar_busca_musica" in a.tela.toques
+    assert res["letras"][0]["musicas"][0]["musica"] == "I know what you want (Madison Beer/Calley)"
+    assert not res["avisos"]
+
+
+def test_musica_que_nao_aparece_usa_a_proxima_da_lista_com_aviso(ambiente):
+    a = ambiente
+    a.tela.musicas_fora = {"Madison Beer, Calley"}
+    res = rodar(a, _plano_video_com_musica(a, 0), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    (musica,) = res["letras"][0]["musicas"]
+    assert musica["musica"] == "Áudio original (petermarkoski)"  # a seguinte em audios_sem_som
+    assert musica["pedida"] == "I know what you want (Madison Beer/Calley)"
+    assert any("não achei 'I know what you want'" in x and "usei Áudio original (petermarkoski)" in x
+               for x in res["avisos"])
+    assert [t for c, t in a.tela.digitados if c == "buscar_musica"][:2] == ["I know what you want Madison Beer",
+                                                                            "petermarkoski"]
+
+
+def test_nenhuma_musica_da_lista_na_busca_para_e_mostra_o_que_apareceu(ambiente):
+    a = ambiente
+    a.tela.musicas_fora = {autor for _, autor in a.tela.resultados_musica if autor != "LAVLO"}
+    with pytest.raises(bluestacks.ErroPostagem) as e:
+        rodar(a, _plano_video_com_musica(a, 3), ensaio=True, diagnostico=True)
+    msg = str(e.value)
+    assert "não achei nenhuma música da lista" in msg and "a busca mostrou: I Like That de LAVLO" in msg
+    assert len([c for c, _ in a.tela.digitados if c == "buscar_musica"]) == 5  # as 5 da lista, cada uma uma vez
+    assert (a.ctx.pasta_saida / "busca_musica_A_5.png").is_file()
+    assert a.tela.publicacoes == []
+
+
+def test_opcoes_de_musica_comecam_pela_pedida_e_seguem_a_lista(cfg):
+    from rotinas.stories import link
+
+    pedida = link.musica_para(3)
+    nomes = [(o["nome"], o["autor"]) for o in bluestacks.Postador._opcoes_musica(pedida)]
+    lista = [(o["nome"], o["autor"]) for o in (link.musica_para(k) for k in range(5))]
+    assert nomes == [lista[3], lista[4], lista[0], lista[1], lista[2]]
+    fora = {"nome": "Outra", "autor": "alguém", "busca": "outra"}  # escolhida pela IA, fora da lista
+    assert [o["nome"] for o in bluestacks.Postador._opcoes_musica(fora)][:2] == ["Outra", lista[0][0]]
+
+
 def test_escolher_musica_pelo_autor_na_mesma_linha():
     textos = TelaFalsa().resultados_musica
     tela = TelaFalsa()
@@ -657,7 +714,7 @@ def test_escolher_musica_pelo_autor_na_mesma_linha():
     grade = tela.grade("escolher_musica")
     assert len(grade) == 2 * len(textos)
     el = bluestacks.escolher_resultado_musica(grade, "Áudio original", "petermarkoski")
-    assert el.texto == "Áudio original" and el.limites[1] == 300 + 160
+    assert el.texto == "Áudio original" and el.limites[1] == 300 + 160 * textos.index(("Áudio original", "petermarkoski"))
     el = bluestacks.escolher_resultado_musica(grade, "I know what you want", "Madison Beer/Calley")
     assert el.texto == "I Know What You Want"
     assert bluestacks.escolher_resultado_musica(grade, "Áudio original", "enfermeira_vitoria0") is None

@@ -504,8 +504,40 @@ class Postador:
                 log.warning("O campo %s mostrou %r em vez de %r; digitando de novo", chave, lido, texto)
         raise ErroPasso(f"o campo '{chave}' não ficou com o texto certo em {tentativas} tentativas (mostrou {lido!r})")
 
-    def _musica(self, m: dict, r: dict) -> None:
-        musica = m["musica"]
+    @staticmethod
+    def _opcoes_musica(pedida: dict) -> list[dict]:
+        """A música pedida e, se ela não aparecer na busca, as outras de ``audios_sem_som`` (regra do usuário:
+        vídeo sem áudio leva uma música DESSA lista), na ordem da lista a partir da pedida."""
+        lista = [dict(a) for a in config.carregar("stories").get("audios_sem_som") or []]
+        chave = (_norm(pedida.get("nome")), _norm(pedida.get("autor")))
+        pos = next((k for k, a in enumerate(lista) if (_norm(a.get("nome")), _norm(a.get("autor"))) == chave), -1)
+        resto = lista[pos + 1:] + lista[:pos] if pos >= 0 else lista
+        return [pedida] + resto
+
+    def _buscar_musica(self, musica: dict):
+        """Digita a busca, aperta a tecla de busca do teclado e espera o resultado com título + autor."""
+        self.tela.digitar("buscar_musica", musica["busca"], espera_s=self._t("espera_padrao_s", 10))
+        self._pausa()
+        enviar = self.tela.achar("enviar_busca_musica", 0)
+        if enviar is not None:
+            enviar.tocar()
+            self._pausa()
+        limite = agora() + self._t("espera_resultados_musica_s", 10)
+        while True:
+            escolhido = escolher_resultado_musica(self.tela.grade("escolher_musica"), musica.get("nome"), musica.get("autor"))
+            if escolhido is not None or agora() >= limite:
+                return escolhido
+            dormir(self._t("intervalo_busca_s", 0.4))
+
+    def _faixas_na_tela(self) -> list[str]:
+        faixas = []
+        for el in self.tela.grade("faixas_musica")[:4]:
+            d = re.sub(r"(?i)^selecionar faixa\s+", "", el.descricao or el.texto or "")
+            faixas.append(re.sub(r",\s*\d+:\d+$", "", d))
+        return faixas
+
+    def _musica(self, m: dict, r: dict, res: dict) -> None:
+        pedida = m["musica"]
         icone = self.tela.achar("musica", self._t("espera_curta_s", 2), plano_b=False)
         if icone is not None:
             icone.tocar()
@@ -513,22 +545,31 @@ class Postador:
         else:
             self._tocar("figurinhas")
             self._tocar("figurinha_musica")
-        self.tela.digitar("buscar_musica", musica["busca"], espera_s=self._t("espera_padrao_s", 10))
-        self._pausa()
-        limite = agora() + self._t("espera_resultados_musica_s", 10)
-        while True:
-            escolhido = escolher_resultado_musica(self.tela.grade("escolher_musica"), musica.get("nome"), musica.get("autor"))
+        nao_achadas = []
+        for musica in self._opcoes_musica(pedida):
+            escolhido = self._buscar_musica(musica)
             if escolhido is not None:
                 break
-            if agora() >= limite:
-                raise ErroPasso(f"não achei '{musica.get('nome')}' de {musica.get('autor')} na busca '{musica['busca']}'")
-            dormir(self._t("intervalo_busca_s", 0.4))
+            nao_achadas.append(f"'{musica.get('nome')}' de {musica.get('autor')}")
+            log.warning("Letra %s: não achei %s na busca '%s'", self.letra, nao_achadas[-1], musica.get("busca"))
+            if self.diagnostico:
+                self._salvar_tela(f"busca_musica_{self.letra}_{len(nao_achadas)}")
+        else:
+            faixas = self._faixas_na_tela()
+            raise ErroPasso(f"não achei nenhuma música da lista na busca do Instagram (tentei {', '.join(nao_achadas)})"
+                            + (f"; a busca mostrou: {' | '.join(faixas)}" if faixas else ""))
         escolhido.tocar()
         self._pausa()
         self._tocar("concluir_musica")
         self._esperar_editor("a música")
-        r.setdefault("musicas", []).append({"midia": m.get("nome"), "musica": f"{musica.get('nome')} ({musica.get('autor')})",
-                                            "na_tela": escolhido.texto})
+        nome = f"{musica.get('nome')} ({musica.get('autor')})"
+        item = {"midia": m.get("nome"), "musica": nome, "na_tela": escolhido.texto}
+        if nao_achadas:
+            item["pedida"] = f"{pedida.get('nome')} ({pedida.get('autor')})"
+            res["avisos"].append(f"Letra {self.letra}, {m.get('nome')}: não achei {', '.join(nao_achadas)} na busca "
+                                  f"do Instagram; usei {nome}")
+            log.warning(res["avisos"][-1])
+        r.setdefault("musicas", []).append(item)
 
     def _conferir_figurinha(self, fig: dict) -> None:
         if self.tela.existe("figurinha_na_tela"):
@@ -562,14 +603,14 @@ class Postador:
         self._conferir_figurinha(fig)
         r["figurinha"] = {"midia": m.get("nome"), "url": fig["url"], "texto": texto}
 
-    def _montar_midias(self, L: dict, r: dict) -> None:
+    def _montar_midias(self, L: dict, r: dict, res: dict) -> None:
         midias = L["midias"]
         for i, m in enumerate(midias, 1):
             with self._passo(f"midia_{i}"):
                 self._ir_para_midia(i, len(midias))
             if m.get("precisa_musica"):
                 with self._passo(f"musica_{i}"):
-                    self._musica(m, r)
+                    self._musica(m, r, res)
             if m.get("figurinha"):
                 with self._passo(f"figurinha_{i}"):
                     self._figurinha(m, r)
@@ -712,7 +753,7 @@ class Postador:
         with self._passo("avancar"):
             self._tocar("avancar")
             self._esperar_editor("Avançar")
-        self._montar_midias(L, r)
+        self._montar_midias(L, r, res)
         if self.ensaio:
             with self._passo("sair_sem_publicar"):
                 if not self._sair_com_seguranca():
