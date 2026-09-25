@@ -1,0 +1,13 @@
+{
+  "_comentario": "Automação do Instagram no BlueStacks (ADB + uiautomator2). Seletores por texto/descrição em PT-BR, sempre com alternativas. Ajustar pelo XML do diagnóstico.",
+  "adb_candidatos": [
+    "%LOCALAPPDATA%\\Microsoft\\WinGet\\Links\\adb.exe",
+    "C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe",
+    "adb"
+  ],
+  "bluestacks_conf": "C:\\ProgramData\\BlueStacks_nxt\\bluestacks.conf",
+  "dispositivo_padrao": "127.0.0.1:5555",
+  "pacote_instagram": "com.instagram.android",
+  "pasta_android": "/sdcard/Pictures/RotinasFerreira",
+  "espera_padrao_s": 10
+}

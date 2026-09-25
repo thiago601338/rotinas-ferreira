@@ -1,0 +1,123 @@
+{
+  "_comentario": "Regras de stories em conhecimento/stories.md. Mudança de regra: atualizar aqui, no conhecimento e na skill no mesmo commit.",
+  "whatsapp": "5582988748649",
+  "link_modelo": "wa.me/{numero}?text={mensagem}",
+  "mensagem_modelo": "Quero comprar {artigo} {peca}",
+  "artigos": {
+    "padrao": "o",
+    "femininas": [
+      "saia",
+      "blusa",
+      "calça",
+      "calca",
+      "camisa",
+      "camiseta",
+      "jaqueta",
+      "bata",
+      "regata",
+      "bermuda",
+      "jardineira",
+      "túnica",
+      "tunica",
+      "bolsa",
+      "sandália",
+      "sandalia",
+      "legging",
+      "polo",
+      "pantalona",
+      "saída",
+      "saida",
+      "jaqueta",
+      "t-shirt",
+      "peça",
+      "peca"
+    ]
+  },
+  "textos_figurinha": [
+    "Comprar",
+    "Comprar agora",
+    "Comprar pelo Whatsapp"
+  ],
+  "audios_sem_som": [
+    {
+      "nome": "I know what you want",
+      "autor": "Madison Beer/Calley",
+      "busca": "I know what you want Madison Beer"
+    },
+    {
+      "nome": "Áudio original",
+      "autor": "petermarkoski",
+      "busca": "petermarkoski"
+    },
+    {
+      "nome": "Áudio original",
+      "autor": "neetunomusic",
+      "busca": "neetunomusic"
+    },
+    {
+      "nome": "Clocks",
+      "autor": "leveviolao",
+      "busca": "Clocks leveviolao"
+    },
+    {
+      "nome": "Áudio original",
+      "autor": "enfermeira_vitoria0",
+      "busca": "enfermeira_vitoria0"
+    }
+  ],
+  "link_em_vestido_de_festa": null,
+  "categorias_vestido_de_festa": [
+    "Vestidos de Festa",
+    "VESTIDO DE FESTA"
+  ],
+  "compilacao_ordem": [
+    {
+      "grupo": "Conjuntos",
+      "categorias": [
+        "Conjuntos"
+      ]
+    },
+    {
+      "grupo": "Vestidos casuais",
+      "categorias": [
+        "Vestidos",
+        "Vestidos Casuais"
+      ]
+    },
+    {
+      "grupo": "Macacões",
+      "categorias": [
+        "Macacões",
+        "Macacão"
+      ]
+    },
+    {
+      "grupo": "Vestidos de festa",
+      "categorias": [
+        "Vestidos de Festa",
+        "VESTIDO DE FESTA"
+      ]
+    }
+  ],
+  "extensoes_foto": [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".heic",
+    ".webp"
+  ],
+  "extensoes_video": [
+    ".mp4",
+    ".mov",
+    ".m4v",
+    ".3gp"
+  ],
+  "silencio_limiar_db": -50.0,
+  "agrupamento_intervalo_min": 10,
+  "pasta_originais": "_originais",
+  "max_midias_por_letra": 10,
+  "conferencia_instagram": {
+    "uid": "54614123599",
+    "app_id": "936619743392459"
+  }
+}

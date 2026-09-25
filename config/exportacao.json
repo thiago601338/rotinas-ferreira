@@ -1,0 +1,14 @@
+{
+  "_comentario": "Presets de exportação do CapCut (conhecimento/edicao-video-capcut.md §8) e limites da conferência automática (B4).",
+  "presets": {
+    "reels":   {"largura": 1080, "altura": 1920, "fps": 30, "codec": "h264", "formato": "mp4", "kbps": 16000, "kbps_min": 12000, "kbps_max": 20000, "duracao_max_s": 180, "tamanho_max_mb": null},
+    "stories": {"largura": 1080, "altura": 1920, "fps": 30, "codec": "h264", "formato": "mp4", "kbps": 11000, "kbps_min": 10000, "kbps_max": 12000, "duracao_max_s": 60,  "tamanho_max_mb": 100},
+    "tiktok":  {"largura": 1080, "altura": 1920, "fps": 30, "codec": "h264", "formato": "mp4", "kbps": 25000, "kbps_min": 20000, "kbps_max": 30000, "duracao_max_s": 600, "tamanho_max_mb": null},
+    "feed":    {"largura": 1080, "altura": 1350, "fps": 30, "codec": "h264", "formato": "mp4", "kbps": 14000, "kbps_min": 12000, "kbps_max": 16000, "duracao_max_s": 180, "tamanho_max_mb": null}
+  },
+  "loudness_alvo_lufs": -14.0,
+  "loudness_tolerancia_lu": 2.0,
+  "pico_real_max_dbtp": -1.0,
+  "fps_tolerancia": 0.05,
+  "kbps_tolerancia_pct": 25
+}

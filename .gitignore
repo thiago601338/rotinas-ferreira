@@ -1,0 +1,24 @@
+# Segredos: nunca no repositório
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Mídia e saídas locais (ficam no PC, fora do repositório)
+*.mov
+*.MOV
+*.mp4
+*.MP4
+!tests/dados/**
+saida_local/
+
+# Resultados de teste do PC entram em execucoes/, mas nunca mídia pesada
+execucoes/**/*.mp4
+execucoes/**/*.mov
+execucoes/**/*.jpg.tmp

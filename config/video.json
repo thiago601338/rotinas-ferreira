@@ -1,0 +1,18 @@
+{
+  "_comentario": "Parâmetros da preparação do bruto (B1) e das receitas (B2).",
+  "tomadas_limiar_cena": 0.30,
+  "tomadas_min_s": 0.6,
+  "silencio_ruido_db": -35,
+  "silencio_min_s": 0.3,
+  "whisper_modelo": "small",
+  "whisper_dispositivo": "cpu",
+  "whisper_computacao": "int8",
+  "whisper_idioma": "pt",
+  "legenda_max_palavras": 4,
+  "legenda_max_caracteres_linha": 42,
+  "legenda_max_linhas": 2,
+  "legenda_max_cps": 17,
+  "legenda_min_s": 1.0,
+  "folha_quadros_por_tomada": 3,
+  "palavras_que_nao_fecham_bloco": ["o", "a", "os", "as", "um", "uma", "uns", "umas", "de", "da", "do", "das", "dos", "em", "no", "na", "nos", "nas", "com", "para", "pra", "por", "e", "ou", "que", "R$"]
+}
