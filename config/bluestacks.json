@@ -493,5 +493,14 @@
   "tentativas_selecao": 3,
   "_entrar_no_story": "Depois de tocar 'criar', espera até espera_abrir_story_s pela aba 'Story', pela galeria ou pela câmera; se a tela continuar no feed (toque ignorado com o feed carregando), toca de novo, até tentativas_criar vezes.",
   "espera_abrir_story_s": 8,
-  "tentativas_criar": 3
+  "tentativas_criar": 3,
+  "_sintetico_video_ffmpeg": "Argumentos do ffmpeg (antes do arquivo de saída) do vídeo da letra de teste do 'testar.bat stories-ensaio --sintetico'. Imita vídeo de celular: H.264 Main sem B-frames, áudio AAC em silêncio, faststart. Em 25/09 o H.264 High com B-frames e sem áudio ficou cinza na galeria do BlueStacks e não selecionava.",
+  "sintetico_video_ffmpeg": [
+    "-f", "lavfi", "-i", "testsrc2=s=1080x1920:r=30:d=5", "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
+    "-shortest", "-map", "0:v", "-map", "1:a",
+    "-c:v", "libx264", "-profile:v", "main", "-level", "4.0", "-bf", "0", "-g", "30", "-pix_fmt", "yuv420p",
+    "-b:v", "6M", "-maxrate", "8M", "-bufsize", "8M",
+    "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",
+    "-c:a", "aac", "-b:a", "128k", "-ar", "48000", "-movflags", "+faststart"
+  ]
 }

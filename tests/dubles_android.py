@@ -290,6 +290,7 @@ class TelaFalsa:
         self.album_via_todos = False  # Instagram 448: as pastas ficam em "Todos os álbuns" dentro do menu
         self.numeros_na_selecao = True  # False: sem número na miniatura; só a descrição muda
         self.selecao_ja_ativa = False  # a galeria abre com "Selecionar várias" já ligado (botão "Cancelar")
+        self.videos: set[int] = set()  # miniaturas de vídeo (descrição "Miniatura de vídeo…")
         self.carregando: set[int] = set()  # miniaturas ainda carregando: o 1º toque nelas não pega (vídeo recém-enviado)
         self.pre_selecionados = 0  # mídias já selecionadas (fora da tela) quando liga o "Selecionar"
         self.miniaturas_editor_extra = 0  # elementos a mais na faixa de miniaturas do editor (ex.: "+")
@@ -523,7 +524,7 @@ class TelaFalsa:
             for i in range(self._n_grade()):
                 linha, coluna = divmod(i, 4)
                 desc = ((f"Número da mídia selecionada {self.selecao.index(i) + 1}" if i in self.selecao else "Não selecionado")
-                        + " Miniatura de foto com criação em 24 de setembro")
+                        + f" Miniatura de {'vídeo' if i in self.videos else 'foto'} com criação em 24 de setembro")
                 els.append(Elemento(texto="", descricao=desc,
                                     limites=(coluna * 250, 400 + linha * 250, coluna * 250 + 240, 640 + linha * 250),
                                     acao=self._tocar_miniatura(i)))

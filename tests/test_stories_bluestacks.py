@@ -3,6 +3,7 @@
 import hashlib
 import json
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -123,6 +124,30 @@ def test_video_ainda_carregando_leva_segundo_toque_sem_desmarcar(ambiente):
     assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
     assert a.tela.toques.count("miniatura_0") == 2 and a.tela.toques.count("miniatura_1") == 1
     assert a.tela.selecao == [] or True  # o ensaio descarta no fim
+
+
+def test_video_que_o_instagram_nao_le_para_com_mensagem_e_print_de_cada_toque(ambiente):
+    """Como no ensaio sintético de 25/09 18:59: o vídeo ficou cinza e nenhum dos 3 toques selecionou."""
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.numeros_na_selecao = False
+    a.tela.videos = {0}
+    a.tela.ignorar_miniatura = {0}
+    with pytest.raises(bluestacks.ErroPostagem) as e:
+        rodar(a, montar_plano(a.midias, {"A": ["video_mudo", "foto"]}), ensaio=True, diagnostico=True)
+    assert "(vídeo)" in str(e.value) and "não leu o vídeo" in str(e.value)
+    assert a.tela.toques.count("miniatura_0") == 3 and "miniatura_1" not in a.tela.toques
+    assert all((a.ctx.pasta_saida / f"selecao_A_1_toque{k}.png").is_file() for k in (1, 2, 3))
+    assert a.tela.publicacoes == []
+
+
+def test_sem_diagnostico_toque_que_nao_pega_nao_gera_print_extra(ambiente):
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.carregando = {0}
+    res = rodar(a, montar_plano(a.midias, {"A": ["video_mudo", "foto"]}), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert not list(a.ctx.pasta_saida.glob("selecao_*"))
 
 
 def test_selecao_ja_ligada_nao_e_desligada(ambiente):
@@ -778,3 +803,10 @@ def test_ensaio_sintetico_monta_letra_de_teste_sem_publicar(sem_emulador, cfg):
     midias = plano["letras"][0]["midias"]
     assert midias[0]["precisa_musica"] and midias[0]["musica"]
     assert midias[-1]["figurinha"]["url"].startswith("wa.me/") and all(m["figurinha"] is None for m in midias[:-1])
+    # vídeo como o de celular: H.264 Main sem B-frames + AAC (o High com B-frames e sem áudio ficou cinza no 448)
+    info = json.loads(subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "stream=codec_name,profile,has_b_frames,pix_fmt", "-of", "json",
+         midias[0]["caminho"]], capture_output=True, text=True, check=True).stdout)["streams"]
+    video = next(s for s in info if s["codec_name"] == "h264")
+    assert video["profile"] == "Main" and video["has_b_frames"] == 0 and video["pix_fmt"] == "yuv420p"
+    assert any(s["codec_name"] == "aac" for s in info)

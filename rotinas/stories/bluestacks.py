@@ -436,6 +436,9 @@ class Postador:
             self._pausa()
             if num is None:
                 return
+            if self.diagnostico and self._numero_selecao(self._miniatura(i, n)) == 0:
+                # print logo depois do toque que não pegou: pega aviso passageiro do Instagram (toast), se houver
+                self._salvar_tela(f"selecao_{self.letra}_{i + 1}_toque{tentativa}")
             limite = agora() + self._t("espera_selecao_s", 4)
             while agora() < limite:
                 num = self._numero_selecao(self._miniatura(i, n))
@@ -447,6 +450,9 @@ class Postador:
                     raise ErroPasso(f"a mídia {i + 1} da letra ficou com o número {num} na seleção; não publico")
                 dormir(self._t("intervalo_busca_s", 0.4))
             log.info("Letra %s: a mídia %d ainda não aparece selecionada; tocando de novo", self.letra, i + 1)
+        if "vídeo" in (self._miniatura(i, n).descricao or "").lower():
+            raise ErroPasso(f"a mídia {i + 1} da letra (vídeo) não ficou selecionada depois de {tentativas} toques "
+                            "(miniatura cinza = o Instagram do BlueStacks não leu o vídeo); não publico letra pela metade")
         raise ErroPasso(f"a mídia {i + 1} da letra não ficou selecionada depois de {tentativas} toques "
                         "(miniatura ainda carregando?); não publico letra pela metade")
 
@@ -1012,8 +1018,11 @@ def _teste_real(ctx: Contexto) -> dict:
 
 
 def plano_sintetico(pasta: Path) -> dict:
-    """Letra de teste "T" (1 vídeo sem som + 2 fotos geradas na hora, em ``pasta``; nunca na pasta do usuário)
-    com música no vídeo e figurinha de link na última foto — para afinar os passos do editor em ENSAIO."""
+    """Letra de teste "T" (1 vídeo mudo + 2 fotos geradas na hora, em ``pasta``; nunca na pasta do usuário)
+    com música no vídeo e figurinha de link na última foto — para afinar os passos do editor em ENSAIO.
+
+    O vídeo imita um vídeo de celular (``sintetico_video_ffmpeg`` na config: H.264 Main sem B-frames, áudio AAC
+    em silêncio, faststart): o H.264 High com B-frames e sem áudio ficou cinza na galeria do BlueStacks (25/09)."""
     from PIL import Image, ImageDraw
 
     from . import link
@@ -1021,9 +1030,10 @@ def plano_sintetico(pasta: Path) -> dict:
     pasta.mkdir(parents=True, exist_ok=True)
     video = pasta / "T - 1.mp4"
     if not video.exists():
-        ferramentas.rodar([midia.ffmpeg(), "-hide_banner", "-nostdin", "-y", "-f", "lavfi", "-i",
-                           "testsrc2=s=1080x1920:r=30:d=5", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(video)],
-                          timeout=180)
+        args = [str(a) for a in _cfg().get("sintetico_video_ffmpeg") or ()]
+        if not args:
+            raise ErroPasso("falta 'sintetico_video_ffmpeg' em config/bluestacks.json (como gerar o vídeo de teste)")
+        ferramentas.rodar([midia.ffmpeg(), "-hide_banner", "-nostdin", "-y", *args, str(video)], timeout=180)
     fotos = []
     for n, cor in ((2, (170, 40, 70)), (3, (40, 110, 70))):
         foto = pasta / f"T - {n}.jpg"
