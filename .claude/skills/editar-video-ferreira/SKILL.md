@@ -76,8 +76,9 @@ Ler `fila\feito\<id>.json` ou `fila\erro\<id>.json` a cada ~10 s (só aparece qu
 **4. Gerar o rascunho** — `tipo: "video.rascunho"`, `args: {"projeto": "vestido-verde", "nome": "Vestido verde – R02"}`
    (CapCut fechado; sem `nome` vira "vestido-verde 2026-09-25"). Script: backup, rascunho novo (nunca sobrescreve; nome
    repetido vira "(2)") e `videos\trabalho\<projeto>\relatorio_rascunho.txt`. Resultado: `rascunho` (nome real no
-   CapCut), `resumo.duracao_s` e `manual` (lista completa do acabamento à mão: use esta no aviso final). Com
-   `"ensaio": true` grava só na pasta do pedido (bom para testar sem mexer no CapCut).
+   CapCut), `resumo.duracao_s` e `manual` (lista completa do acabamento à mão — transições, efeitos que o rascunho não
+   aplica, cor, loop, legendas, faixa-guia: use esta no aviso final). Com `"ensaio": true` grava só na pasta do pedido
+   (nem o relatório do projeto muda; bom para testar sem mexer no CapCut).
 **5. Acabamento e exportação** — `tipo: "video.exportar"`, `args: {"projeto": "vestido-verde", "destino": "reels",
    "rascunho": "Vestido verde – R02"}` (`rascunho` = nome do passo 4; sem ele vale o último rascunho do projeto).
    O script grava `videos\trabalho\<projeto>\instrucoes_exportacao.txt` (projeto a abrir, preset, nome
@@ -90,6 +91,8 @@ Ler `fila\feito\<id>.json` ou `fila\erro\<id>.json` a cada ~10 s (só aparece qu
    `args: {"arquivo": "<nome>.mp4", "destino": "reels", "duracao_esperada_s": 18.5}`): duração, 1080×1920, fps,
    H.264, taxa de bits, áudio, −14 LUFS, pico ≤ −1 dBTP, tamanho (stories ~100 MB), SDR. `aprovado` + relatório em
    `texto`, com o "Fazer:" de cada item reprovado (repasse em uma linha). `arquivo` = nome dentro de `videos\exportado`.
+   - Som: o `video.exportar` deduz do plano se o arquivo sai **mudo** (música pelo Instagram, sem fala) ou só com efeitos;
+     aí áudio/volume não reprovam. No `video.conferir` avulso, passe `"projeto"` (deduz) ou `"som_esperado": "mudo"`.
 
 ## Regras fixas (resumo; detalhes no guia)
 - O produto manda: nada cobre a peça nem muda cor/caimento; um plano com cor real; cor fiel ao cadastro.
@@ -115,7 +118,7 @@ Conferência: APROVADO (ou: volume −22 LUFS → subir ~8 dB no clipe e exporta
 | Erro | Solução |
 |---|---|
 | "CapCut aberto" | Pedir para fechar o CapCut (Menu ▾ > Sair, não Ctrl+Q no meio da edição sem salvar) e repetir com outro id. |
-| "Gabarito do CapCut não encontrado" | Pedir `diagnostico.bat` (copia o projeto "0925"). |
+| "Gabarito do CapCut não encontrado" | O projeto "0925" não está nos rascunhos do CapCut: perguntar ao usuário se existe ou qual projeto usar e repetir com `"gabarito": "<pasta do projeto>"`. |
 | Violação no plano | Corrigir as escolhas (tomada mais curta/longa, texto menor, outro papel) e planejar de novo. |
 | "ini_s fora da tomada" | Os tempos são do arquivo: conferir `ini_s`/`fim_s` da tomada no `bruto.json`. |
 | "Música … não encontrada" | Pôr a faixa em `videos\musicas\` ou passar o caminho completo. |
@@ -123,5 +126,5 @@ Conferência: APROVADO (ou: volume −22 LUFS → subir ~8 dB no clipe e exporta
 | "Plano não encontrado" / "O plano tem violação" no rascunho | Planejar de novo (o `plano.json` é o do último planejar sem violação). |
 | `video.exportar` parado em `andamento` | Normal: espera o `.mp4`. Erro "Nenhum .mp4 novo" = passou o tempo: pedir de novo. |
 | Sem transcrição (faster-whisper/modelo) | Seguir sem legendas ou pedir `atualizar.bat`; o modelo baixa no primeiro uso (~480 MB). |
-| Conferência reprovada em áudio/volume com música pelo Instagram | Esperado: o arquivo sai mudo de propósito; ignorar esses itens. |
+| Conferência: "áudio" reprovado num plano mudo | O arquivo saiu com som: a faixa-guia não foi desligada (V) no CapCut; exportar de novo. |
 | Mídia perdida ao abrir o rascunho | Não mover/renomear o bruto depois do rascunho; se aconteceu, avisar e gerar de novo. |

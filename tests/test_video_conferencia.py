@@ -224,3 +224,60 @@ def test_cli_e_teste_real(cfg, pasta_videos, video_ok, tmp_path, capsys):
     for nome in ("conferencia.json", "conferencia.txt", "ffprobe.json"):
         assert (ctx.pasta_saida / nome).exists()
     assert not list(ctx.pasta_saida.glob("*.mp4"))  # vídeo não vai para execucoes/
+
+
+# ---------------------------------------------------------------- som esperado (achado #3)
+
+@pytest.mark.ffmpeg
+def test_plano_mudo_nao_reprova_audio_volume_e_pico(cfg, pasta_videos):
+    # R1 "troca de look na batida" sem fala: música pelo Instagram, o .mp4 sai mudo de propósito.
+    sem_faixa = _video(pasta_videos / "mudo-plano.mp4", lufs=None)
+    _so_falha(conferencia.conferir(sem_faixa, "reels"), "áudio", "volume", "pico real")  # sem o plano: reprova
+    r = conferencia.conferir(sem_faixa, "reels", som_esperado="mudo")
+    assert r["aprovado"], r["itens"]
+    assert r["som_esperado"] == "mudo"
+    itens = _itens(r)
+    assert itens["áudio"]["esperado"].startswith("mudo") and "n/a" in itens["volume"]["obtido"]
+    assert "APROVADO" in conferencia.texto(r)
+
+
+@pytest.mark.ffmpeg
+def test_plano_mudo_com_faixa_silenciosa_e_com_som_esquecido(cfg, video_ok, monkeypatch):
+    monkeypatch.setattr(midia, "loudness", lambda c: {"lufs": -70.0, "lra": 0.0, "pico_real_dbtp": float("-inf")})
+    assert conferencia.conferir(video_ok, "reels", som_esperado="mudo")["aprovado"]
+    # resto de clipe a −60 dB: ainda conta como mudo
+    monkeypatch.setattr(midia, "loudness", lambda c: {"lufs": -66.0, "lra": 0.0, "pico_real_dbtp": -55.0})
+    assert conferencia.conferir(video_ok, "reels", som_esperado="mudo")["aprovado"]
+    # faixa-guia esquecida ligada: o plano diz mudo, o arquivo tem música
+    monkeypatch.setattr(midia, "loudness", lambda c: {"lufs": -14.0, "lra": 1.0, "pico_real_dbtp": -2.0})
+    r = conferencia.conferir(video_ok, "reels", som_esperado="mudo")
+    _so_falha(r, "áudio")
+    assert "faixa-guia" in _itens(r)["áudio"]["fazer"]
+
+
+@pytest.mark.ffmpeg
+def test_so_efeitos_nao_cobra_o_volume(cfg, video_ok, monkeypatch):
+    monkeypatch.setattr(midia, "loudness", lambda c: {"lufs": -27.0, "lra": 1.0, "pico_real_dbtp": -0.2})
+    _so_falha(conferencia.conferir(video_ok, "reels"), "volume", "pico real")
+    r = conferencia.conferir(video_ok, "reels", som_esperado="so_efeitos")
+    _so_falha(r, "pico real")  # o pico continua valendo
+    assert _itens(r)["volume"]["ok"]
+
+
+@pytest.mark.ffmpeg
+def test_tarefa_e_cli_aceitam_som_esperado(cfg, pasta_videos, tmp_path, capsys):
+    mudo = _video(pasta_videos / "mudo-tarefa.mp4", lufs=None)
+    ctx = Contexto(tmp_path / "pedido")
+    assert conferencia.tarefa({"arquivo": str(mudo), "som_esperado": "mudo"}, ctx)["aprovado"]
+    assert not conferencia.tarefa({"arquivo": str(mudo)}, ctx)["aprovado"]
+    with pytest.raises(ValueError, match="som_esperado"):
+        conferencia.tarefa({"arquivo": str(mudo), "som_esperado": "alto"}, ctx)
+    # pelo projeto: deduz do plano.json (como o video.exportar)
+    trabalho = cfg.p.videos / "trabalho" / "vestido-verde"
+    trabalho.mkdir(parents=True)
+    (trabalho / "plano.json").write_text(json.dumps({
+        "duracao_s": 3.5, "audio": [{"arquivo": "guia.mp3", "papel": "guia", "exportar": False}],
+        "video": [{"arquivo": "a.mp4", "mudo": True}]}), encoding="utf-8")
+    assert conferencia.tarefa({"arquivo": str(mudo), "projeto": "vestido-verde"}, ctx)["aprovado"]
+    assert conferencia.cli(["--arquivo", str(mudo), "--som", "mudo"]) == 0
+    assert "APROVADO" in capsys.readouterr().out

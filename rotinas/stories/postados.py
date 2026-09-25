@@ -3,6 +3,9 @@
 Regra fixa 2 (``conhecimento/stories.md``): não repetir modelo nem mídia.
 - ``registros/postados.csv``: uma linha por mídia publicada, gravada só DEPOIS de publicar.
   UTF-8 com BOM e ``;`` (abre certo no Excel). Só acrescenta linhas, nunca reescreve o arquivo.
+- ``registros/postados_pendentes/*.json``: letra publicada cujo registro no CSV falhou (ex.: Excel aberto).
+  ``ler``/``letras_postadas``/``verificar`` contam essas letras como publicadas; o próximo ``registrar``
+  que conseguir gravar passa as pendentes para o CSV e apaga os arquivos.
 - Varredura das outras pastas de data (``AAAA-MM-DD``, incluindo ``_originais``) pelo hash das
   mídias, com cache em ``registros/cache_hashes.json`` (caminho + tamanho + data de modificação).
 """
@@ -51,6 +54,10 @@ def _cfg_stories() -> dict:
 
 def caminho_csv() -> Path:
     return config.pastas().registros / ((_cfg_stories().get("postados") or {}).get("arquivo") or "postados.csv")
+
+
+def pasta_pendentes() -> Path:
+    return config.pastas().registros / ((_cfg_stories().get("postados") or {}).get("pasta_pendentes") or "postados_pendentes")
 
 
 def caminho_cache() -> Path:
@@ -149,16 +156,110 @@ def _ler_bytes(caminho: Path) -> bytes:
 
 
 def ler() -> list[dict]:
-    """Todas as linhas de ``postados.csv`` (vazio se o arquivo ainda não existe)."""
+    """Todas as linhas de ``postados.csv`` mais as dos registros pendentes (letra publicada que não
+    conseguiu ser gravada no CSV). Vazio se não há nenhum dos dois."""
     caminho = caminho_csv()
-    if not caminho.exists():
-        return []
-    texto, _ = _decodificar(_ler_bytes(caminho))
-    return _analisar(texto)[1]
+    linhas = []
+    if caminho.exists():
+        texto, _ = _decodificar(_ler_bytes(caminho))
+        linhas = _analisar(texto)[1]
+    ja = {_chave_linha(l) for l in linhas}
+    for _, pendentes in ler_pendentes():
+        for l in pendentes:
+            if _chave_linha(l) not in ja:
+                ja.add(_chave_linha(l))
+                linhas.append(l)
+    return linhas
 
 
 def _chave_linha(l: dict) -> tuple:
     return (l["data"], l["letra"], l["arquivo"].casefold(), l["hash"])
+
+
+# ---------------------------------------------------------------- pendentes
+
+def ler_pendentes() -> list[tuple[Path, list[dict]]]:
+    """Registros pendentes: ``[(arquivo .json, linhas no formato do CSV)]``.
+
+    Pendente ilegível → ``ErroPostados``: sem saber se a letra subiu, nada deve ser publicado.
+    """
+    pasta = pasta_pendentes()
+    if not pasta.is_dir():
+        return []
+    saida = []
+    for arq in sorted(pasta.glob("*.json")):
+        try:
+            dados = json.loads(arq.read_text(encoding="utf-8-sig"))
+            brutas = dados["linhas"]
+            if not isinstance(brutas, list):
+                raise ValueError("'linhas' não é uma lista")
+        except PermissionError as e:
+            raise ErroPostados(_msg_aberto(arq, "ler")) from e
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            raise ErroPostados(f"Registro pendente ilegível: {arq} ({e}). Conferir no Instagram se a letra subiu e "
+                               "corrigir ou apagar o arquivo antes de postar de novo.") from e
+        linhas = []
+        for b in brutas:
+            d = {c: str((b or {}).get(c) or "").strip() for c in COLUNAS}
+            d["data"], d["letra"], d["hash"] = _normalizar_data(d["data"]), d["letra"].upper(), d["hash"].lower()
+            linhas.append(d)
+        saida.append((arq, linhas))
+    return saida
+
+
+def gravar_pendente(data: str, letra: str, linhas: list[dict]) -> Path:
+    """Guarda na pasta central as linhas de uma letra publicada que não entraram no CSV."""
+    pasta = pasta_pendentes()
+    pasta.mkdir(parents=True, exist_ok=True)
+    base = f"{data}_{letra}_{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    destino = pasta / f"{base}.json"
+    n = 2
+    while destino.exists():
+        destino = pasta / f"{base}_{n}.json"
+        n += 1
+    tmp = destino.with_name(destino.name + ".tmp")
+    tmp.write_text(json.dumps({"data": data, "letra": letra, "linhas": linhas}, ensure_ascii=False, indent=2),
+                   encoding="utf-8")
+    os.replace(tmp, destino)
+    log.warning("Registro pendente gravado em %s (conta como já publicado até entrar no postados.csv)", destino)
+    return destino
+
+
+def _descarregar_pendentes(caminho: Path) -> None:
+    """Passa os pendentes para o CSV (sem duplicar) e apaga os arquivos já gravados."""
+    for arq, linhas in ler_pendentes():
+        _acrescentar(caminho, linhas)
+        try:
+            arq.unlink()
+        except OSError as e:  # continua contando pelo arquivo; o CSV não duplica
+            log.warning("Gravei o pendente %s no postados.csv, mas não consegui apagá-lo: %s", arq.name, e)
+        else:
+            log.info("Pendente %s gravado no postados.csv", arq.name)
+
+
+def testar_gravacao(tentativas: int = 3, espera_s: float = 1.0) -> None:
+    """Confere, antes de publicar, que dá para gravar no ``postados.csv`` e na pasta de pendentes.
+
+    Não muda nada: abre o CSV para acrescentar e fecha sem escrever (o Excel bloqueia isso). Se não
+    der, ``ErroPostados``.
+    """
+    caminho = caminho_csv()
+    tentativas = max(1, int(tentativas))
+    for tentativa in range(1, tentativas + 1):
+        try:
+            caminho.parent.mkdir(parents=True, exist_ok=True)
+            pasta_pendentes().mkdir(parents=True, exist_ok=True)
+            if caminho.exists():
+                with open(caminho, "ab"):
+                    pass
+            return
+        except PermissionError as e:
+            if tentativa == tentativas:
+                raise ErroPostados(_msg_aberto(caminho, "gravar em")) from e
+            log.warning("postados.csv ocupado (tentativa %d de %d); tentando de novo", tentativa, tentativas)
+            time.sleep(espera_s)
+        except OSError as e:
+            raise ErroPostados(f"Não consigo gravar o registro de já postados ({caminho}): {e}") from e
 
 
 def _acrescentar(caminho: Path, linhas: list[dict]) -> int:
@@ -205,8 +306,43 @@ def registrar(
     """Acrescenta uma linha por mídia publicada. ``midias = [{"arquivo"|"nome", "cores": [...], "hash"}]``.
 
     Devolve quantas linhas gravou. Arquivo aberto no Excel → tenta de novo e, se continuar
-    preso, ``ErroPostados`` (com as linhas não gravadas em ``erro.linhas``).
+    preso, ``ErroPostados`` (com as linhas não gravadas em ``erro.linhas``). Antes, passa para o CSV
+    os registros pendentes (``registros/postados_pendentes``).
     """
+    linhas = linhas_do_registro(data, letra, sku, peca, midias, pedido)
+    data, letra = _validar_data(data), str(letra or "").strip().upper()
+    if not linhas:
+        log.warning("Nada para registrar (letra %s de %s sem mídias)", letra, data)
+        return 0
+    caminho = caminho_csv()
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    tentativas = max(1, int(tentativas))
+    for tentativa in range(1, tentativas + 1):
+        try:
+            try:
+                _descarregar_pendentes(caminho)
+            except ErroPostados as e:  # pendente ilegível: não impede gravar esta letra
+                log.warning("Não consegui passar os pendentes para o postados.csv: %s", e)
+            gravadas = _acrescentar(caminho, linhas)
+            break
+        except PermissionError as e:
+            if tentativa == tentativas:
+                raise ErroPostados(
+                    _msg_aberto(caminho, "gravar")
+                    + f" A letra {letra} de {data_br(data)} ({len(linhas)} mídia(s)) ficou sem registro.",
+                    linhas=linhas,
+                ) from e
+            log.warning("postados.csv ocupado (tentativa %d de %d); tentando de novo", tentativa, tentativas)
+            time.sleep(espera_s)
+    if gravadas < len(linhas):
+        log.info("postados.csv: %d mídia(s) da letra %s de %s já estavam registradas", len(linhas) - gravadas, letra, data)
+    log.info("Registrado em postados.csv: %s letra %s, %s, %d mídia(s)", data, letra, sku or "sem SKU", gravadas)
+    return gravadas
+
+
+def linhas_do_registro(data: str, letra: str, sku: str | None, peca: str | None, midias: list[dict],
+                       pedido: str | None) -> list[dict]:
+    """Linhas do CSV (uma por mídia) de uma letra publicada agora."""
     data = _validar_data(data)
     letra = str(letra or "").strip().upper()
     if not RE_LETRA.match(letra):
@@ -228,33 +364,11 @@ def registrar(
             "pedido": str(pedido or "").strip(),
             "registrado_em": agora,
         })
-    if not linhas:
-        log.warning("Nada para registrar (letra %s de %s sem mídias)", letra, data)
-        return 0
-    caminho = caminho_csv()
-    caminho.parent.mkdir(parents=True, exist_ok=True)
-    tentativas = max(1, int(tentativas))
-    for tentativa in range(1, tentativas + 1):
-        try:
-            gravadas = _acrescentar(caminho, linhas)
-            break
-        except PermissionError as e:
-            if tentativa == tentativas:
-                raise ErroPostados(
-                    _msg_aberto(caminho, "gravar")
-                    + f" A letra {letra} de {data_br(data)} ({len(linhas)} mídia(s)) ficou sem registro.",
-                    linhas=linhas,
-                ) from e
-            log.warning("postados.csv ocupado (tentativa %d de %d); tentando de novo", tentativa, tentativas)
-            time.sleep(espera_s)
-    if gravadas < len(linhas):
-        log.info("postados.csv: %d mídia(s) da letra %s de %s já estavam registradas", len(linhas) - gravadas, letra, data)
-    log.info("Registrado em postados.csv: %s letra %s, %s, %d mídia(s)", data, letra, sku or "sem SKU", gravadas)
-    return gravadas
+    return linhas
 
 
 def letras_postadas(data: str) -> set[str]:
-    """Letras do dia que já têm registro (já publicadas)."""
+    """Letras do dia que já têm registro (já publicadas), inclusive as pendentes de gravar no CSV."""
     data = _normalizar_data(data)
     return {l["letra"] for l in ler() if l["data"] == data and l["letra"]}
 
@@ -447,7 +561,7 @@ def verificar(data: str, letra: str, sku: str | None, hashes: list[str]) -> list
     """Ocorrências de repetição para a letra ``letra`` do dia ``data`` (lista vazia = pode postar).
 
     - ``sku``: o mesmo modelo em qualquer registro de outra data, ou da mesma data em outra letra;
-    - ``hash_registro``: a mesma mídia (hash) num registro;
+    - ``hash_registro``: a mesma mídia (hash) num registro (CSV ou pendente);
     - ``hash_pasta``: a mesma mídia numa outra pasta de data (inclui ``_originais`` e subpastas).
 
     Além de ``hashes``, procura também os originais desta letra (``_originais/renomeados.json``).

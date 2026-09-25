@@ -11,6 +11,7 @@ from dubles_android import Relogio, TelaFalsa
 from rotinas.contexto import Contexto
 from rotinas.stories import android, bluestacks, postados
 
+LETRAS_POSTADAS = postados.letras_postadas  # a de verdade (o ``ambiente`` troca por um dublê)
 URL = "wa.me/5582988748649?text=Quero+comprar+o+Vestido+Midi+Al%C3%A7a"
 MUSICA = {"nome": "Áudio original", "autor": "petermarkoski", "busca": "petermarkoski"}
 
@@ -237,17 +238,47 @@ def test_album_indisponivel_com_data_da_midia_fora_da_ordem_nao_usa_recentes(amb
     assert a.tela.publicacoes == [] and "selecionar_varios" not in a.tela.toques
 
 
-def test_album_indisponivel_com_ordem_certa_usa_recentes_com_aviso(ambiente):
+def test_real_sem_menu_de_albuns_nao_publica_pela_grade_recentes(ambiente):
+    """Mesmo com a ordem por data "certa", 'Recentes' tem as outras letras e o resto do emulador: no real, PARA."""
     a = ambiente
     a.tela.quebrar = {"abertura": 1, "chave": "album_menu"}
 
     def enviar(L):
         return {"pasta": "x", "avisos": [], "ordem_data_da_midia": {"datetaken": True}}
 
-    res = bluestacks.executar(montar_plano(a.midias, {"A": ["foto", "foto"]}, ensaio=False), a.ctx, ensaio=False,
+    with pytest.raises(bluestacks.ErroPostagem, match="não publico pela grade 'Recentes'") as erro:
+        bluestacks.executar(montar_plano(a.midias, {"A": ["foto", "foto"]}, ensaio=False), a.ctx, ensaio=False,
+                            tela=a.tela, enviar=enviar)
+    assert a.tela.publicacoes == [] and "selecionar_varios" not in a.tela.toques
+    assert erro.value.resultado_parcial["parou_em"] == "letra A: escolher_album"
+    assert a.registros == []
+
+
+def test_real_com_album_fora_da_lista_volta_e_nao_publica(ambiente):
+    a = ambiente
+
+    def enviar(L):  # a pasta não virou álbum na galeria: album_item não aparece
+        return {"pasta": "x", "avisos": [], "ordem_data_da_midia": {"datetaken": True}}
+
+    with pytest.raises(bluestacks.ErroPostagem, match="não apareceu na lista.*Recentes"):
+        bluestacks.executar(montar_plano(a.midias, {"A": ["foto"]}, ensaio=False), a.ctx, ensaio=False,
+                            tela=a.tela, enviar=enviar)
+    assert a.tela.publicacoes == [] and "selecionar_varios" not in a.tela.toques
+    assert "album_menu" in a.tela.toques and a.tela.estado == "feed"
+
+
+def test_ensaio_sem_menu_de_albuns_usa_recentes_e_avisa_que_o_real_para(ambiente):
+    a = ambiente
+    a.tela.quebrar = {"abertura": 1, "chave": "album_menu"}
+
+    def enviar(L):
+        return {"pasta": "x", "avisos": [], "ordem_data_da_midia": {"datetaken": True}}
+
+    res = bluestacks.executar(montar_plano(a.midias, {"A": ["foto", "foto"]}), a.ctx, ensaio=True,
                               tela=a.tela, enviar=enviar)
-    assert res["publicadas"] == ["A"] and a.tela.publicacoes[0]["album"] == "Recentes"
-    assert any("Recentes" in x for x in res["avisos"])
+    assert res["letras"][0]["estado"] == "ensaio_ok" and res["letras"][0]["recuo_recentes"] is True
+    assert any("Recentes" in x and "real PARA" in x for x in res["avisos"])
+    assert a.tela.publicacoes == []
 
 
 def test_url_da_figurinha_sem_https_e_conferida(ambiente):
@@ -374,18 +405,65 @@ def test_letra_ja_postada_e_pulada_no_real(ambiente, monkeypatch):
     assert a.enviados == ["B"]
 
 
-def test_registro_que_falha_depois_de_publicar_vira_aviso(ambiente, monkeypatch):
+def test_registro_que_falha_depois_de_publicar_para_e_fica_pendente(ambiente, monkeypatch, cfg):
+    """A subiu e o CSV travou: para antes da B, A continua "publicada" e o pendente central faz o próximo
+    postar/montar pular A (antes: seguia publicando B, C… e a próxima rodada publicava A de novo)."""
     a = ambiente
+    registra_bem = postados.registrar
 
     def registrar(*args, **kw):
         raise postados.ErroPostados("postados.csv está aberto no Excel")
 
     monkeypatch.setattr(postados, "registrar", registrar)
-    res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}, ensaio=False), ensaio=False)
-    assert res["publicadas"] == ["A"]
-    assert any("postados.csv" in x for x in res["avisos"])
+    plano = montar_plano(a.midias, {"A": ["foto"], "B": ["foto"]}, ensaio=False)
+    with pytest.raises(bluestacks.ErroPostagem, match="FOI PUBLICADA.*Parei antes da próxima letra") as erro:
+        rodar(a, plano, ensaio=False)
+    parcial = erro.value.resultado_parcial
+    assert parcial["publicadas"] == ["A"]
+    assert [x["estado"] for x in parcial["letras"]] == ["publicada", "nao_iniciada"]
+    assert not parcial["letras"][0].get("incerta")
+    assert parcial["parou_em"] == "letra A: registro em postados.csv"
+    assert a.enviados == ["A"] and len(a.tela.publicacoes) == 1
+    assert "Não iniciadas: B" in str(erro.value)
+    # cópia na pasta do pedido e o pendente central, que é o que vale
     pendente = json.loads((a.ctx.pasta_saida / "postados_pendentes_A.json").read_text(encoding="utf-8"))
     assert pendente["letra"] == "A" and pendente["midias"][0]["arquivo"] == "A - 1.jpg"
+    centrais = list((cfg.p.registros / "postados_pendentes").glob("*.json"))
+    assert len(centrais) == 1 and parcial["letras"][0]["registro_pendente"] == str(centrais[0])
+    assert LETRAS_POSTADAS("2026-09-22") == {"A"}
+    # próxima rodada real (o mesmo plano, com o registro de verdade): A é pulada, só B sobe
+    monkeypatch.setattr(postados, "letras_postadas", LETRAS_POSTADAS)
+    monkeypatch.setattr(postados, "registrar", registra_bem)  # Excel fechado
+    res = rodar(a, plano, ensaio=False)
+    assert res["publicadas"] == ["B"] and res["letras"][0]["pulada"]
+    assert a.enviados == ["A", "B"] and len(a.tela.publicacoes) == 2
+
+
+def test_csv_que_nao_grava_para_antes_de_publicar(ambiente, monkeypatch):
+    a = ambiente
+
+    def preso():
+        raise postados.ErroPostados("postados.csv está aberto no Excel")
+
+    monkeypatch.setattr(postados, "testar_gravacao", preso)
+    with pytest.raises(bluestacks.ErroPostagem, match="nada foi publicado") as erro:
+        rodar(a, montar_plano(a.midias, {"A": ["foto"]}, ensaio=False), ensaio=False)
+    assert erro.value.resultado_parcial["parou_em"] == "gravação de postados.csv"
+    assert a.tela.toques == [] and a.enviados == []
+    rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)  # o ensaio não grava nada: não testa
+    assert a.tela.publicacoes == []
+
+
+def test_js_de_conferencia_inclui_letra_incerta(ambiente):
+    """Falhou depois de "Seu story" (estado "falhou" + incerta): o JS não pode dizer "Nada publicado"."""
+    a = ambiente
+    plano = montar_plano(a.midias, {"A": ["foto"], "B": ["foto"]}, ensaio=False)
+    res = bluestacks.novo_resultado(plano, ensaio=False)
+    res["letras"][0].update(estado="falhou", incerta=True, erro="o Instagram não voltou ao feed")
+    res["parou_em"] = "letra A: concluir_publicacao"
+    bluestacks._anexar_relatorio(plano, res, a.ctx)
+    assert not res["js_conferencia"].startswith("// Nada publicado")
+    assert res["js_conferencia"] in res["relatorio"]
 
 
 # ---------------------------------------------------------------- envio, diagnóstico e validação
@@ -538,6 +616,31 @@ def test_cli_devolve_1_quando_para(sem_emulador, capsys):
     assert "ERRO" in capsys.readouterr().err
 
 
+def test_trava_do_emulador_impede_dois_ao_mesmo_tempo(sem_emulador, monkeypatch):
+    from rotinas import fila
+
+    a = sem_emulador
+    conexoes = []
+    monkeypatch.setattr(android, "conectar", lambda cfg=None: conexoes.append(1) or ConexaoFalsa())
+    plano = montar_plano(a.midias, {"A": ["foto"]}, ensaio=False)
+    outro = fila.Trava(fila.pasta_fila() / "bluestacks.lock")  # ex.: o vigia postando
+    assert outro.adquirir()
+    try:
+        with pytest.raises(bluestacks.ErroPostagem, match="em uso") as erro:
+            bluestacks.executar(plano, a.ctx, ensaio=False)
+        assert erro.value.resultado_parcial["parou_em"] == "trava do BlueStacks"
+        with pytest.raises(RuntimeError, match="em uso"):
+            bluestacks.teste_real(Contexto(a.ctx.pasta_saida / "teste-real"), [])
+        assert conexoes == [] and a.tela.toques == [] and a.enviados == []
+    finally:
+        outro.liberar()
+    res = bluestacks.executar(plano, a.ctx, ensaio=False)
+    assert res["publicadas"] == ["A"]
+    depois = fila.Trava(fila.pasta_fila() / "bluestacks.lock")
+    assert depois.adquirir()  # liberada no fim da postagem
+    depois.liberar()
+
+
 def test_teste_real_percorre_ate_a_galeria_sem_publicar(sem_emulador):
     a = sem_emulador
     ctx = Contexto(a.ctx.pasta_saida / "teste-real", diagnostico=True)
@@ -551,6 +654,11 @@ def test_teste_real_percorre_ate_a_galeria_sem_publicar(sem_emulador):
     assert len(list(ctx.pasta_saida.glob("passo_*.xml"))) == 7
     assert res["saiu_com_seguranca"] and a.tela.estado == "feed"
     assert "Instagram 300.0" in res["resumo"]
+    from rotinas import fila
+
+    trava = fila.Trava(fila.pasta_fila() / "bluestacks.lock")
+    assert trava.adquirir()  # o teste liberou a trava do emulador
+    trava.liberar()
 
 
 def test_teste_ensaio_usa_o_plano_mais_recente_da_data(sem_emulador, cfg):

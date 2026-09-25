@@ -1,5 +1,7 @@
 """B4: instruções de exportação e vigia do arquivo exportado (conferencia.conferir vem por dublê)."""
 
+import copy
+import json
 import os
 import sys
 import types
@@ -43,11 +45,13 @@ def conferencia_falsa(monkeypatch):
     chamadas = []
     modulo = types.ModuleType("rotinas.video.conferencia")
 
-    def conferir(arquivo, destino="reels", duracao_esperada_s=None):
+    def conferir(arquivo, destino="reels", duracao_esperada_s=None, som_esperado=None):
         chamadas.append((Path(arquivo), destino, duracao_esperada_s))
+        conferir.som.append(som_esperado)
         return {"arquivo": str(arquivo), "destino": destino, "aprovado": True,
                 "itens": [{"item": "resolução", "esperado": "1080×1920", "obtido": "1080×1920", "ok": True}]}
 
+    conferir.som = []
     modulo.conferir = conferir
     modulo.texto = lambda r: f"Aprovado: {Path(r['arquivo']).name}"
     monkeypatch.setitem(sys.modules, "rotinas.video.conferencia", modulo)
@@ -203,3 +207,83 @@ def test_cli_sem_esperar(cfg, capsys):
     assert "Instruções gravadas" in capsys.readouterr().out
     with pytest.raises(SystemExit):
         exportar.cli(["--destino", "reels"])
+
+
+# ---------------------------------------------------------------- som esperado (achado #3)
+
+def _plano_som(audio, mudos=(True, True)):
+    return {"duracao_s": 10.0, "audio": audio,
+            "video": [{"arquivo": "a.mp4", "mudo": m, "fala": not m} for m in mudos]}
+
+
+GUIA = {"arquivo": "guia.mp3", "papel": "guia", "exportar": False}
+SFX = {"arquivo": "pop.mp3", "papel": "efeito_sonoro", "exportar": True}
+MUSICA = {"arquivo": "musica.mp3", "papel": "musica", "exportar": True}
+
+
+@pytest.mark.parametrize("plano, som", [
+    (_plano_som([GUIA]), "mudo"),  # música pelo Instagram, sem fala: sai mudo de propósito
+    (_plano_som([]), "mudo"),
+    (_plano_som([GUIA, SFX]), "so_efeitos"),
+    (_plano_som([GUIA], mudos=(True, False)), "com_som"),  # um clipe com fala
+    (_plano_som([MUSICA]), "com_som"),  # música licenciada no CapCut
+    (_plano_som([MUSICA, SFX]), "com_som"),
+    (_plano_som([{"arquivo": "m.mp3", "papel": "musica"}]), None),  # plano antigo, sem 'exportar'
+    ({"duracao_s": 3.0}, None),
+    (None, None),
+])
+def test_som_esperado_do_plano(plano, som):
+    assert exportar.som_esperado_do_plano(plano) == som
+
+
+def test_som_esperado_de_um_plano_real_r1(cfg):
+    # R1 com música pelo Instagram e bruto sem fala: o plano deixa os clipes mudos e a faixa-guia sem exportar.
+    import test_video_plano as tvp
+    from rotinas.video import plano
+
+    bruto = {
+        "projeto": tvp.PROJETO, "gerado_em": "2026-09-25T10:00:00-03:00",
+        "arquivos": [tvp._arquivo("IMG_0001.MOV"), tvp._arquivo("IMG_0002.MOV", fps=60.0)],
+        "tomadas": tvp._tomadas(("IMG_0001.MOV", 0.0, 3.0), ("IMG_0001.MOV", 3.0, 6.0), ("IMG_0001.MOV", 6.0, 9.0),
+                                ("IMG_0001.MOV", 9.0, 12.0), ("IMG_0002.MOV", 0.0, 4.0), ("IMG_0001.MOV", 12.0, 18.0)),
+        "transcricao": None,
+        "musica": {"arquivo": "guia.mp3", "bpm": 120.0, "batidas_s": tvp.BATIDAS, "compassos_s": tvp.BATIDAS[::4],
+                   "primeira_batida_s": 0.5, "confianca": 0.9},
+        "folhas": [], "avisos": [],
+    }
+    tvp.gravar(cfg, bruto)
+    plano.planejar(tvp.PROJETO, "r01", copy.deepcopy(tvp.ESCOLHAS_R1))
+    assert exportar.som_do_projeto(tvp.PROJETO) == "mudo"
+
+
+def test_tarefa_passa_som_do_plano_para_a_conferencia(cfg, tmp_path, monkeypatch, conferencia_falsa):
+    relogio = Relogio(monkeypatch)
+    cfg.alterar("capcut", exportacao={**exportar._cfg(), "pastas_extra": [], "estavel_s": 2})
+    trabalho = cfg.p.videos / "trabalho" / "vestido-verde"
+    trabalho.mkdir(parents=True)
+    (trabalho / "plano.json").write_text(json.dumps(_plano_som([GUIA])), encoding="utf-8")
+    destino = cfg.p.videos / "exportado" / "Vestido verde_reels.mp4"
+    relogio.em(3, lambda: _escrever(destino, b"x" * 1000, relogio.t))
+    ctx = Contexto(tmp_path / "exec")
+    r = exportar.tarefa({"destino": "reels", "projeto": "vestido-verde", "rascunho": "Vestido verde"}, ctx)
+    conf_falsa = sys.modules["rotinas.video.conferencia"]  # o dublê instalado pela fixture
+    assert r["som_esperado"] == "mudo" and conf_falsa.conferir.som == ["mudo"]
+    assert "sai mudo" in (trabalho / "instrucoes_exportacao.txt").read_text(encoding="utf-8")
+    # o argumento explícito vence o plano
+    relogio.em(relogio.voltas + 3, lambda: _escrever(destino, b"y" * 2000, relogio.t))
+    exportar.tarefa({"destino": "reels", "projeto": "vestido-verde", "rascunho": "Vestido verde",
+                     "som_esperado": "com_som"}, Contexto(tmp_path / "exec2"))
+    assert conf_falsa.conferir.som[-1] == "com_som"
+
+
+def test_som_esperado_invalido_para_antes_de_esperar_e_sinonimo_vale(cfg, tmp_path, monkeypatch):
+    esperou = []
+    monkeypatch.setattr(exportar, "vigiar_e_conferir", lambda *a, **kw: esperou.append(kw) or {})
+    with pytest.raises(exportar.ErroExportacao, match="som_esperado inválido"):
+        exportar.tarefa({"destino": "reels", "rascunho": "Vestido verde", "som_esperado": "altissimo"},
+                        Contexto(tmp_path / "e1"))
+    assert esperou == []
+    r = exportar.tarefa({"destino": "reels", "rascunho": "Vestido verde", "som_esperado": "sem som", "esperar": False},
+                        Contexto(tmp_path / "e2"))
+    assert r["som_esperado"] == "mudo"
+    assert "sai mudo" in (tmp_path / "e2" / "instrucoes_exportacao.txt").read_text(encoding="utf-8")

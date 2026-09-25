@@ -31,8 +31,9 @@ Regras completas: `...\sistema\conhecimento\stories.md` (obrigatórias).
    - Script: agrupa as mídias novas em letras (subpasta = letra; soltas por data de captura), gera folhas de contato.
    - **Você decide:** olhando SÓ as folhas `Rotinas Ferreira\stories\<data>\folhas\<L>.jpg`, se cada letra é um modelo
      só. Errado → refazer com `"grupos": [["IMG_1.MOV","IMG_2.JPG"], ["IMG_3.JPG"]]` (nomes originais).
-   - Certo → mesmo pedido sem `simular` (com `grupos` se usou). O script renomeia (`A - 1` vídeo, `A - 2`… fotos, na
-     próxima letra livre), converte `.mov`→`.mp4`, guarda originais em `_originais` e marca vídeo sem áudio.
+   - Certo → mesmo pedido sem `simular` (com `grupos` se usou) — **obrigatório antes do montar** (o montar nunca prepara
+     a pasta: sem `manifesto.json` ele para com "Sem manifesto.json"). O script renomeia (`A - 1` vídeo, `A - 2`… fotos,
+     na próxima letra livre), converte `.mov`→`.mp4`, guarda originais em `_originais` e marca vídeo sem áudio.
    - Anote as letras com `"nova": true` no resultado do preparar **real**: são as de hoje. Letra que já existia
      (`nova: false`, mídias com `origem: null`) não se identifica, a não ser que o usuário peça; no montar ela sai como
      aviso "Letra A sem identificação: ficou de fora" (normal). Rodar o preparar de novo mostra todas como `nova: false`.
@@ -60,6 +61,9 @@ Regras completas: `...\sistema\conhecimento\stories.md` (obrigatórias).
      última mídia de cada letra, música nos vídeos sem som. Aviso "cor aproximada: 'verde' → 'Verde Bandeira'" = o script
      aceitou um nome parecido: confira se é a cor certa; se não, refaça com o nome exato.
    - O `stories.postar` de ensaio monta cada letra no Instagram e **para antes de publicar**; prints `ensaio_<L>_<n>.png`.
+     `"diagnostico": true` no montar vale para o postar gerado (XML + print de cada passo).
+   - O relatório do postar tem "Avisos da postagem:" (ex.: 'Recentes' no lugar do álbum, ordem por data): mostre ao
+     usuário; com aviso de 'Recentes' ou de ordem, confira os prints antes de liberar o real.
    - `stories.postar` deu erro → ler `erro` e `resultado_parcial.relatorio` / `parou_em` (tabela abaixo). Para repetir,
      resolver a causa e gravar **outro `stories.montar`** (novo id); nunca reenviar nem escrever o `stories.postar` à mão.
 **4. Aprovação** — mostrar ao usuário o relatório do ensaio (e os prints, se ele quiser ver). Só publicar com o "pode postar" dele.
@@ -96,13 +100,18 @@ Você precisa: nada.   (ou: repor Preto / aprovar o ensaio / fechar o postados.c
 | montar: "cor 'X' não existe no cadastro" / "é ambígua" (vem com "Cores válidas do cadastro") | Usar um nome da lista. Nada foi cortado nem gravado na fila. |
 | montar: "Mais de um produto para termo …. Informe o SKU." | Passar o `sku`. |
 | montar: "B - 3 sem identificação" | Pôr a mídia em `midias` (cores) ou em `excluir` (motivo). |
-| `ErroRegra` sobre vestido de festa | `link_em_vestido_de_festa` voltou a `null` na config: não decidir; perguntar ao usuário. |
+| `ErroRegra` sobre vestido de festa | `link_em_vestido_de_festa` voltou a `null` na config: não decidir; perguntar ao usuário (a resposta vai para `config/stories.json` no repositório; vale no pedido seguinte depois do `atualizar.bat`). |
+| montar: "Sem manifesto.json" | Gravar o `stories.preparar` real (sem `simular`, com os mesmos `grupos`) e depois o montar. Nada foi alterado. |
 | Pedido em `pendente` há mais de 1 min | Vigia parado → `atualizar.bat`. |
 | "Não consegui conectar ao BlueStacks pelo ADB" / sem dispositivo | Pedir para abrir o BlueStacks e ligar o ADB (caminho acima); depois novo montar. |
 | "Não encontrei o adb (nem o HD-Adb.exe do BlueStacks)" | Pedir dois cliques em `sistema\instalar.bat`; depois novo montar. |
 | "a galeria não mostrou …" | Envio pelo ADB falhou para algum arquivo; pedir de novo com outro id. |
-| Letra `falhou` em um passo (`parou_em`) | Nada daquela letra foi publicado; as anteriores sim (ver `resultado_parcial`). Se for seletor da tela, pedir ao usuário `testar.bat bluestacks` e ajustar `config\bluestacks.json`. |
-| Letra `incerta` | Pode ter subido: rodar o JS **antes** de repetir; repetir só o que não subiu. |
-| `postados.csv` em uso / PermissionError | Pedir para fechar o Excel e pedir de novo com outro id. |
+| Letra `falhou` em um passo (`parou_em`) | Nada daquela letra foi publicado; as anteriores sim (ver `resultado_parcial`). Se for seletor da tela: com `parou_em` em abrir_instagram, criar, abrir_story, abrir_galeria ou selecionar_varios, pedir ao usuário `testar.bat bluestacks`; nos demais passos, `testar.bat stories-ensaio --data <data>` (XML + print de cada passo, sem publicar). Com a pasta do resultado, ajustar `config/bluestacks.json` **no repositório**. Não editar arquivos de `sistema\` no PC: trava o `git pull` do `atualizar.bat`. |
+| Letra `incerta` | Pode ter subido: rodar o `js_conferencia` **antes** de repetir (ela já está nele); CONFERE = subiu. Repetir só o que não subiu. |
+| "Não consigo gravar em postados.csv; nada foi publicado" | Nada subiu. Pedir para fechar o `postados.csv` no Excel e gravar outro montar. |
+| "A letra X FOI PUBLICADA, mas não consegui registrar em postados.csv" | X **subiu**: não repostar. O registro fica em `registros\postados_pendentes\` e já conta como postado. O postar parou antes da próxima letra: pedir para fechar o Excel e mandar só as letras não iniciadas. |
+| "Registro pendente ilegível" | Não publica sem saber o que subiu: pedir ao usuário para mostrar o arquivo de `registros\postados_pendentes\`; conferir no Instagram. |
+| "não publico pela grade 'Recentes'" | O álbum da letra não abriu (seletores `album_menu`/`album_item`): pedir `testar.bat bluestacks` e ajustar no repositório. |
+| "O BlueStacks está em uso por outro pedido ou teste" | Nada foi feito. Esperar o outro terminar e pedir de novo; não pedir testes no PC com postagem na fila. |
 | "Já existe um pedido stories.postar real…" | Esperar o pedido anterior terminar; não criar outro. |
-| "Interrompido" em `erro` | O vigia caiu no meio: conferir no Instagram (JS) o que já subiu antes de pedir de novo. |
+| "Interrompido" em `erro` | O vigia caiu no meio: o relatório diz "postagem INTERROMPIDA" e traz o JS de todas as letras. Rodar antes de pedir de novo; mandar só as letras que faltam. |

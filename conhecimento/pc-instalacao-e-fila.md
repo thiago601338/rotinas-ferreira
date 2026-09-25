@@ -45,3 +45,8 @@ ainda não foi confirmado no PC real está marcado "(a confirmar)".
 - O repositório é **público**: prints e XML de tela que vão para `execucoes/` ficam visíveis na internet.
 - Commits do PC saem como "PC Ferreira Boutique". Push precisa do login do GitHub no Git do PC (Git Credential
   Manager abre o navegador na primeira vez); sem login, `testar.bat enviar` tenta de novo depois.
+
+## Atualização com commit local (auditoria de 25/09/2026)
+- `atualizar.bat`/`instalar.bat`: se o `git pull --ff-only` falha (ex.: execução do `testar.bat` que ficou só no PC), tentam `git pull --rebase --autostash`; se o rebase falha, desfazem (`git rebase --abort`) e pedem `testar.bat enviar` e depois o `atualizar.bat` de novo.
+- Arquivo do sistema mudado à mão que bate com a versão nova: o código é atualizado, o arquivo fica como no GitHub e a mudança à mão vai para o `git stash` (FALHOU com "mande esta tela para a IA"). A IA leva o ajuste para o repositório; não pedir `git stash pop`.
+- O vigia relê `config/*.json` a cada pedido: mudança de config vale no pedido seguinte, sem reiniciar.

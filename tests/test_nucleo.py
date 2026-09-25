@@ -268,3 +268,27 @@ def test_sinal_de_vida_nao_derruba(fila_teste, monkeypatch):
 
     monkeypatch.setattr(fila, "_gravar_json", falha)
     vigia.sinal_de_vida()  # não levanta
+
+
+def le_config(args, ctx):
+    return {"valor": config.carregar("stories").get("teste_vigia_rele")}
+
+
+def test_vigia_rele_config_a_cada_pedido(fila_teste, cfg, monkeypatch):
+    """Mudança em config/*.json vale no pedido seguinte, sem reiniciar o vigia (achado #10)."""
+    monkeypatch.setitem(tarefas.TAREFAS, "teste.config", "test_nucleo:le_config")
+    cfg.alterar("stories", **{"teste_vigia_rele": "antes"})
+    vigia = fila.Vigia(intervalo_s=0.01)
+    primeiro = fila.criar_pedido("teste.config", {})
+    vigia.rodar(uma_vez=True)
+    # a IA grava a correção direto no arquivo (sem limpar o cache do processo do vigia)
+    arq = cfg.dir / "stories.json"
+    dados = json.loads(arq.read_text(encoding="utf-8"))
+    dados["teste_vigia_rele"] = "depois"
+    arq.write_text(json.dumps(dados, ensure_ascii=False), encoding="utf-8")
+    segundo = fila.criar_pedido("teste.config", {})
+    vigia.rodar(uma_vez=True)
+    res1 = json.loads((fila_teste / "feito" / primeiro.name).read_text(encoding="utf-8"))
+    res2 = json.loads((fila_teste / "feito" / segundo.name).read_text(encoding="utf-8"))
+    assert res1["resultado"]["valor"] == "antes"
+    assert res2["resultado"]["valor"] == "depois"

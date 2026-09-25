@@ -253,6 +253,23 @@ def _s(valor: float) -> str:
     return f"{valor:.2f}".replace(".", ",")
 
 
+# Técnicas que o rascunho já faz sozinho: #1 punch-in e o 100/110% do jump cut entram na escala do clipe;
+# #14 corte na batida e #15 jump cut são os próprios cortes da linha do tempo. Pedir de novo à mão dá zoom duplo.
+APLICADAS_PELO_RASCUNHO = {1, 14, 15}
+
+
+def _aplicado_pelo_rascunho(efeito: dict) -> bool:
+    """O efeito do plano já está no rascunho (não vai para a lista do acabamento à mão)?"""
+    try:
+        tecnica = int(efeito.get("tecnica"))
+    except (TypeError, ValueError):
+        return False
+    if tecnica in APLICADAS_PELO_RASCUNHO:
+        return True
+    # efeito sonoro com arquivo: entra como faixa de áudio (plano.audio, papel "efeito_sonoro")
+    return tecnica == 57 and bool((efeito.get("parametros") or {}).get("arquivo"))
+
+
 def _proporcao(largura: int, altura: int) -> str:
     d = math.gcd(int(largura), int(altura)) or 1
     return _PROPORCOES.get((int(largura) // d, int(altura) // d), "original")
@@ -735,6 +752,8 @@ class _Construtor:
         return Montagem(self.doc, meta, arquivos, self.midias, resumo, self.avisos, self.manual, self.protos)
 
     def _manual(self) -> None:
+        """Acabamento à mão, completo: transições que não são corte seco, efeitos que o rascunho não aplica,
+        o ``acabamento`` do plano (composição, cor, faixa-guia, loop, legendas) e os protótipos omitidos."""
         for t in self.plano.get("transicoes") or []:
             tipo = str(t.get("tipo") or "")
             if tipo and tipo not in ("corte_seco", "corte", "nenhuma"):
@@ -742,11 +761,27 @@ class _Construtor:
                 self.manual.append(f"Transição '{tipo}' entre os blocos {' e '.join(str(int(x) + 1) for x in entre)}"
                                    f" ({_s(float(t.get('dur_s') or 0))} s): fazer à mão (aba Transições, item comercial "
                                    "ou equivalente feito com ferramentas).")
+        acabamento = self.plano.get("acabamento")
+        tem_acabamento = isinstance(acabamento, list)
+        vistos = set()
         for e in self.plano.get("efeitos") or []:
+            if _aplicado_pelo_rascunho(e):
+                continue
+            if tem_acabamento and e.get("manual"):
+                continue  # já está no acabamento do plano, com o "como fazer"
             ini = float(e.get("ini_s") or 0)
+            chave = (e.get("tecnica"), round(ini, 3), e.get("som"))
+            if chave in vistos:
+                continue
+            vistos.add(chave)
             fim = ini + float(e.get("dur_s") or 0)
-            self.manual.append(f"Efeito {e.get('tecnica', '?')} '{e.get('nome', '')}' em {_s(ini)}–{_s(fim)} s: fazer à mão "
+            nome = e.get("nome") or ""
+            if e.get("som"):
+                nome = f"{nome} ({e['som']})" if nome else str(e["som"])
+            self.manual.append(f"Efeito {e.get('tecnica', '?')} '{nome}' em {_s(ini)}–{_s(fim)} s: fazer à mão "
                                "(edicao-video-capcut.md §4.2).")
+        if tem_acabamento:
+            self.manual.extend(str(x) for x in acabamento if str(x).strip() and str(x) not in self.manual)
         for chave in sorted(self.omitidos):
             self.manual.append(f"O protótipo do gabarito tinha '{chave}': não copiado (biblioteca). Se precisar, aplicar à mão.")
 
@@ -1265,12 +1300,16 @@ def _tem_linha(pasta: Path) -> bool:
     return any((pasta / n).is_file() for n in capcut.cfg()["arquivos_linha_do_tempo"])
 
 
+def _pasta_execucoes() -> str:
+    try:
+        return config.carregar("diagnostico").get("execucao", {}).get("pasta", "execucoes")
+    except config.ErroConfig:
+        return "execucoes"
+
+
 def _copias_do_diagnostico(raiz: Path, projeto: str) -> list[Path]:
     """Cópias ``execucoes/<carimbo>_diagnostico/capcut_<projeto>/`` feitas pelo diagnóstico, da mais nova à mais velha."""
-    try:
-        pasta = config.carregar("diagnostico").get("execucao", {}).get("pasta", "execucoes")
-    except config.ErroConfig:
-        pasta = "execucoes"
+    pasta = _pasta_execucoes()
     nome = "capcut_" + re.sub(r"[^\w.\-]+", "_", projeto)
     base = Path(raiz) / pasta
     if not base.is_dir():
@@ -1296,9 +1335,16 @@ def localizar_gabarito(pasta_rascunhos: Path | None = None, raiz: Path | None = 
         achado = _projeto_no_pc(pasta_rascunhos or config.pastas().capcut_rascunhos, c["gabarito_projeto"])
         if achado and _tem_linha(achado):
             return achado
+    onde = [str(base)]
+    if c.get("gabarito_procurar_execucoes", True):
+        onde.append(f"cópias do diagnóstico em {raiz / _pasta_execucoes()}")
+    if c.get("gabarito_usar_projeto_do_pc", True):
+        onde.append(f"rascunhos do CapCut em {pasta_rascunhos or config.pastas().capcut_rascunhos}")
     raise ErroRascunho(
-        f"Gabarito do CapCut não encontrado ({base} nem o projeto '{c['gabarito_projeto']}' nos rascunhos). "
-        "Rode o diagnostico.bat e copie a pasta capcut_" + c["gabarito_projeto"] + f" para {base}."
+        f"Gabarito do CapCut não encontrado: o projeto '{c['gabarito_projeto']}' não está nos rascunhos do CapCut "
+        f"(procurei em: {'; '.join(onde)}). Confirmar se o projeto '{c['gabarito_projeto']}' existe no CapCut ou "
+        "qual projeto usar como gabarito e repetir informando a pasta dele em 'gabarito' (args.gabarito do "
+        "pedido video.rascunho; no terminal, --gabarito)."
     )
 
 
@@ -1359,8 +1405,9 @@ def tarefa(args: dict, ctx: Contexto) -> dict:
     if ctx.ensaio:
         destino = ctx.pasta_saida / "rascunhos_ensaio"
         gabarito = Path(args["gabarito"]) if args.get("gabarito") else localizar_gabarito()
+        # relatório só na pasta do pedido: o do projeto é o do rascunho real (o video.exportar lê de lá)
         r = gerar_completo(plano, destino, gabarito, nome, fazer_backup=False, verificar_capcut=False,
-                           criar_pasta=True)
+                           criar_pasta=True, pasta_relatorio=ctx.pasta_saida)
     else:
         gabarito = Path(args["gabarito"]) if args.get("gabarito") else localizar_gabarito()
         r = gerar_completo(plano, config.pastas().capcut_rascunhos, gabarito, nome)

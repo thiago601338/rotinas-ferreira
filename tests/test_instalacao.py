@@ -1,6 +1,8 @@
 import base64
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
 import threading
@@ -627,3 +629,180 @@ def test_atualizar_bat_liga_o_vigia_pelo_python():
     texto = (RAIZ / "atualizar.bat").read_text(encoding="utf-8")
     assert "-m rotinas instalar --iniciar-vigia" in texto
     assert "pythonw.exe" not in texto  # o Python escolhe o pythonw e confere o sinal de vida
+
+
+# ------------------------------------------------------------ .bat: git pull com histórico divergente
+
+PASSO_SEGUINTE = {"atualizar.bat": "dependencias", "instalar.bat": "passo_venv"}
+
+
+def rodar_trecho_do_pull(nome: str, sistema: Path, env: dict) -> tuple[int, str]:
+    """Interpreta, com o git de verdade, o trecho do .bat que vai do ``pull --ff-only`` até o passo seguinte.
+
+    Entende só o que o trecho usa (rótulo, rem, echo, goto, ``if errorlevel 1``, ``set /a FALHAS+=1`` e
+    ``"%GIT%" -C "%SISTEMA%" ...``); qualquer outra linha faz o teste falhar, para não aprovar sintaxe que
+    ele não confere. Devolve (FALHAS, saída).
+    """
+    linhas = (RAIZ / nome).read_text(encoding="utf-8").splitlines()
+    rotulos = {l[1:].strip().lower(): i for i, l in enumerate(linhas) if l.startswith(":")}
+    fim = PASSO_SEGUINTE[nome]
+    i = next(i for i, l in enumerate(linhas) if "pull --ff-only" in l)
+    nivel, falhas, saida = 0, 0, []
+    for _ in range(200):
+        linha = linhas[i].strip()
+        i += 1
+        if linha.startswith(":"):
+            if linha[1:].lower() == fim:
+                return falhas, "\n".join(saida)
+            continue
+        if not linha or linha.lower().startswith("rem"):
+            continue
+        cond = re.fullmatch(r"(?i)if errorlevel 1 (.+)", linha)
+        if cond:
+            if nivel < 1:
+                continue
+            linha = cond.group(1)
+        if linha.lower().startswith("goto :"):
+            alvo = linha[len("goto :"):].lower()
+            if alvo == fim:
+                return falhas, "\n".join(saida)
+            i = rotulos[alvo] + 1
+        elif linha.lower().startswith("echo"):
+            saida.append(linha[4:].strip())
+        elif linha == "set /a FALHAS+=1":
+            falhas += 1
+        elif m := re.fullmatch(r'"%GIT%" -C "%SISTEMA%" (.+?)(?: >nul 2>&1)?', linha):
+            r = subprocess.run(["git", "-C", str(sistema), *m.group(1).split()], env=env,
+                               capture_output=True, text=True)
+            nivel = r.returncode
+            saida.append(r.stdout + r.stderr)
+        else:
+            raise AssertionError(f"{nome}: linha que o teste não sabe interpretar: {linha}")
+    raise AssertionError(f"{nome}: o trecho do pull não chegou a :{fim}")
+
+
+@pytest.fixture
+def clones(tmp_path):
+    """``origem`` faz o papel do GitHub; ``pc`` é a pasta do sistema, clonada dela e com identidade local."""
+    if not shutil.which("git"):
+        pytest.skip("git não instalado")
+    global_vazio = tmp_path / "gitconfig"
+    global_vazio.write_text("", encoding="utf-8")
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    env.update(GIT_CONFIG_GLOBAL=str(global_vazio), GIT_CONFIG_NOSYSTEM="1", GIT_TERMINAL_PROMPT="0",
+               LC_ALL="C", LANGUAGE="C")
+
+    def git(pasta: Path, *args: str) -> str:
+        r = subprocess.run(["git", "-C", str(pasta), "-c", "user.name=T", "-c", "user.email=t@t", *args],
+                           env=env, capture_output=True, text=True)
+        assert r.returncode == 0, r.stderr
+        return r.stdout.strip()
+
+    origem, pc = tmp_path / "origem", tmp_path / "pc"
+    origem.mkdir()
+    git(origem, "init", "-q", "-b", "main")
+    (origem / "config").mkdir()
+    (origem / "config" / "bluestacks.json").write_text('{"v": 1}\n', encoding="utf-8")
+    (origem / "leia.txt").write_text("a\n", encoding="utf-8")
+    git(origem, "add", ".")
+    git(origem, "commit", "-q", "-m", "inicio")
+    git(tmp_path, "clone", "-q", str(origem), str(pc))
+    git(pc, "config", "--local", "user.name", "PC Ferreira Boutique")  # como o instalacao.passo_git deixa
+    git(pc, "config", "--local", "user.email", "pc-ferreira@users.noreply.github.com")
+
+    class Clones:
+        pass
+
+    c = Clones()
+    c.origem, c.pc, c.env, c.git = origem, pc, env, git
+
+    def commit_execucao_que_nao_subiu():
+        pasta = pc / "execucoes" / "20260925-101010_diagnostico"
+        pasta.mkdir(parents=True)
+        (pasta / "resultado.json").write_text("{}\n", encoding="utf-8")
+        git(pc, "add", "execucoes")
+        git(pc, "commit", "-q", "-m", "execução do testar.bat")
+
+    def atualizacao_na_nuvem(conteudo='{"v": 2}\n'):
+        (origem / "config" / "bluestacks.json").write_text(conteudo, encoding="utf-8")
+        git(origem, "commit", "-q", "-am", "seletores novos")
+
+    c.commit_execucao_que_nao_subiu = commit_execucao_que_nao_subiu
+    c.atualizacao_na_nuvem = atualizacao_na_nuvem
+    return c
+
+
+def _rebase_em_andamento(pc: Path) -> bool:
+    return (pc / ".git" / "rebase-merge").exists() or (pc / ".git" / "rebase-apply").exists()
+
+
+@pytest.mark.parametrize("nome", ["atualizar.bat", "instalar.bat"])
+def test_bat_pull_sem_divergencia_continua_so_com_ff_only(nome, clones):
+    clones.atualizacao_na_nuvem()
+    falhas, saida = rodar_trecho_do_pull(nome, clones.pc, clones.env)
+    assert falhas == 0 and "--rebase" not in saida
+    assert clones.git(clones.pc, "rev-parse", "HEAD") == clones.git(clones.origem, "rev-parse", "HEAD")
+
+
+@pytest.mark.parametrize("nome", ["atualizar.bat", "instalar.bat"])
+def test_bat_pull_com_execucao_do_testar_que_nao_subiu_atualiza_por_cima(nome, clones):
+    # Achado #7: o testar.bat commitou execucoes/ no PC, o push falhou e a nuvem andou: o --ff-only
+    # sozinho parava aqui ("Not possible to fast-forward").
+    clones.commit_execucao_que_nao_subiu()
+    clones.atualizacao_na_nuvem()
+    falhas, saida = rodar_trecho_do_pull(nome, clones.pc, clones.env)
+    assert falhas == 0, saida
+    assert "OK: código atualizado" in saida
+    assert clones.git(clones.pc, "rev-parse", "HEAD~1") == clones.git(clones.origem, "rev-parse", "HEAD")
+    assert (clones.pc / "execucoes" / "20260925-101010_diagnostico" / "resultado.json").exists()
+    assert (clones.pc / "config" / "bluestacks.json").read_text(encoding="utf-8") == '{"v": 2}\n'
+    assert not _rebase_em_andamento(clones.pc)
+
+
+@pytest.mark.parametrize("nome", ["atualizar.bat", "instalar.bat"])
+def test_bat_pull_mudanca_a_mao_que_bate_nao_deixa_marca_de_conflito(nome, clones):
+    # O pull --rebase --autostash devolve 0 mesmo quando o stash não volta limpo e deixa
+    # <<<<<<< dentro do arquivo: o JSON quebraria em silêncio.
+    clones.commit_execucao_que_nao_subiu()
+    clones.atualizacao_na_nuvem()
+    (clones.pc / "config" / "bluestacks.json").write_text('{"v": "mão"}\n', encoding="utf-8")
+    (clones.pc / "leia.txt").write_text("mudado\n", encoding="utf-8")
+    falhas, saida = rodar_trecho_do_pull(nome, clones.pc, clones.env)
+    assert falhas == 1
+    assert "git stash" in saida and "IA" in saida
+    assert (clones.pc / "config" / "bluestacks.json").read_text(encoding="utf-8") == '{"v": 2}\n'
+    assert clones.git(clones.pc, "ls-files", "-u") == ""
+    assert clones.git(clones.pc, "rev-parse", "HEAD~1") == clones.git(clones.origem, "rev-parse", "HEAD")
+    guardado = clones.git(clones.pc, "stash", "show", "-p", "stash@{0}")
+    assert '"mão"' in guardado and "mudado" in guardado  # nada do que foi feito à mão se perdeu
+    assert not _rebase_em_andamento(clones.pc)
+
+
+@pytest.mark.parametrize("nome", ["atualizar.bat", "instalar.bat"])
+def test_bat_pull_rebase_com_conflito_desfaz_e_manda_testar_enviar(nome, clones):
+    # Commit local que mexe no mesmo arquivo que a nuvem: o rebase para no meio e tem de ser desfeito.
+    (clones.pc / "config" / "bluestacks.json").write_text('{"v": "pc"}\n', encoding="utf-8")
+    clones.git(clones.pc, "commit", "-q", "-am", "commit local")
+    antes = clones.git(clones.pc, "rev-parse", "HEAD")
+    (clones.pc / "leia.txt").write_text("mudado\n", encoding="utf-8")
+    clones.atualizacao_na_nuvem()
+    falhas, saida = rodar_trecho_do_pull(nome, clones.pc, clones.env)
+    assert falhas == 1
+    assert "FALHOU: o git pull não funcionou" in saida and "testar.bat enviar" in saida
+    assert not _rebase_em_andamento(clones.pc)
+    assert clones.git(clones.pc, "rev-parse", "HEAD") == antes
+    assert (clones.pc / "leia.txt").read_text(encoding="utf-8") == "mudado\n"  # o autostash voltou
+    assert clones.git(clones.pc, "stash", "list") == ""
+
+
+@pytest.mark.parametrize("nome", ["atualizar.bat", "instalar.bat"])
+def test_bat_pull_ordem_dos_comandos_e_mensagem(nome):
+    texto = (RAIZ / nome).read_text(encoding="utf-8")
+    ordem = ["pull --ff-only", "pull --rebase --autostash", "diff --quiet --diff-filter=U", "reset --merge",
+             "rebase --abort", ":pull_falhou"]
+    posicoes = [texto.index(p) for p in ordem]
+    assert posicoes == sorted(posicoes)
+    falhou = texto.split("\n:pull_falhou", 1)[1].split("\ngoto", 1)[0]
+    assert "testar.bat enviar" in falhou
+    trecho = texto[texto.index("pull --ff-only"):texto.index("\n:pull_falhou")]
+    assert "%ERRORLEVEL%" not in trecho.upper()  # só "if errorlevel 1", logo depois do comando do git

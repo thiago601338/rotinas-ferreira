@@ -3,6 +3,11 @@
 Confere duração, resolução, fps, codec, formato, taxa de bits, áudio, volume (≈ −14 LUFS), pico real,
 tamanho e HDR. Cada item traz esperado, obtido, ok e, quando falha, o que fazer no CapCut
 (``conhecimento/edicao-video-capcut.md`` §7 e §8). Presets e tolerâncias: ``config/exportacao.json``.
+
+``som_esperado`` diz o que o plano manda no som do arquivo: ``"com_som"`` (padrão: fala e/ou música no vídeo),
+``"mudo"`` (música pelo Instagram e nenhuma fala: o arquivo sai mudo de propósito, então áudio, volume e pico não
+reprovam) ou ``"so_efeitos"`` (só efeitos sonoros: o alvo de −14 LUFS não vale). O ``video.exportar`` deduz isso
+do ``plano.json``.
 """
 
 from __future__ import annotations
@@ -15,11 +20,15 @@ from pathlib import Path
 
 from .. import config, ferramentas, midia, registro
 from ..contexto import Contexto
+from .exportar import SONS, normalizar_som  # o exportar também valida (antes de esperar o arquivo)
 
 log = registro.obter("video.conferencia")
 
 MB = 1_000_000  # bytes (limite conservador: o do Instagram é "~100 MB")
 MUDO_LUFS = -69.0  # o ebur128 devolve −70 LUFS para silêncio
+# Acima disto o arquivo "tem som" num plano mudo (clipe a −60 dB fica bem abaixo; música esquecida, bem acima).
+MUDO_AUDIVEL_LUFS = -50.0
+NA_MUDO = "n/a (sai mudo: música pelo Instagram)"
 EXT_VIDEO = (".mp4", ".mov", ".m4v")
 NOME_CODEC = {"h264": "H.264", "hevc": "HEVC", "av1": "AV1", "prores": "ProRes", "qtrle": "RLE"}
 
@@ -167,11 +176,31 @@ def _taxa_bits(info: midia.InfoMidia, preset: dict, exp: dict) -> dict:
     return _item("taxa de bits", esperado, f"{_mil(kbps)} kbps", lo <= kbps <= hi, fazer)
 
 
-def _audio(info: midia.InfoMidia, som: dict) -> dict:
-    esperado = "presente, com som"
+def _audivel(info: midia.InfoMidia, som: dict, exp: dict) -> bool:
+    """Som de verdade (não só o resto de um clipe a −60 dB)."""
+    lufs = som.get("lufs")
+    limite = float(exp.get("mudo_audivel_lufs", MUDO_AUDIVEL_LUFS))
+    return info.tem_audio and lufs is not None and math.isfinite(lufs) and lufs > limite
+
+
+def _audio_mudo(info: midia.InfoMidia, som: dict, exp: dict) -> dict:
+    esperado = "mudo (música pelo Instagram)"
+    if not _audivel(info, som, exp):
+        obtido = "sem faixa de áudio" if not info.tem_audio else "sem som"
+        return _item("áudio", esperado, obtido, True)
+    return _item("áudio", esperado, f"com som ({_n(som['lufs'])} LUFS)", False,
+                 "O plano exporta o vídeo mudo (a música entra pelo Instagram), mas o arquivo tem som: conferir se a "
+                 "faixa-guia foi desligada (V) e se nenhuma música ficou na linha do tempo. Se o som é de propósito, "
+                 "pode ignorar este item.")
+
+
+def _audio(info: midia.InfoMidia, som: dict, exp: dict | None = None, som_esperado: str = "com_som") -> dict:
+    if som_esperado == "mudo":
+        return _audio_mudo(info, som, exp or {})
+    esperado = "presente, com som" if som_esperado == "com_som" else "presente, com os efeitos sonoros"
     fazer = ("O vídeo saiu sem som: conferir se as faixas de áudio não estão silenciadas ou desativadas no CapCut. "
-             "Se a música vai ser posta pelo Instagram e o vídeo não tem fala, o arquivo sai mudo mesmo: aí este "
-             "item e os de volume podem ser ignorados.")
+             "Se a música vai ser posta pelo Instagram e o vídeo não tem fala, o arquivo sai mudo mesmo: conferir de "
+             "novo com som_esperado \"mudo\" (o video.exportar deduz isso do plano.json).")
     if not info.tem_audio:
         return _item("áudio", esperado, "sem faixa de áudio", False, fazer)
     detalhe = NOME_CODEC.get(info.codec_audio or "", (info.codec_audio or "?").upper())
@@ -185,12 +214,17 @@ def _audio(info: midia.InfoMidia, som: dict) -> dict:
     return _item("áudio", esperado, detalhe, True)
 
 
-def _volume(info: midia.InfoMidia, som: dict, exp: dict) -> dict:
+def _volume(info: midia.InfoMidia, som: dict, exp: dict, som_esperado: str = "com_som") -> dict:
     alvo = float(exp.get("loudness_alvo_lufs", -14.0))
     tol = float(exp.get("loudness_tolerancia_lu", 2.0))
     pico_max = float(exp.get("pico_real_max_dbtp", -1.0))
     esperado = f"{_n(alvo, None)} LUFS ± {_n(tol, None)}"
     lufs, pico = som.get("lufs"), _finito(som.get("pico_real_dbtp"))
+    if som_esperado == "mudo" and not _audivel(info, som, exp):
+        return _item("volume", "n/a", NA_MUDO, True)
+    if som_esperado == "so_efeitos":
+        obtido = f"{_n(lufs)} LUFS" if _finito(lufs) is not None else "não medido"
+        return _item("volume", "n/a (só efeitos sonoros)", obtido, True)
     if not info.tem_audio or (lufs is not None and (not math.isfinite(lufs) or lufs <= MUDO_LUFS)):
         return _item("volume", esperado, "sem som", False, "Ver o item áudio.")
     if lufs is None:
@@ -212,10 +246,12 @@ def _volume(info: midia.InfoMidia, som: dict, exp: dict) -> dict:
     return _item("volume", esperado, obtido, False, fazer)
 
 
-def _pico(info: midia.InfoMidia, som: dict, exp: dict) -> dict:
+def _pico(info: midia.InfoMidia, som: dict, exp: dict, som_esperado: str = "com_som") -> dict:
     pico_max = float(exp.get("pico_real_max_dbtp", -1.0))
     esperado = f"≤ {_n(pico_max)} dBTP"
     lufs, pico = som.get("lufs"), som.get("pico_real_dbtp")
+    if som_esperado == "mudo" and not _audivel(info, som, exp):
+        return _item("pico real", "n/a", NA_MUDO, True)
     if not info.tem_audio or (lufs is not None and (not math.isfinite(lufs) or lufs <= MUDO_LUFS)):
         return _item("pico real", esperado, "sem som", False, "Ver o item áudio.")
     if pico is None:
@@ -259,8 +295,12 @@ def presets() -> dict:
     return config.carregar("exportacao").get("presets") or {}
 
 
-def conferir(arquivo: str | Path, destino: str = "reels", duracao_esperada_s: float | None = None) -> dict:
-    """Confere o arquivo exportado contra o preset do destino. ``aprovado`` só se todos os itens passarem."""
+def conferir(arquivo: str | Path, destino: str = "reels", duracao_esperada_s: float | None = None,
+             som_esperado: str | None = None) -> dict:
+    """Confere o arquivo exportado contra o preset do destino. ``aprovado`` só se todos os itens passarem.
+
+    ``som_esperado``: ``"com_som"`` (padrão), ``"mudo"`` ou ``"so_efeitos"`` (ver o topo do módulo)."""
+    som_esperado = normalizar_som(som_esperado)
     arquivo = Path(arquivo)
     exp = config.carregar("exportacao")
     todos = exp.get("presets") or {}
@@ -277,15 +317,16 @@ def conferir(arquivo: str | Path, destino: str = "reels", duracao_esperada_s: fl
         _codec(info, preset),
         _formato(arquivo, preset),
         _taxa_bits(info, preset, exp),
-        _audio(info, som),
-        _volume(info, som, exp),
-        _pico(info, som, exp),
+        _audio(info, som, exp, som_esperado),
+        _volume(info, som, exp, som_esperado),
+        _pico(info, som, exp, som_esperado),
         _tamanho(info, preset, destino),
         _hdr(info),
     ]
     resultado = {
         "arquivo": str(arquivo),
         "destino": destino,
+        "som_esperado": som_esperado,
         "aprovado": all(i["ok"] for i in itens),
         "itens": itens,
         "medidas": {
@@ -359,7 +400,8 @@ def _gravar(ctx: Contexto, resultado: dict, relatorio: str) -> None:
 
 
 def tarefa(args: dict, ctx: Contexto) -> dict:
-    """Pedido ``video.conferir``: args ``{"arquivo", "destino"?, "duracao_esperada_s"?}``."""
+    """Pedido ``video.conferir``: args ``{"arquivo", "destino"?, "duracao_esperada_s"?, "som_esperado"?,
+    "projeto"?}``. Sem ``som_esperado``, com ``projeto``: deduz do ``plano.json`` do projeto (como o exportar)."""
     if not args.get("arquivo"):
         raise ValueError("Falta o argumento 'arquivo' (caminho ou nome do vídeo em videos\\exportado).")
     caminho = resolver_arquivo(args["arquivo"])
@@ -369,7 +411,12 @@ def tarefa(args: dict, ctx: Contexto) -> dict:
             esperada = _segundos(esperada)
         except argparse.ArgumentTypeError as e:
             raise ValueError(str(e)) from None
-    resultado = conferir(caminho, args.get("destino") or "reels", esperada)
+    som = args.get("som_esperado")
+    if not som and args.get("projeto"):
+        from .exportar import som_do_projeto
+
+        som = som_do_projeto(args["projeto"])
+    resultado = conferir(caminho, args.get("destino") or "reels", esperada, som)
     relatorio = texto(resultado)
     _gravar(ctx, resultado, relatorio)
     return {**resultado, "texto": relatorio}
@@ -390,6 +437,8 @@ def _parser(prog: str) -> argparse.ArgumentParser:
                                      "(sem --arquivo: o mais recente de lá)")
     p.add_argument("--destino", default="reels", choices=sorted(presets()))
     p.add_argument("--duracao", type=_segundos, help="duração esperada em segundos (a do plano)")
+    p.add_argument("--som", choices=SONS, default=None,
+                   help="som esperado: com_som (padrão), mudo (música pelo Instagram, sem fala) ou so_efeitos")
     return p
 
 
@@ -399,7 +448,7 @@ def cli(argv: list[str]) -> int:
     a = p.parse_args(argv)
     try:
         caminho = resolver_arquivo(a.arquivo) if a.arquivo else mais_recente()
-        resultado = conferir(caminho, a.destino, a.duracao)
+        resultado = conferir(caminho, a.destino, a.duracao, a.som)
     except (midia.ErroMidia, ferramentas.FerramentaAusente, ValueError) as e:
         print(f"Erro: {e}", file=sys.stderr)
         return 2
@@ -415,7 +464,7 @@ def teste_real(ctx: Contexto, argv: list[str]) -> dict:
     sonda = midia.sondar_json(caminho)
     ctx.arquivo("ffprobe.json").write_text(registro.ocultar(json.dumps(sonda, ensure_ascii=False, indent=2)),
                                            encoding="utf-8")
-    resultado = conferir(caminho, a.destino, a.duracao)
+    resultado = conferir(caminho, a.destino, a.duracao, a.som)
     relatorio = texto(resultado)
     _gravar(ctx, resultado, relatorio)
     log.info("%s", relatorio)

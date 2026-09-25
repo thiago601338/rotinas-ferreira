@@ -247,6 +247,8 @@ def texto_resultado(plano: dict, resultado: dict) -> str:
     if resultado.get("parou_em"):
         saida.append(f"Parou em: {resultado['parou_em']}")
     saida += _secao("Ficou de fora antes de postar:", linhas_cortes(plano))
+    # A5: "Recentes" no lugar do álbum, ordem por data diferente, registro em postados.csv que falhou…
+    saida += _secao("Avisos da postagem:", [f"- {a}" for a in resultado.get("avisos") or []])
 
     # falhou depois de tocar em "Seu story" (A5 marca "incerta"): pode ter subido; repetir sem conferir duplica
     incertas = [l["letra"] for l in letras if not ensaio and l["letra"] not in publicadas
@@ -270,6 +272,27 @@ def texto_resultado(plano: dict, resultado: dict) -> str:
         saida += ["", "Conferência (rodar no console do navegador logado no Instagram; a última linha tem que ser CONFERE):",
                   js_conferencia(plano, conferir)]
     return "\n".join(saida)
+
+
+def texto_interrompido(plano: dict) -> str:
+    """Postagem real que terminou sem resultado (vigia caiu, PC suspendeu): não dá para saber o que subiu."""
+    letras = plano.get("letras") or []
+    saida = [f"Stories de {data_br(plano.get('data'))} — postagem INTERROMPIDA: não sei o que subiu.",
+             f"O pedido tinha {_plural(len(letras), 'letra', 'letras')}, {_plural(_total_midias(letras), 'mídia', 'mídias')}:"]
+    saida += [_linha_letra(l) for l in letras]
+    saida += ["O que fazer:",
+              "- NÃO mandar de novo antes de conferir: rodar o JS abaixo (todas as letras do plano, na ordem).",
+              "- CONFERE = tudo subiu. 'subiram k de n' = só as k primeiras mídias da lista subiram "
+              "(conferir pelos horários); mandar num novo pedido só as letras que faltam.",
+              "", "Conferência (rodar no console do navegador logado no Instagram):", js_conferencia(plano)]
+    return "\n".join(saida)
+
+
+def _interrompido(dados: dict, pedido: dict, plano: dict) -> bool:
+    """Erro sem ``resultado`` nem ``resultado_parcial`` numa postagem real: o A5 não chegou a dizer o que fez."""
+    if not dados.get("erro") or dados.get("resultado") or dados.get("resultado_parcial"):
+        return False
+    return not (bool(pedido.get("ensaio")) or bool(plano.get("ensaio", False)))
 
 
 # ---------------------------------------------------------------- terminal
@@ -308,10 +331,18 @@ def texto_do_pedido(estado: str, dados: dict, so_js: bool = False) -> tuple[dict
             plano = json.loads(Path(plano).read_text(encoding="utf-8-sig"))
         except (OSError, ValueError) as e:
             raise ValueError(f"Não consegui ler o plano {plano}: {e}") from e
+    if isinstance(plano, dict) and _interrompido(dados, pedido, plano):
+        if so_js:
+            return plano, js_conferencia(plano)  # todas as letras: qualquer uma pode ter subido
+        return plano, "\n\n".join(x for x in (erro, texto_interrompido(plano)) if x)
     res = dict(dados.get("resultado") or dados.get("resultado_parcial") or {})
     res.setdefault("ensaio", bool(pedido.get("ensaio")))
     if so_js:
-        return plano, js_conferencia(plano, res.get("publicadas") or [])
+        # incerta = falhou depois de tocar em "Seu story": pode ter subido, entra no JS (igual ao relatório)
+        pub = list(res.get("publicadas") or [])
+        inc = [] if res.get("ensaio") else [x.get("letra") for x in res.get("letras") or []
+                                            if x.get("incerta") and x.get("letra") not in pub]
+        return plano, js_conferencia(plano, pub + inc)
     return plano, "\n\n".join(x for x in (erro, texto_resultado(plano, res)) if x)
 
 

@@ -234,3 +234,72 @@ def test_cli_plano_por_caminho(cfg, capsys, tmp_path):
 def test_cli_id_invalido(cfg, capsys):
     assert relatorio.cli(["--pedido", "..\\..\\x"]) == 1
     assert "inválido" in capsys.readouterr().err
+
+
+# ------------------------------------------------------------ achados #16 e #19
+
+def test_texto_resultado_mostra_os_avisos_da_postagem(cfg):
+    aviso = "Letra A: não achei o menu de álbuns; usei 'Recentes' (a ordem por data garante as N primeiras)."
+    res = {"ensaio": True, "publicadas": [], "avisos": [aviso],
+           "letras": [{"letra": "A", "estado": "ensaio_ok", "prints": ["a1.png"]},
+                      {"letra": "B", "estado": "ensaio_ok", "prints": ["b1.png"]}]}
+    t = relatorio.texto_resultado(plano(), res)
+    assert f"Avisos da postagem:\n- {aviso}" in t
+    assert t.index("Avisos da postagem:") < t.index("O que fazer:")
+    sem = relatorio.texto_resultado(plano(), dict(res, avisos=[]))
+    assert "Avisos da postagem" not in sem
+
+
+def _interrompido(cfg, ensaio=False):
+    id_ = "20260925-192000-stories-postar-2026-09-22"
+    motivo = ("Interrompido: o vigia parou no meio deste pedido. Não reexecutei para não repetir nada. "
+              "Confira o que já foi feito (log e prints na pasta) antes de pedir de novo, com outro id.")
+    _gravar_resultado(cfg, "erro", {"id": id_, "tipo": "stories.postar", "estado": "erro", "erro": motivo,
+                                    "pedido": {"id": id_, "tipo": "stories.postar", "args": {"plano": plano(ensaio)},
+                                               "ensaio": ensaio}})
+    return id_
+
+
+def test_postagem_interrompida_nao_diz_que_nada_subiu(cfg, capsys):
+    id_ = _interrompido(cfg)
+    assert relatorio.cli(["--pedido", id_]) == 0
+    saida = capsys.readouterr().out
+    assert saida.startswith("Erro no pedido: Interrompido")
+    assert "não sei o que subiu" in saida
+    assert "Subiu: 0 letras" not in saida and "não chegou a ser postada" not in saida
+    assert "mandar as letras que não subiram" not in saida
+    # JS de TODAS as letras do plano (A: 3 mídias, B: 2)
+    assert ".slice(-5)" in saida and '["sem link", "sem link", "LINK", "sem link", "sem link"]' in saida
+    assert relatorio.cli(["--pedido", id_, "--js"]) == 0
+    js = capsys.readouterr().out
+    assert js.startswith("const uid=") and ".slice(-5)" in js
+
+
+def test_ensaio_interrompido_continua_com_o_relatorio_de_ensaio(cfg, capsys):
+    id_ = _interrompido(cfg, ensaio=True)
+    assert relatorio.cli(["--pedido", id_]) == 0
+    saida = capsys.readouterr().out
+    assert "não sei o que subiu" not in saida and "ENSAIO (nada foi publicado)" in saida
+
+
+def test_cli_js_inclui_letra_incerta_do_resultado_parcial(cfg, capsys):
+    # achado #0: `stories-relatorio --js` usava só "publicadas" e dizia "Nada publicado" com a letra A incerta
+    id_ = "20260925-191000-stories-postar-2026-09-22"
+    parcial = {"ensaio": False, "publicadas": [], "parou_em": "letra A: concluir_publicacao",
+               "letras": [{"letra": "A", "estado": "falhou", "incerta": True, "erro": "não voltou ao feed"},
+                          {"letra": "B", "estado": "nao_iniciada"}]}
+    _gravar_resultado(cfg, "erro", {"id": id_, "tipo": "stories.postar", "estado": "erro", "erro": "Parei na letra A",
+                                    "pedido": {"args": {"plano": plano(False)}, "ensaio": False},
+                                    "resultado_parcial": parcial})
+    assert relatorio.cli(["--pedido", id_, "--js"]) == 0
+    js = capsys.readouterr().out.strip()
+    assert js == relatorio.js_conferencia(plano(False), ["A"])
+    assert ".slice(-3)" in js and not js.startswith("//")
+    # com A publicada e B incerta, o JS cobre as duas
+    parcial2 = dict(parcial, publicadas=["A"], letras=[{"letra": "A", "estado": "publicada"},
+                                                       {"letra": "B", "estado": "falhou", "incerta": True}])
+    _gravar_resultado(cfg, "erro", {"id": id_, "tipo": "stories.postar", "estado": "erro", "erro": "x",
+                                    "pedido": {"args": {"plano": plano(False)}, "ensaio": False},
+                                    "resultado_parcial": parcial2})
+    assert relatorio.cli(["--pedido", id_, "--js"]) == 0
+    assert ".slice(-5)" in capsys.readouterr().out

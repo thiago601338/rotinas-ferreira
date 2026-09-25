@@ -370,10 +370,40 @@ def test_musica_invalida(ambiente):
         pedido.montar(DATA, ident_a(musica=99), cliente=cliente())
 
 
-def test_manifesto_simulado_e_recusado(ambiente):
-    manifesto(ambiente, {"A": ["video_mudo", "foto", "foto"]}, simulado=True)
-    with pytest.raises(ErroPedido, match="simulação"):
-        pedido.montar(DATA, ident_a(), cliente=cliente())
+def _foto_da_pasta_do_dia(cfg, data=DATA):
+    """Estado da pasta do dia do usuário: {nome: bytes} (para provar que nada mudou)."""
+    dia = cfg.p.pasta_do_dia(data)
+    return {q.relative_to(dia).as_posix(): q.read_bytes() for q in sorted(dia.rglob("*")) if q.is_file()}
+
+
+def test_so_manifesto_simulado_e_recusado_sem_mexer_na_pasta(ambiente, monkeypatch):
+    """Achado #1: só com manifesto-simulado.json, o montar (mesmo em ensaio) não roda o preparar real."""
+    man = manifesto(ambiente, {"A": ["video_mudo", "foto", "foto"]}, simulado=True)
+    trabalho = ambiente.p.trabalho_stories / DATA
+    (trabalho / "manifesto.json").rename(trabalho / "manifesto-simulado.json")
+    dia = ambiente.p.pasta_do_dia(DATA)
+    (dia / "IMG_0001.MOV").write_bytes(b"bruto do usuario")  # mídia ainda sem nome, como antes do preparar
+    antes = _foto_da_pasta_do_dia(ambiente)
+    chamadas = []
+
+    def preparar(data, simular=False, grupos=None):  # como o real: renomeia as mídias soltas da pasta do dia
+        chamadas.append((data, simular, grupos))
+        (dia / "IMG_0001.MOV").rename(dia / "B - 1.mov")
+        return man
+
+    falso = types.ModuleType("rotinas.stories.pasta")
+    falso.preparar = preparar
+    import rotinas.stories as pacote
+
+    monkeypatch.setitem(sys.modules, "rotinas.stories.pasta", falso)
+    monkeypatch.setattr(pacote, "pasta", falso, raising=False)
+    with pytest.raises(ErroPedido, match="manifesto-simulado.json") as e:
+        pedido.montar(DATA, ident_a(), ensaio=True, cliente=cliente())
+    assert "stories-preparar --data 2026-09-22" in str(e.value) and "SEM simular" in str(e.value)
+    assert chamadas == []
+    assert _foto_da_pasta_do_dia(ambiente) == antes
+    assert not (trabalho / "manifesto.json").exists()
+    assert pendentes(ambiente) == []
 
 
 def test_midia_sumida_da_pasta(ambiente):
@@ -391,23 +421,24 @@ def test_letra_sem_identificacao_vira_aviso(ambiente):
     assert "Letra B sem identificação: ficou de fora" in plano["avisos"]
 
 
-def test_sem_manifesto_prepara_a_pasta(ambiente, monkeypatch):
+def test_sem_manifesto_nao_prepara_a_pasta(ambiente, monkeypatch):
+    """Achado #1: o montar nunca prepara a pasta; sem manifesto.json pede o stories.preparar real."""
     chamadas = []
 
     def preparar(data, simular=False, grupos=None):
         chamadas.append(data)
-        return manifesto(ambiente, {"A": ["video_mudo", "foto", "foto"]}, avisos=["IMG_1.MOV convertido"])
+        return manifesto(ambiente, {"A": ["video_mudo", "foto", "foto"]})
 
-    # dublê do pasta.py (A1): só o que o contrato promete
     falso = types.ModuleType("rotinas.stories.pasta")
     falso.preparar = preparar
     import rotinas.stories as pacote
 
     monkeypatch.setitem(sys.modules, "rotinas.stories.pasta", falso)
     monkeypatch.setattr(pacote, "pasta", falso, raising=False)
-    plano = pedido.montar(DATA, ident_a(), cliente=cliente())["plano"]
-    assert chamadas == [DATA]
-    assert "IMG_1.MOV convertido" in plano["avisos"]
+    with pytest.raises(ErroPedido, match="Sem manifesto.json") as e:
+        pedido.montar(DATA, ident_a(), cliente=cliente())
+    assert "manifesto-simulado" not in str(e.value)
+    assert chamadas == []
 
 
 # ------------------------------------------------------------ tarefa e terminal
@@ -425,6 +456,24 @@ def test_tarefa_usa_id_do_pedido_e_ensaio(ambiente, monkeypatch, tmp_path):
     ctx3 = Contexto(tmp_path / "saida3", ensaio=False, id_pedido="20260925-183200-stories-montar")
     assert pedido.tarefa({"data": DATA, "identificacao": ident_a(), "ensaio": False}, ctx3)["plano"]["ensaio"] is False
 
+
+
+def test_diagnostico_do_montar_vai_para_o_postar(ambiente, monkeypatch, tmp_path):
+    """Achado #4: ``diagnostico`` do stories.montar (no pedido ou nos args) vale para o stories.postar gerado."""
+    manifesto(ambiente, {"A": ["video_mudo", "foto", "foto"]})
+    monkeypatch.setattr(pedido.estoque, "cliente_padrao", cliente)
+
+    def postar_gerado(res):
+        return json.loads((ambiente.p.fila / "pendente" / f"{res['pedido_postagem']}.json").read_text(encoding="utf-8"))
+
+    ctx = Contexto(tmp_path / "s1", ensaio=False, diagnostico=True, id_pedido="20260925-184000-stories-montar")
+    res = pedido.tarefa({"data": DATA, "identificacao": ident_a()}, ctx)
+    assert postar_gerado(res)["diagnostico"] is True
+    assert "com diagnóstico" in res["relatorio"]
+    ctx = Contexto(tmp_path / "s2", ensaio=False, id_pedido="20260925-184100-stories-montar")
+    assert postar_gerado(pedido.tarefa({"data": DATA, "identificacao": ident_a(), "diagnostico": True}, ctx))["diagnostico"] is True
+    ctx = Contexto(tmp_path / "s3", ensaio=False, id_pedido="20260925-184200-stories-montar")
+    assert postar_gerado(pedido.tarefa({"data": DATA, "identificacao": ident_a()}, ctx))["diagnostico"] is False
 
 def test_cli_com_estoque_falso(ambiente, monkeypatch, tmp_path, capsys):
     manifesto(ambiente, {"A": ["video_mudo", "foto", "foto"]})

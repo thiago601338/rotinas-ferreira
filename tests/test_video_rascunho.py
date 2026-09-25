@@ -467,8 +467,43 @@ def test_relatorio_lista_o_que_fica_manual(amb):
     assert r.relatorio_texto == texto
     assert "Transição 'zoom' entre os blocos 2 e 3" in texto
     assert "corte_seco" not in texto
-    assert "Efeito 1 'Punch-in' em 1,30–1,50 s" in texto
+    assert "Punch-in" not in texto  # o rascunho já aplica pela escala do clipe (achado #12)
     assert "mídia perdida" in texto and "Vestido verde" in texto
+
+
+def test_manual_e_o_acabamento_completo(amb):
+    # Achado #12: 'manual' tem que ser a lista completa do acabamento (composição, cor, faixa-guia, loop,
+    # legendas) + transições + protótipos omitidos, sem os efeitos que o rascunho já aplicou (punch-in).
+    acabamento = [
+        "#39 Clone em 1,30–4,30 s (como fazer: guia §4.2).",
+        "look: máscara Linear ou Retângulo com a borda numa área calma, pena 10–20 (#39).",
+        "Cor: look quente (§6), filtros até 40%; comparar a cor da peça com a peça real e manter um plano com a cor real.",
+        "Faixa-guia: desligar (V) antes de exportar; a música entra pelo Instagram (§7).",
+        "Loop (#13): conferir se o último quadro emenda no primeiro.",
+        "Revisar as legendas: acentos, nome da peça, preço, tamanhos e cor exata (§5).",
+    ]
+    efeitos = [
+        {"tecnica": 1, "nome": "Punch-in (zoom seco)", "ini_s": 1.0, "dur_s": 0.3, "manual": False, "categoria": "apoio"},
+        {"tecnica": 1, "nome": "Punch-in (zoom seco)", "ini_s": 2.0, "dur_s": 0.3, "manual": False, "categoria": "apoio"},
+        {"tecnica": 14, "nome": "Corte na batida", "ini_s": 0.0, "dur_s": 1.0, "manual": False, "categoria": "corte"},
+        {"tecnica": 31, "nome": "Flash / strobe", "ini_s": 1.3, "dur_s": 0.07, "manual": False, "categoria": "apoio"},
+        {"tecnica": 31, "nome": "Flash / strobe", "ini_s": 1.3, "dur_s": 0.07, "manual": False, "categoria": "apoio"},
+        {"tecnica": 39, "nome": "Clone", "ini_s": 1.3, "dur_s": 3.0, "manual": True, "categoria": "assinatura"},
+        {"tecnica": 57, "nome": "Efeitos sonoros", "som": "whoosh", "ini_s": 1.0, "dur_s": 0.5, "manual": False,
+         "categoria": "som", "parametros": {"arquivo": str(amb.musica)}},
+        {"tecnica": 57, "nome": "Efeitos sonoros", "som": "pop", "ini_s": 2.0, "dur_s": 0.5, "manual": True,
+         "categoria": "som", "parametros": {"arquivo": None}},
+    ]
+    r = amb.gerar(amb.plano(efeitos=efeitos, acabamento=acabamento))
+    manual = r.manual
+    for linha in acabamento:
+        assert manual.count(linha) == 1, linha
+    assert not [x for x in manual if "Punch-in" in x or "Corte na batida" in x or "whoosh" in x]
+    assert [x for x in manual if "Flash / strobe" in x] == [
+        "Efeito 31 'Flash / strobe' em 1,30–1,37 s: fazer à mão (edicao-video-capcut.md §4.2)."]
+    assert sum("Clone" in x for x in manual) == 1  # vem do acabamento, sem repetir
+    assert any("Transição 'zoom'" in x for x in manual)
+    assert "Faixa-guia: desligar (V)" in r.relatorio_texto and "Cor: look quente" in r.relatorio_texto
 
 
 # ---------------------------------------------------------------- variações de gabarito
@@ -591,8 +626,11 @@ def test_inspecionar_gabarito(amb):
 
 def test_localizar_gabarito(amb, tmp_path):
     raiz = tmp_path / "repo"
-    with pytest.raises(rascunho.ErroRascunho, match="diagnostico.bat"):
+    with pytest.raises(rascunho.ErroRascunho, match="não está nos rascunhos do CapCut") as erro:
         rascunho.localizar_gabarito(raiz=raiz)
+    # achado #13: não mandar copiar pasta (as cópias do diagnóstico já são procuradas); sugerir args.gabarito
+    assert "args.gabarito" in str(erro.value) and "--gabarito" in str(erro.value)
+    assert "copie" not in str(erro.value) and "diagnostico.bat" not in str(erro.value)
     no_pc = amb.rasc / "Projeto qualquer"
     shutil.copytree(GABARITO, no_pc)  # o CapCut às vezes usa pasta com outro nome; acha pelo draft_name
     assert rascunho.localizar_gabarito(raiz=raiz) == no_pc
@@ -614,12 +652,19 @@ def test_tarefa_em_ensaio_nao_toca_no_capcut(amb, tmp_path):
     (trabalho / "plano.json").write_text(json.dumps(amb.plano()), encoding="utf-8")
     antes = _hash_pasta(amb.rasc)
     ctx = Contexto(tmp_path / "execucao", ensaio=True)
+    # achados #6/#11: o ensaio não toca no relatório do projeto (o video.exportar lê o nome do rascunho de lá)
     r = rascunho.tarefa({"projeto": "vestido-verde", "nome": "Ensaio", "gabarito": str(GABARITO)}, ctx)
     assert r["ensaio"] and Path(r["pasta"]) == ctx.pasta_saida / "rascunhos_ensaio" / "Ensaio"
     assert r["backup"] is None
     assert _hash_pasta(amb.rasc) == antes
     assert (ctx.pasta_saida / "relatorio_rascunho.txt").exists()
-    assert (trabalho / "relatorio_rascunho.txt").exists()
+    assert r["relatorio"] == str(ctx.pasta_saida / "relatorio_rascunho.txt")
+    assert not (trabalho / "relatorio_rascunho.txt").exists()
+    real = "Rascunho do CapCut: vestido-verde 2026-09-25 (2)\nDuração: 18,00 s\n"
+    (trabalho / "relatorio_rascunho.txt").write_text(real, encoding="utf-8")
+    rascunho.tarefa({"projeto": "vestido-verde", "nome": "Ensaio", "gabarito": str(GABARITO)},
+                    Contexto(tmp_path / "execucao2", ensaio=True))
+    assert (trabalho / "relatorio_rascunho.txt").read_text(encoding="utf-8") == real
 
 
 def test_tarefa_real_grava_no_capcut(amb, tmp_path):

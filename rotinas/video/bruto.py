@@ -280,14 +280,34 @@ def detectar_silencios(caminho: str | Path, ruido_db: float | None = None, min_s
 
 # ---------------------------------------------------------------- cópia em fps constante
 
+def _assinatura_origem(caminho: Path) -> dict:
+    """O que identifica a versão do original de onde a cópia saiu (nome, tamanho e data de modificação)."""
+    st = caminho.stat()
+    return {"arquivo": caminho.name, "tamanho": st.st_size, "mtime_ns": st.st_mtime_ns}
+
+
 def _copia_cfr(caminho: Path, trabalho: Path) -> Path:
-    """Cópia em fps constante (H.264 CRF da config + AAC 48 kHz) em ``trabalho/cfr``. O original não é tocado."""
+    """Cópia em fps constante (H.264 CRF da config + AAC 48 kHz) em ``trabalho/cfr``. O original não é tocado.
+
+    O nome da cópia leva a extensão do original (``IMG_0001.MOV`` e ``IMG_0001.mp4`` no mesmo bruto não dividem
+    a cópia) e, ao lado, ``<cópia>.origem.json`` guarda nome, tamanho e data de modificação do original: a cópia
+    só é reaproveitada se o original for o mesmo; se ele foi trocado, a cópia (arquivo nosso) é gerada de novo.
+    """
     c = _cfg()
     alvo = int(c["vfr_fps_alvo"])
-    destino = trabalho / _subpastas()["cfr"] / f"{caminho.stem}-cfr{alvo}.mp4"
+    ext = caminho.suffix.lstrip(".").lower() or "sem-ext"
+    destino = trabalho / _subpastas()["cfr"] / f"{caminho.stem}-{ext}-cfr{alvo}.mp4"
+    marca = destino.with_name(destino.stem + ".origem.json")
+    origem = _assinatura_origem(caminho)
     if destino.exists():
-        log.info("Cópia em fps constante já existe: %s", destino.name)
-        return destino
+        try:
+            anterior = json.loads(marca.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            anterior = None
+        if anterior == origem:
+            log.info("Cópia em fps constante já existe: %s", destino.name)
+            return destino
+        log.info("O original de %s mudou (ou a cópia não tem registro de origem): gerando de novo", destino.name)
     destino.parent.mkdir(parents=True, exist_ok=True)
     parcial = destino.with_name(destino.stem + ".parcial.mp4")
     if parcial.exists():
@@ -300,7 +320,8 @@ def _copia_cfr(caminho: Path, trabalho: Path) -> Path:
          str(parcial)],
         timeout=float(c["ffmpeg_timeout_s"]),
     )
-    os.replace(parcial, destino)
+    os.replace(parcial, destino)  # por cima de uma cópia nossa antiga; o bruto continua intacto
+    marca.write_text(json.dumps(origem, ensure_ascii=False), encoding="utf-8")
     return destino
 
 

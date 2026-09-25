@@ -330,3 +330,65 @@ def test_verificar_procura_tambem_o_original_da_letra(cfg):
     oc = postados.verificar("2026-09-25", "B", None, [h("mp4 convertido hoje")])
     assert [(o["motivo"], o["data"]) for o in oc] == [("hash_pasta", "2026-09-20")]
     assert postados.verificar("2026-09-25", "C", None, [h("mp4 convertido hoje")]) == []
+
+
+# ------------------------------------------------------------ pendentes (letra publicada sem registro no CSV)
+
+def _pendente_a(data="2026-09-22", letra="A", sku="FB-0123"):
+    linhas = postados.linhas_do_registro(data, letra, sku, "Vestido Midi Alça", [
+        {"arquivo": "A - 1.mp4", "cores": ["Verde"], "hash": h("video pendente")},
+    ], "p-pendente")
+    return postados.gravar_pendente(data, letra, linhas)
+
+
+def test_pendente_conta_como_publicado_em_ler_letras_e_verificar(cfg):
+    registrar_a(letra="C", sku="FB-0300")
+    arq = _pendente_a()
+    assert arq.parent == cfg.p.registros / "postados_pendentes"
+    assert postados.letras_postadas("2026-09-22") == {"A", "C"}
+    assert [(l["letra"], l["arquivo"]) for l in postados.ler()][-1] == ("A", "A - 1.mp4")
+    oc = postados.verificar("2026-09-25", "B", "FB-0123", [])
+    assert [(o["motivo"], o["letra"]) for o in oc] == [("sku", "A")]
+    oc = postados.verificar("2026-09-25", "B", None, [h("video pendente")])
+    assert [(o["motivo"], o["letra"]) for o in oc] == [("hash_registro", "A")]
+
+
+def test_pendente_sem_csv_ainda(cfg):
+    _pendente_a()
+    assert not (cfg.p.registros / "postados.csv").exists()
+    assert postados.letras_postadas("2026-09-22") == {"A"}
+
+
+def test_proximo_registro_passa_o_pendente_para_o_csv_sem_duplicar(cfg):
+    arq = _pendente_a()
+    registrar_a(letra="B", sku="FB-0200")
+    assert not arq.exists() and postados.ler_pendentes() == []
+    no_csv = list(csv.reader(postados.caminho_csv().read_text(encoding="utf-8-sig").splitlines(), delimiter=";"))
+    assert [(l[1], l[5]) for l in no_csv[1:]] == [("A", h("video pendente")), ("B", h("video")), ("B", h("foto"))]
+    assert postados.letras_postadas("2026-09-22") == {"A", "B"}
+    registrar_a(letra="C", sku="FB-0300")
+    assert len(postados.ler()) == 5  # nada duplicado
+
+
+def test_pendente_ilegivel_nao_deixa_postar_sem_saber(cfg):
+    pasta = cfg.p.registros / "postados_pendentes"
+    pasta.mkdir(parents=True)
+    (pasta / "2026-09-22_A_x.json").write_text("{quebrado", encoding="utf-8")
+    with pytest.raises(ErroPostados, match="pendente ilegível"):
+        postados.letras_postadas("2026-09-22")
+
+
+def test_testar_gravacao(cfg, monkeypatch):
+    postados.testar_gravacao()  # sem CSV: só garante as pastas, não cria o arquivo
+    assert not postados.caminho_csv().exists() and postados.pasta_pendentes().is_dir()
+    registrar_a()
+    antes = postados.caminho_csv().read_bytes()
+    postados.testar_gravacao()
+    assert postados.caminho_csv().read_bytes() == antes
+
+    def aberto_no_excel(*args, **kw):
+        raise PermissionError(13, "Permission denied")
+
+    monkeypatch.setattr(postados, "open", aberto_no_excel, raising=False)
+    with pytest.raises(ErroPostados, match="aberto em outro programa"):
+        postados.testar_gravacao(tentativas=2, espera_s=0)

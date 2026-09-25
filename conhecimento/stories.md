@@ -107,3 +107,14 @@ Scripts em `rotinas/stories/`; formato dos pedidos em `fila/README.md`. O que a 
 - **Travas de segurança:** ensaio é o padrão e nunca toca em "Seu story"/"Compartilhar"; a seleção precisa mostrar exatamente 1…N; o editor precisa ter exatamente N miniaturas; só publica com o editor na tela; interruptor do Facebook desligado antes de concluir; primeira falha para tudo (letra inteira ou nada) e o erro traz o que já subiu; letra já registrada em `postados.csv` no dia é pulada (repetir exige `repostar`); falha depois de tocar em "Seu story" marca a letra como **incerta** — rodar o JS antes de repetir.
 - **Diagnóstico:** `--diagnostico` grava XML + print de cada passo (`passo_NNN_<letra>_<passo>`); ensaio grava `ensaio_<letra>_<n>.png` de cada mídia montada.
 - Ordem do ciclo real: `testar.bat bluestacks` (vai até a galeria, sem publicar) → ajustar seletores → `testar.bat stories-ensaio --data <data>` → aprovação do usuário → postagem real.
+- **Seletor que falhou numa letra:** `testar.bat bluestacks` só percorre feed → Criar → Story → galeria → Selecionar → menu de álbuns. Falha em abrir_instagram, criar, abrir_story, abrir_galeria ou selecionar_varios → `testar.bat bluestacks`; falha depois disso (música, figurinha, seu_story, facebook…) → `testar.bat stories-ensaio --data <data>` (XML + print de cada passo, sem publicar). O ajuste de `config/bluestacks.json` é feito no repositório, nunca à mão em `sistema\` no PC (arquivo versionado mudado à mão trava o `git pull` do `atualizar.bat`).
+
+## Proteções acrescentadas na auditoria de 25/09/2026
+- **Letra incerta** (falhou depois de tocar em "Seu story") entra no JS de conferência; rodar o JS antes de repetir.
+- **`postados.csv` travado:** a postagem real testa a gravação antes de começar (nada é publicado se o Excel estiver com o arquivo aberto). Se o registro falhar **depois** de publicar, a letra fica em `registros\postados_pendentes\`, conta como já postada no próximo montar/postar e entra no CSV no próximo registro que der certo; a execução para antes da próxima letra.
+- **Álbum que não abre:** na postagem real, nunca publicar pela grade "Recentes" (tem mídias de outras letras); só o ensaio segue por lá, com aviso.
+- **Um uso do BlueStacks por vez** (`fila\bluestacks.lock`): vigia, `stories-postar` e `testar.bat` não disputam o emulador.
+- **Pedido interrompido** (vigia caiu no meio da postagem): o relatório diz que não sabe o que subiu e dá o JS de todas as letras.
+- **O montar nunca prepara a pasta sozinho:** sem `manifesto.json` (só simulação) ele para sem mexer em nada.
+- `"diagnostico": true` no montar vale para o postar gerado; o relatório do postar mostra "Avisos da postagem".
+- Ajuste de seletores e de regras vai para `config/*.json` **no repositório** (o vigia relê a config a cada pedido); não editar arquivos de `sistema\` à mão no PC.

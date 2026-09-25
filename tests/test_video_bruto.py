@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import types
 from pathlib import Path
@@ -288,7 +289,7 @@ def test_normalizar_vfr_gera_copia_em_trabalho(cfg, monkeypatch):
 
     monkeypatch.setattr(midia, "sondar", sondar_vfr)
     r = bruto.preparar(PROJETO, transcrever=False, normalizar_vfr=True)
-    copia = cfg.p.videos / "trabalho" / PROJETO / "cfr" / "IMG_0001-cfr30.mp4"
+    copia = cfg.p.videos / "trabalho" / PROJETO / "cfr" / "IMG_0001-mov-cfr30.mp4"
     assert copia.exists() and r["arquivos"][0]["caminho_edicao"] == str(copia)
     assert r["arquivos"][0]["caminho"] == str(original)
     assert any("HandBrake" in a for a in r["arquivos"][0]["avisos"])
@@ -296,6 +297,32 @@ def test_normalizar_vfr_gera_copia_em_trabalho(cfg, monkeypatch):
     info = sondar(copia)
     assert info.codec_video == "h264" and abs(info.fps - 30) < 0.1
     assert hashes(pasta) == antes
+
+
+@pytest.mark.ffmpeg
+def test_copia_cfr_nao_reaproveita_copia_de_outro_arquivo(cfg, tmp_path):
+    # Achado #2: IMG_0001.MOV e IMG_0001.mp4 no mesmo bruto dividiam IMG_0001-cfr30.mp4, e um original trocado
+    # por outro com o mesmo nome reaproveitava a cópia velha.
+    pasta = pasta_bruto(cfg)
+    trabalho = tmp_path / "trabalho"
+    mov = sintetico.video(pasta / "IMG_0001.MOV", duracao=1.0, audio="tom")
+    mp4 = sintetico.video(pasta / "IMG_0001.mp4", duracao=2.0, audio="tom")
+    antes = hashes(pasta)
+    copia_mov = bruto._copia_cfr(mov, trabalho)
+    copia_mp4 = bruto._copia_cfr(mp4, trabalho)
+    assert copia_mov != copia_mp4
+    assert abs(midia.sondar(copia_mov).duracao_s - 1.0) < 0.15
+    assert abs(midia.sondar(copia_mp4).duracao_s - 2.0) < 0.15
+    assert bruto._copia_cfr(mov, trabalho) == copia_mov  # mesmo original: reaproveita
+    assert hashes(pasta) == antes
+
+    # o usuário troca o .MOV por outro vídeo com o mesmo nome (e data de modificação mais antiga)
+    mov.unlink()
+    sintetico.video(mov, duracao=3.0, audio="tom")
+    os.utime(mov, (1_000_000_000, 1_000_000_000))
+    assert bruto._copia_cfr(mov, trabalho) == copia_mov
+    assert abs(midia.sondar(copia_mov).duracao_s - 3.0) < 0.15
+    assert not list((trabalho / "cfr").glob("*.parcial.*"))
 
 
 def test_preparar_erros_claros(cfg):

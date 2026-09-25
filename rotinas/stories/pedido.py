@@ -81,18 +81,26 @@ def _validar_data(data) -> str:
 
 # ---------------------------------------------------------------- manifesto e identificação
 
-def carregar_manifesto(data: str) -> tuple[dict, bool]:
-    """Manifesto do dia; se ainda não existe, roda a preparação da pasta (A1). Devolve (manifesto, gerado_agora)."""
-    caminho = pasta_trabalho(data) / "manifesto.json"
-    if caminho.exists():
-        try:
-            return json.loads(caminho.read_text(encoding="utf-8-sig")), False
-        except json.JSONDecodeError as e:
-            raise ErroPedido(f"manifesto.json inválido em {caminho}: {e}. Rode stories-preparar de novo.") from e
-    log.info("Sem manifesto de %s: preparando a pasta do dia primeiro", data)
-    from . import pasta
+def carregar_manifesto(data: str) -> dict:
+    """Manifesto do dia (``manifesto.json``, gravado pelo ``stories.preparar`` real).
 
-    return pasta.preparar(data), True
+    O montar nunca prepara a pasta: preparar renomeia as mídias do usuário, e só a IA sabe se o
+    agrupamento da simulação estava certo (e com quais ``grupos``). Sem o manifesto real, para aqui.
+    """
+    caminho = pasta_trabalho(data) / "manifesto.json"
+    if not caminho.exists():
+        simulado = (caminho.parent / "manifesto-simulado.json").exists()
+        extra = (" Só existe a simulação (manifesto-simulado.json): ela não muda nada na pasta e não serve para montar."
+                 if simulado else "")
+        raise ErroPedido(
+            f"Sem manifesto.json de {data} em {caminho.parent}.{extra} Rode antes o stories.preparar SEM simular "
+            f"(com os mesmos \"grupos\" da simulação, se usou) — no terminal: python -m rotinas stories-preparar --data {data}. "
+            "Nada foi alterado na pasta do dia."
+        )
+    try:
+        return json.loads(caminho.read_text(encoding="utf-8-sig"))
+    except json.JSONDecodeError as e:
+        raise ErroPedido(f"manifesto.json inválido em {caminho}: {e}. Rode stories-preparar de novo.") from e
 
 
 def _musica_da_ident(valor, letra: str, problemas: list[str]):
@@ -378,23 +386,24 @@ def montar(
     permitir_repeticao=(),
     cliente=None,
     id_plano: str | None = None,
+    diagnostico: bool = False,
 ) -> dict:
     """Monta o plano de postagem e (se ``postar``) grava o pedido ``stories.postar`` na fila.
+
+    ``diagnostico`` vai para o ``stories.postar`` gerado (XML da tela + print a cada passo).
 
     Devolve ``{"plano", "relatorio", "pedido_postagem", "arquivo_plano"}``.
     """
     data = _validar_data(data)
     if ordem not in ORDENS:
         raise ErroPedido(f"Ordem inválida: {ordem!r} (use {' ou '.join(ORDENS)})")
-    manifesto, gerado_agora = carregar_manifesto(data)
-    if manifesto.get("simulado"):
-        raise ErroPedido(f"O manifesto de {data} é de simulação (stories-preparar --simular). Rode stories-preparar sem --simular antes.")
+    manifesto = carregar_manifesto(data)
     ident = validar_identificacao(manifesto, identificacao)
     permitir = {str(l).strip().upper() for l in permitir_repeticao or []}
     cliente = cliente or estoque.cliente_padrao()
     letras_man = manifesto.get("letras") or {}
 
-    avisos: list[str] = list(manifesto.get("avisos") or []) if gerado_agora else []
+    avisos: list[str] = []  # os avisos do manifesto já saíram no stories.preparar
     cortes: list[dict] = []
     postadas_hoje = postados.letras_postadas(data)
     for letra in sorted(letras_man, key=_chave_letra):
@@ -437,8 +446,10 @@ def montar(
         repostar = sorted((permitir & postadas_hoje) & {l["letra"] for l in letras}, key=_chave_letra)
         if repostar:
             args["repostar"] = repostar
-        pedido_postagem = fila.criar_pedido("stories.postar", args, ensaio=plano["ensaio"], sufixo=data).stem
-        texto += f"\n\nPedido de postagem na fila: {pedido_postagem}" + (" (ensaio)" if plano["ensaio"] else " (POSTAGEM REAL)")
+        pedido_postagem = fila.criar_pedido("stories.postar", args, ensaio=plano["ensaio"], diagnostico=bool(diagnostico),
+                                            sufixo=data).stem
+        texto += (f"\n\nPedido de postagem na fila: {pedido_postagem}" + (" (ensaio)" if plano["ensaio"] else " (POSTAGEM REAL)")
+                  + (" com diagnóstico" if diagnostico else ""))
     elif postar:
         texto += "\n\nNada para postar: nenhum pedido foi gravado na fila."
     (pasta / f"relatorio-{id_plano}.txt").write_text(texto + "\n", encoding="utf-8")
@@ -463,7 +474,8 @@ def _ler_identificacao(valor) -> dict:
 
 def tarefa(args: dict, ctx) -> dict:
     """Pedido ``stories.montar``: ``{"data", "identificacao": {...} | "arquivo.json", "ensaio"?, "postar"?, "ordem"?,
-    "permitir_repeticao"?}``. Ensaio é o padrão: só publica com ``"ensaio": false`` e o pedido sem ``--ensaio``."""
+    "permitir_repeticao"?, "diagnostico"?}``. Ensaio é o padrão: só publica com ``"ensaio": false`` e o pedido sem
+    ``--ensaio``. ``diagnostico`` (no pedido ou nos args) vale para o ``stories.postar`` gerado."""
     if not args.get("data") or args.get("identificacao") is None:
         raise ErroPedido('Informe "data" e "identificacao".')
     ensaio = bool(ctx.ensaio) or bool(args.get("ensaio", True))
@@ -475,6 +487,7 @@ def tarefa(args: dict, ctx) -> dict:
         ordem=args.get("ordem") or "letras",
         permitir_repeticao=args.get("permitir_repeticao") or (),
         id_plano=ctx.id_pedido,
+        diagnostico=bool(ctx.diagnostico) or bool(args.get("diagnostico", False)),
     )
     ctx.arquivo("plano.json").write_text(json.dumps(res["plano"], ensure_ascii=False, indent=2), encoding="utf-8")
     ctx.arquivo("relatorio.txt").write_text(res["relatorio"] + "\n", encoding="utf-8")
@@ -492,11 +505,12 @@ def cli(argv: list[str]) -> int:
     p.add_argument("--sem-postar", action="store_true", help="só monta o plano, sem gravar o pedido na fila")
     p.add_argument("--ordem", choices=ORDENS, default="letras")
     p.add_argument("--permitir-repeticao", nargs="*", default=[], metavar="LETRA", help="letras que o usuário mandou repetir")
+    p.add_argument("--diagnostico", action="store_true", help="o pedido de postagem salva XML + print de cada passo")
     p.add_argument("--json", action="store_true", help="saída em JSON")
     a = p.parse_args(argv)
     try:
         res = montar(a.data, _ler_identificacao(a.identificacao), ensaio=not a.real, postar=not a.sem_postar,
-                     ordem=a.ordem, permitir_repeticao=a.permitir_repeticao)
+                     ordem=a.ordem, permitir_repeticao=a.permitir_repeticao, diagnostico=a.diagnostico)
     except (RuntimeError, config.ErroConfig, OSError) as e:  # ErroPedido/Regra/Estoque/Postados/Pasta e arquivo preso
         print(f"Erro: {registro.ocultar(str(e))}", file=sys.stderr)
         return 1

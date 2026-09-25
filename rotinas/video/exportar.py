@@ -32,6 +32,18 @@ class ErroExportacao(RuntimeError):
     """Problema na exportação ou na espera do arquivo exportado."""
 
 
+SONS = ("com_som", "mudo", "so_efeitos")  # som_esperado do arquivo exportado (ver conferencia)
+
+
+def normalizar_som(som_esperado: str | None) -> str:
+    """``None``/vazio → ``"com_som"``; aceita também "sem_som"/"sem som" como ``"mudo"``."""
+    valor = str(som_esperado or "com_som").strip().lower().replace(" ", "_").replace("-", "_")
+    valor = {"sem_som": "mudo", "só_efeitos": "so_efeitos", "efeitos": "so_efeitos"}.get(valor, valor)
+    if valor not in SONS:
+        raise ValueError(f"som_esperado inválido: '{som_esperado}'. Use: {', '.join(SONS)}.")
+    return valor
+
+
 def _cfg() -> dict:
     return capcut.cfg().get("exportacao") or {}
 
@@ -77,7 +89,7 @@ def estimar_mb(kbps: float, duracao_s: float) -> float:
 
 
 def instrucoes(destino: str, rascunho: str, nome: str | None = None, duracao_s: float | None = None,
-               pasta: Path | None = None) -> str:
+               pasta: Path | None = None, som_esperado: str | None = None) -> str:
     """Texto com o passo a passo do modal "Exportar" para o preset do destino."""
     p = preset(destino)
     nome = nome or nome_arquivo(rascunho, destino)
@@ -119,6 +131,11 @@ def instrucoes(destino: str, rascunho: str, nome: str | None = None, duracao_s: 
           "não mudar essa configuração sem o dono pedir.",
           f"Depois de exportar: o arquivo {nome}.{p.get('formato', 'mp4')} é conferido sozinho quando aparecer na pasta "
           "(duração, resolução, fps, codec, taxa de bits, áudio, loudness e tamanho)."]
+    if som_esperado == "mudo":
+        L.append("Som: pelo plano o vídeo sai mudo (música pelo Instagram, sem fala); a conferência não cobra áudio, "
+                 "volume nem pico, mas avisa se o arquivo sair com som (faixa-guia esquecida ligada).")
+    elif som_esperado == "so_efeitos":
+        L.append("Som: pelo plano só os efeitos sonoros saem no arquivo; a conferência não cobra o volume de −14 LUFS.")
     return "\n".join(L) + "\n"
 
 
@@ -198,13 +215,13 @@ def esperar_arquivo(esperado: str, desde: float, pastas: list[Path] | None = Non
 
 
 def vigiar_e_conferir(esperado: str, destino: str, desde: float, duracao_esperada_s: float | None = None,
-                      **opcoes) -> dict:
-    """Espera o arquivo exportado e confere com ``conferencia.conferir``."""
+                      som_esperado: str | None = None, **opcoes) -> dict:
+    """Espera o arquivo exportado e confere com ``conferencia.conferir`` (``som_esperado``: ver conferencia)."""
     from . import conferencia
 
     extensao = "." + str(preset(destino).get("formato", "mp4")).lstrip(".")
     arquivo = esperar_arquivo(esperado, desde, extensao=extensao, **opcoes)
-    resultado = conferencia.conferir(arquivo, destino, duracao_esperada_s)
+    resultado = conferencia.conferir(arquivo, destino, duracao_esperada_s, som_esperado=som_esperado)
     return {"arquivo": str(arquivo), "conferencia": resultado, "texto": conferencia.texto(resultado)}
 
 
@@ -250,20 +267,53 @@ def _rascunho_do_projeto(projeto: str | None) -> tuple[str | None, float | None]
     return nome, duracao
 
 
-def _duracao_do_plano(projeto: str | None) -> float | None:
+def _plano(projeto: str | None) -> dict | None:
     if not projeto:
         return None
     arq = config.pastas().videos / "trabalho" / projeto / "plano.json"
     try:
-        valor = json.loads(arq.read_text(encoding="utf-8-sig")).get("duracao_s")
-    except (OSError, ValueError, AttributeError):
+        plano = json.loads(arq.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
         return None
+    return plano if isinstance(plano, dict) else None
+
+
+def _duracao_do_plano(projeto: str | None) -> float | None:
+    valor = (_plano(projeto) or {}).get("duracao_s")
     return float(valor) if isinstance(valor, (int, float)) else None
+
+
+def som_esperado_do_plano(plano: dict | None) -> str | None:
+    """O que o arquivo exportado deve ter de som, pelo plano (``None`` se o plano não diz).
+
+    ``"mudo"``: nenhum áudio do plano exporta (a música vai pelo Instagram, a faixa-guia sai desligada) e todos os
+    clipes de vídeo estão mudos (sem fala). ``"so_efeitos"``: só efeitos sonoros exportam. Senão ``"com_som"``."""
+    if not isinstance(plano, dict) or not isinstance(plano.get("video"), list) or not plano["video"]:
+        return None
+    audio = [a for a in plano.get("audio") or [] if isinstance(a, dict)]
+    if any("exportar" not in a for a in audio):
+        return None  # plano antigo, sem a marca de exportar: não dá para deduzir
+    exportados = [a for a in audio if a.get("exportar")]
+    clipes_com_som = [v for v in plano["video"] if isinstance(v, dict) and not v.get("mudo")]
+    if clipes_com_som:
+        return "com_som"
+    if not exportados:
+        return "mudo"
+    if all(a.get("papel") == "efeito_sonoro" for a in exportados):
+        return "so_efeitos"
+    return "com_som"
+
+
+def som_do_projeto(projeto: str | None) -> str | None:
+    """``som_esperado_do_plano`` do ``plano.json`` de ``videos/trabalho/<projeto>/``."""
+    return som_esperado_do_plano(_plano(projeto))
 
 
 def tarefa(args: dict, ctx: Contexto) -> dict:
     """Tipo ``video.exportar``: ``{"destino", "rascunho"?, "projeto"?, "nome_arquivo"?, "duracao_esperada_s"?,
-    "esperar"?, "timeout_min"?}``. Grava as instruções e (salvo ``esperar: false`` ou ensaio) vigia e confere."""
+    "som_esperado"?, "esperar"?, "timeout_min"?}``. Grava as instruções e (salvo ``esperar: false`` ou ensaio)
+    vigia e confere. Sem ``som_esperado``, ele sai do ``plano.json`` do projeto (plano mudo: a conferência não
+    reprova áudio, volume e pico)."""
     destino = args.get("destino") or "reels"
     projeto = args.get("projeto")
     if not (args.get("rascunho") or projeto):
@@ -275,8 +325,15 @@ def tarefa(args: dict, ctx: Contexto) -> dict:
     rascunho = args.get("rascunho") or nome_rel or projeto
     duracao = args.get("duracao_esperada_s")
     duracao = float(duracao) if duracao is not None else (dur_rel or _duracao_do_plano(projeto))
+    if args.get("som_esperado"):
+        try:  # valor inválido para aqui, não depois de esperar a exportação
+            som = normalizar_som(args["som_esperado"])
+        except ValueError as e:
+            raise ErroExportacao(str(e)) from None
+    else:
+        som = som_do_projeto(projeto)
     desde = agora()
-    texto = instrucoes(destino, rascunho, nome, duracao)
+    texto = instrucoes(destino, rascunho, nome, duracao, som_esperado=som)
     arquivos = [ctx.arquivo("instrucoes_exportacao.txt")]
     if projeto:
         arquivos.append(config.pastas().videos / "trabalho" / projeto / "instrucoes_exportacao.txt")
@@ -285,11 +342,12 @@ def tarefa(args: dict, ctx: Contexto) -> dict:
         arq.write_text(texto, encoding="utf-8")
     pasta_exportado().mkdir(parents=True, exist_ok=True)
     resultado = {"destino": destino, "rascunho": rascunho, "nome_arquivo": nome, "instrucoes": str(arquivos[-1]),
-                 "pastas_vigiadas": [str(p) for p in pastas_vigiadas()], "duracao_esperada_s": duracao}
+                 "pastas_vigiadas": [str(p) for p in pastas_vigiadas()], "duracao_esperada_s": duracao,
+                 "som_esperado": som}
     if ctx.ensaio or args.get("esperar") is False:
         return {**resultado, "esperou": False}
     timeout = float(args["timeout_min"]) * 60 if args.get("timeout_min") else None
-    conferido = vigiar_e_conferir(nome, destino, desde, duracao, timeout_s=timeout)
+    conferido = vigiar_e_conferir(nome, destino, desde, duracao, som_esperado=som, timeout_s=timeout)
     ctx.arquivo("conferencia.txt").write_text(conferido["texto"], encoding="utf-8")
     return {**resultado, "esperou": True, **conferido, "aprovado": conferido["conferencia"].get("aprovado")}
 
@@ -302,6 +360,8 @@ def cli(argv: list[str]) -> int:
     p.add_argument("--projeto", help="projeto em videos/trabalho/<projeto>/ (lê a duração do plano)")
     p.add_argument("--nome-arquivo", help="nome do arquivo exportado, sem extensão")
     p.add_argument("--duracao", type=float, help="duração esperada em segundos")
+    p.add_argument("--som", choices=SONS,
+                   help="som esperado no arquivo (padrão: deduzido do plano.json do --projeto)")
     p.add_argument("--sem-esperar", action="store_true", help="só grava as instruções")
     p.add_argument("--timeout-min", type=float, help="quanto esperar o arquivo (padrão: config/capcut.json)")
     a = p.parse_args(argv)
@@ -309,11 +369,13 @@ def cli(argv: list[str]) -> int:
         p.error("informe --rascunho ou --projeto")
     ctx = Contexto(config.pastas().logs / "exportar" / carimbo())
     args = {"destino": a.destino, "rascunho": a.rascunho, "projeto": a.projeto, "nome_arquivo": a.nome_arquivo,
-            "duracao_esperada_s": a.duracao, "esperar": not a.sem_esperar, "timeout_min": a.timeout_min}
+            "duracao_esperada_s": a.duracao, "som_esperado": a.som, "esperar": not a.sem_esperar,
+            "timeout_min": a.timeout_min}
     try:
         if not a.sem_esperar:
             print(instrucoes(a.destino, a.rascunho or a.projeto, a.nome_arquivo,
-                             a.duracao if a.duracao is not None else _duracao_do_plano(a.projeto)))
+                             a.duracao if a.duracao is not None else _duracao_do_plano(a.projeto),
+                             som_esperado=a.som or som_do_projeto(a.projeto)))
         r = tarefa(args, ctx)
     except ErroExportacao as e:
         print(str(e), file=sys.stderr)

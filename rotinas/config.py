@@ -27,7 +27,7 @@ def dir_config() -> Path:
 
 
 def carregar(nome: str) -> dict:
-    """Lê ``config/<nome>.json`` (com cache por pasta)."""
+    """Lê ``config/<nome>.json`` (com cache por pasta até ``limpar_cache``)."""
     pasta = dir_config()
     chave = (str(pasta), nome)
     if chave not in _cache:
@@ -42,6 +42,7 @@ def carregar(nome: str) -> dict:
 
 
 def limpar_cache() -> None:
+    """Esquece os JSON lidos: o próximo ``carregar`` relê do disco (o vigia chama a cada pedido)."""
     _cache.clear()
 
 

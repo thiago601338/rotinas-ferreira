@@ -365,6 +365,9 @@ class Vigia:
         log.info("Executando %s (%s)%s", id_, pedido.get("tipo"), " [ensaio]" if pedido.get("ensaio") else "")
         estado, corpo = "feito", {}
         try:
+            # o vigia é um processo só, que dura o dia todo: cada pedido relê config/*.json
+            # (mudança em sistema\config vale no pedido seguinte, sem reiniciar o vigia)
+            config.limpar_cache()
             funcao = tarefas.funcao_da_tarefa(str(pedido.get("tipo")))
             ctx = Contexto(pasta_saida=pasta, ensaio=bool(pedido.get("ensaio")), diagnostico=bool(pedido.get("diagnostico")), id_pedido=id_)
             resultado = funcao(dict(pedido.get("args") or {}), ctx)

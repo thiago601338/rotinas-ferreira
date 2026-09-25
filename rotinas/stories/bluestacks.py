@@ -8,7 +8,10 @@ ensaio: print de cada mídia e sai descartando | real: Seu story (Facebook desli
 
 Segurança: a letra inteira sai num único "Compartilhar"; ``seu_story``/``concluir_publicacao`` só podem ser
 tocados dentro da publicação real; qualquer falha tira print + XML, descarta a edição e PARA a execução
-(``ErroPostagem`` com ``resultado_parcial``). Seletores e tempos: ``config/bluestacks.json``.
+(``ErroPostagem`` com ``resultado_parcial``). No real: sem o álbum da letra não publica pela grade "Recentes";
+testa a gravação do ``postados.csv`` antes de começar e, se o registro falhar depois de publicar, grava o pendente
+(``registros/postados_pendentes``) e para antes da próxima letra. Emulador de verdade: um por vez
+(``fila/bluestacks.lock``). Seletores e tempos: ``config/bluestacks.json``.
 """
 
 from __future__ import annotations
@@ -45,6 +48,14 @@ class ErroPostagem(RuntimeError):
 
 class ErroPasso(RuntimeError):
     """Um passo no Instagram não deu certo (a letra para ali)."""
+
+
+class ErroRegistro(RuntimeError):
+    """A letra FOI publicada, mas não entrou no ``postados.csv``: para antes da próxima letra."""
+
+
+MSG_EM_USO = ("O BlueStacks está em uso por outro pedido ou teste (fila\\bluestacks.lock); nada foi feito. "
+              "Esperar o outro terminar e pedir de novo.")
 
 
 def _cfg() -> dict:
@@ -284,25 +295,33 @@ class Postador:
     def _escolher_album(self, album: str, r: dict, res: dict) -> None:
         menu = self.tela.achar("album_menu", self._t("espera_curta_s", 2), plano_b=False)
         if menu is None:
-            self._recentes_seguro(album, r)
-            res["avisos"].append(f"Letra {self.letra}: não achei o menu de álbuns; usei 'Recentes' (a ordem por data garante as N primeiras).")
-            log.warning(res["avisos"][-1])
+            self._sem_album(album, r, res, "não achei o menu de álbuns")
             return
         menu.tocar()
         self._pausa()
         item = self.tela.achar("album_item", self._t("espera_padrao_s", 10), plano_b=False, album=album)
         if item is None:
-            self._recentes_seguro(album, r)
-            res["avisos"].append(f"Letra {self.letra}: o álbum {album} não apareceu na lista; usei 'Recentes'.")
-            log.warning(res["avisos"][-1])
-            self.tela.voltar()
+            self.tela.voltar()  # fecha a lista de álbuns (no real, antes de parar)
             self._pausa()
+            self._sem_album(album, r, res, f"o álbum {album} não apareceu na lista")
             if self.tela.achar("selecionar_varios", self._t("espera_curta_s", 2), plano_b=False) is None:
                 raise ErroPasso(f"o álbum {album} não apareceu e a galeria fechou")
             return
         item.tocar()
         self._pausa()
         r["album"] = album
+
+    def _sem_album(self, album: str, r: dict, res: dict, motivo: str) -> None:
+        """Sem o álbum da letra, a grade é "Recentes" (tem as outras letras e o resto do emulador).
+        Real: PARA (a conferência da seleção só conta quantas, não quais). Ensaio: segue por "Recentes" e avisa."""
+        if not self.ensaio:
+            raise ErroPasso(f"{motivo}; não publico pela grade 'Recentes' (pode pegar mídia de outra letra). "
+                            "Ajustar 'album_menu'/'album_item' em config/bluestacks.json pelo XML do diagnóstico")
+        self._recentes_seguro(album, r)
+        r["recuo_recentes"] = True
+        res["avisos"].append(f"Letra {self.letra}: {motivo}; no ENSAIO usei 'Recentes', mas a postagem real PARA "
+                             "aqui (ajustar 'album_menu'/'album_item' em config/bluestacks.json).")
+        log.warning(res["avisos"][-1])
 
     def _recentes_seguro(self, album: str, r: dict) -> None:
         """Sem o álbum, a grade é "Recentes". Se a data da foto/vídeo não segue a ordem da letra e o Instagram
@@ -536,19 +555,39 @@ class Postador:
             self.publicando = False
 
     def _registrar(self, data: str, L: dict, r: dict, res: dict) -> None:
+        """Grava em ``postados.csv``. Se falhar: grava o pendente na pasta central (conta como publicada no
+        próximo montar/postar) e levanta ``ErroRegistro`` para PARAR antes da próxima letra."""
+        letra = L["letra"]
         midias = [{"nome": m.get("nome"), "arquivo": m.get("arquivo") or m.get("nome"), "cores": m.get("cores") or [],
                    "hash": m.get("hash")} for m in L["midias"]]
         try:
-            r["registrado"] = postados.registrar(data, L["letra"], L.get("sku"), L.get("peca"), midias, self.pedido)
-        except Exception as e:  # noqa: BLE001 - já publicou: avisa e guarda o que faltou registrar
-            aviso = f"A letra {L['letra']} foi publicada, mas não consegui registrar em postados.csv: {e}"
-            res["avisos"].append(aviso)
-            r["registro_erro"] = str(e)
-            log.error(aviso)
-            pendente = {"data": data, "letra": L["letra"], "sku": L.get("sku"), "peca": L.get("peca"), "midias": midias,
-                        "pedido": self.pedido}
-            self.ctx.arquivo(f"postados_pendentes_{L['letra']}.json").write_text(
+            r["registrado"] = postados.registrar(data, letra, L.get("sku"), L.get("peca"), midias, self.pedido)
+            return
+        except Exception as e:  # noqa: BLE001 - já publicou: guarda o que faltou registrar e para
+            erro = e
+        r["registro_erro"] = str(erro)
+        aviso = (f"A letra {letra} FOI PUBLICADA, mas não consegui registrar em postados.csv: "
+                 f"{str(erro).rstrip('. ') or erro.__class__.__name__}.")
+        pendente = {"data": data, "letra": letra, "sku": L.get("sku"), "peca": L.get("peca"), "midias": midias,
+                    "pedido": self.pedido}
+        try:
+            self.ctx.arquivo(f"postados_pendentes_{letra}.json").write_text(
                 json.dumps(pendente, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception as e:  # noqa: BLE001 - a cópia central abaixo é a que vale
+            log.warning("Não consegui salvar a cópia do pendente na pasta do pedido: %s", e)
+        try:
+            linhas = getattr(erro, "linhas", None) or postados.linhas_do_registro(
+                data, letra, L.get("sku"), L.get("peca"), midias, self.pedido)
+            destino = postados.gravar_pendente(data, letra, linhas)
+            r["registro_pendente"] = str(destino)
+            aviso += (f" O registro ficou pendente em {destino}: a letra {letra} já conta como publicada no próximo "
+                      "stories.montar/stories.postar e entra no CSV no próximo registro que der certo.")
+        except Exception as e:  # noqa: BLE001
+            aviso += (f" NÃO consegui gravar nem o registro pendente ({e}): a letra {letra} NÃO vai aparecer como "
+                      f"publicada; tirar {letra} do próximo stories.montar.")
+        res["avisos"].append(aviso)
+        log.error(aviso)
+        raise ErroRegistro(aviso)
 
     # -- letra e execução
     def _letra(self, plano: dict, L: dict, r: dict, res: dict) -> None:
@@ -615,6 +654,12 @@ class Postador:
             self.letra, self.passo, self.tocou_publicar = L["letra"], None, False
             try:
                 self._letra(plano, L, r, res)
+            except ErroRegistro as e:  # a letra subiu (continua "publicada"); só não dá para seguir sem registro
+                res["parou_em"] = f"letra {self.letra}: registro em postados.csv"
+                nao = [x["letra"] for x in res["letras"] if x["estado"] == "nao_iniciada" and not x.get("pulada")]
+                raise ErroPostagem(f"{e} Parei antes da próxima letra (fechar o postados.csv no Excel). "
+                                   f"Publicadas: {', '.join(res['publicadas'])}. "
+                                   f"Não iniciadas: {', '.join(nao) or 'nenhuma'}.", res) from e
             except KeyboardInterrupt:
                 self._falhou(r, res, "interrompido (Ctrl+C)")
                 raise
@@ -665,6 +710,39 @@ def executar(plano: dict, ctx: Contexto, *, ensaio: bool = True, diagnostico: bo
     if problemas:
         res["parou_em"] = "validação do plano"
         raise ErroPostagem("O plano tem problemas; nada foi feito: " + "; ".join(problemas), res)
+    trava = None
+    if tela is None:  # emulador de verdade: um pedido/teste por vez (vigia, stories-postar, testar.bat)
+        trava = _travar_emulador(res)
+    try:
+        return _postar(plano, ctx, res, cfg, ensaio=ensaio, diagnostico=diagnostico, tela=tela, enviar=enviar,
+                       conexao=conexao, repostar=repostar)
+    finally:
+        if trava is not None:
+            trava.liberar()
+
+
+def _travar_emulador(res: dict | None):
+    """Pega ``fila/bluestacks.lock``. Ocupada → ``ErroPostagem`` (ou ``RuntimeError`` sem ``res``)."""
+    from .. import fila  # fila importa tarefas, que aponta para este módulo: importar só aqui
+
+    trava = fila.Trava(fila.pasta_fila() / "bluestacks.lock")
+    try:
+        ok = trava.adquirir()
+    except OSError as e:
+        ok, detalhe = False, f" ({e})"
+    else:
+        detalhe = ""
+    if ok:
+        return trava
+    log.error(MSG_EM_USO + detalhe)
+    if res is None:
+        raise RuntimeError(MSG_EM_USO + detalhe)
+    res["parou_em"] = "trava do BlueStacks"
+    raise ErroPostagem(MSG_EM_USO + detalhe, res)
+
+
+def _postar(plano: dict, ctx: Contexto, res: dict, cfg: dict, *, ensaio: bool, diagnostico: bool, tela, enviar,
+            conexao, repostar) -> dict:
     pular: set[str] = set()
     if not ensaio:
         try:
@@ -673,6 +751,12 @@ def executar(plano: dict, ctx: Contexto, *, ensaio: bool = True, diagnostico: bo
             res["parou_em"] = "leitura de postados.csv"
             raise ErroPostagem(f"Não consegui ler o registro de já postados: {e}", res) from e
         pular = {L["letra"] for L in plano["letras"]} & ja
+        try:
+            postados.testar_gravacao()
+        except Exception as e:  # noqa: BLE001 - publicar sem conseguir registrar faria a letra subir de novo depois
+            res["parou_em"] = "gravação de postados.csv"
+            raise ErroPostagem(f"Não consigo gravar em postados.csv; nada foi publicado. Fechar o arquivo (Excel) e "
+                               f"pedir de novo: {e}", res) from e
     info = None
     if tela is None:
         try:
@@ -739,7 +823,8 @@ def _anexar_relatorio(plano: dict, resultado: dict, ctx: Contexto) -> dict:
     try:
         texto = relatorio.texto_resultado(plano, resultado)
         publicadas = list(resultado.get("publicadas") or [])
-        incertas = [r.get("letra") for r in resultado.get("letras") or [] if r.get("estado") == "incerta"]
+        # "incerta" = falhou depois de tocar em "Seu story" (_falhou marca r["incerta"]; o estado fica "falhou")
+        incertas = [r.get("letra") for r in resultado.get("letras") or [] if r.get("incerta")]
         resultado["relatorio"] = texto
         resultado["js_conferencia"] = relatorio.js_conferencia(plano, publicadas + [x for x in incertas if x not in publicadas])
         ctx.arquivo("relatorio.txt").write_text(texto + "\n", encoding="utf-8")
@@ -785,6 +870,14 @@ def teste_real(ctx: Contexto, argv: list[str]) -> dict:
     """``testar.bat bluestacks``: conecta, mostra o aparelho e percorre SEM publicar feed → Criar → Story →
     galeria → Selecionar → menu de álbuns, salvando XML + print de cada tela; depois volta."""
     argparse.ArgumentParser(prog="testar.bat bluestacks", description=teste_real.__doc__).parse_args(argv)
+    trava = _travar_emulador(None)
+    try:
+        return _teste_real(ctx)
+    finally:
+        trava.liberar()
+
+
+def _teste_real(ctx: Contexto) -> dict:
     cfg = _cfg()
     con = android.conectar(cfg)
     info = con.info(cfg.get("pacote_instagram", "com.instagram.android"))
@@ -833,6 +926,7 @@ def teste_ensaio(ctx: Contexto, argv: list[str]) -> dict:
     log.info("Ensaio com o plano %s", caminho)
     res = executar(_ler_plano(caminho), ctx, ensaio=True, diagnostico=True)
     res["plano"] = str(caminho)
-    res["ok"] = all(x["estado"] == "ensaio_ok" or x.get("pulada") for x in res["letras"])
+    # "Recentes" no lugar do álbum passa no ensaio, mas a postagem real para ali: não é ok
+    res["ok"] = all((x["estado"] == "ensaio_ok" and not x.get("recuo_recentes")) or x.get("pulada") for x in res["letras"])
     res["resumo"] = resumo(res)
     return res

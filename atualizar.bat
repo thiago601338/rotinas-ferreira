@@ -55,9 +55,37 @@ if not defined GIT goto :sem_git
 rem Põe o Git no PATH desta janela: a conferência do fim também precisa achar.
 for %%D in ("%GIT%") do set "PATH=%%~dpD;%PATH%"
 "%GIT%" -C "%SISTEMA%" pull --ff-only
-if errorlevel 1 goto :pull_falhou
+if errorlevel 1 goto :pull_rebase
 echo       OK: código atualizado.
 goto :dependencias
+
+:pull_rebase
+rem O pull --ff-only falha quando este PC tem commit que não subiu, em geral uma
+rem execução do testar.bat em execucoes\. Reaplica esses commits por cima do GitHub.
+echo       O git pull simples não deu. Tentando de novo com git pull --rebase --autostash...
+"%GIT%" -C "%SISTEMA%" pull --rebase --autostash
+if errorlevel 1 goto :pull_abortar
+rem O --autostash devolve 0 mesmo quando a mudança feita à mão bate com a versão nova e
+rem deixa marcas de conflito no arquivo. Se sobrou arquivo em conflito, volta ele para a
+rem versão do GitHub; a mudança feita à mão continua guardada no git stash.
+"%GIT%" -C "%SISTEMA%" diff --quiet --diff-filter=U
+if errorlevel 1 goto :pull_conflito
+echo       OK: código atualizado. Os commits que só estavam neste PC foram mantidos.
+goto :dependencias
+
+:pull_conflito
+"%GIT%" -C "%SISTEMA%" reset --merge
+if errorlevel 1 echo       AVISO: não consegui desfazer o conflito. Não rode nada; mande esta tela para a IA.
+set /a FALHAS+=1
+echo       FALHOU: o código foi atualizado, mas um arquivo do sistema tinha sido mudado à mão
+echo       e batia com a versão nova. Os arquivos ficaram como no GitHub e a mudança feita à mão
+echo       ficou guardada no git stash. Mande esta tela para a IA.
+goto :dependencias
+
+:pull_abortar
+rem Se o rebase parou no meio, desfaz: a pasta volta a ficar como estava antes do pull.
+"%GIT%" -C "%SISTEMA%" rebase --abort >nul 2>&1
+goto :pull_falhou
 
 :sem_git
 set /a FALHAS+=1
@@ -67,7 +95,9 @@ goto :dependencias
 :pull_falhou
 set /a FALHAS+=1
 echo       FALHOU: o git pull não funcionou. Sigo com o código que já está na pasta.
-echo       Se algum arquivo do sistema foi mudado à mão, é isso que trava: mande esta tela para a IA.
+echo       Causas comuns: sem internet; arquivo do sistema mudado à mão; ou uma execução do
+echo       testar.bat que não subiu para o GitHub. Rode testar.bat enviar e depois este arquivo
+echo       de novo. Se continuar, mande esta tela para a IA.
 
 rem -------------------------------------------------------------- 3. dependências
 :dependencias
