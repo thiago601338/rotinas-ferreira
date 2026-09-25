@@ -221,6 +221,88 @@ def _tela(elementos, seletores=SELETORES):
     return d, android.Tela(d, seletores=seletores)
 
 
+# notificação flutuante do Android, como no ensaio de 25/09 19:42 (mensagem de cliente no topo da tela)
+SEL_NOTIF = {
+    "notificacao_flutuante": [{"packageName": "com.android.systemui",
+                               "resourceIdMatches": "^android:id/(message_name|message_text|title|text|big_text|action0)$"}],
+    "limpar": [{"description": "Limpar texto"}],
+    "embaixo": [{"description": "Avançar"}],
+}
+
+
+def _com_notificacao():
+    return [
+        elemento_u2("cliente_x", rid="android:id/message_name", limites=(136, 104, 307, 142), pacote="com.android.systemui"),
+        elemento_u2("Veja", rid="android:id/message_text", limites=(136, 143, 190, 181), pacote="com.android.systemui"),
+        elemento_u2(desc="Limpar texto", limites=(812, 85, 836, 109)),
+        elemento_u2(desc="Avançar", limites=(663, 1494, 880, 1582)),
+    ]
+
+
+class U2ComNotificacaoPassageira(U2Falso):
+    """A notificação some depois de ``consultas`` buscas por ela."""
+
+    def __init__(self, elementos, consultas):
+        super().__init__(elementos)
+        self.consultas = consultas
+
+    def __call__(self, **sel):
+        if sel.get("packageName") == "com.android.systemui":
+            self.consultas -= 1
+            if self.consultas < 0:
+                self.elementos = [e for e in self.elementos if e["packageName"] != "com.android.systemui"]
+        return super().__call__(**sel)
+
+    def screenshot(self, caminho):
+        from PIL import Image
+
+        Image.new("RGB", (1000, 2000), (200, 200, 200)).save(caminho)
+
+
+def test_toque_embaixo_da_notificacao_espera_ela_sumir(cfg, relogio):
+    d = U2ComNotificacaoPassageira(_com_notificacao(), consultas=3)
+    tela = android.Tela(d, seletores=SEL_NOTIF)
+    inicio = relogio.t
+    tela.tocar("limpar")
+    assert d.cliques == [(824, 97)] and relogio.t > inicio  # esperou antes de tocar
+
+
+def test_notificacao_que_nao_some_impede_o_toque_sobre_ela(cfg, relogio):
+    d = U2Falso(_com_notificacao())
+    tela = android.Tela(d, seletores=SEL_NOTIF)
+    with pytest.raises(android.ErroSeletor, match="notificação do Android"):
+        tela.tocar("limpar")
+    assert d.cliques == []
+
+
+def test_toque_longe_da_notificacao_nao_espera(cfg, relogio):
+    d = U2Falso(_com_notificacao())
+    tela = android.Tela(d, seletores=SEL_NOTIF)
+    inicio = relogio.t
+    tela.tocar("embaixo")
+    assert d.cliques == [(771, 1538)] and relogio.t == inicio
+
+
+def test_print_com_notificacao_que_nao_some_sai_com_a_faixa_coberta(cfg, relogio, tmp_path):
+    from PIL import Image
+
+    d = U2ComNotificacaoPassageira(_com_notificacao(), consultas=10_000)
+    tela = android.Tela(d, seletores=SEL_NOTIF)
+    tela.print(tmp_path / "p.png")
+    with Image.open(tmp_path / "p.png") as img:
+        assert img.getpixel((500, 120)) == (0, 0, 0) and img.getpixel((500, 1000)) == (200, 200, 200)
+
+
+def test_print_espera_a_notificacao_sumir(cfg, relogio, tmp_path):
+    from PIL import Image
+
+    d = U2ComNotificacaoPassageira(_com_notificacao(), consultas=2)
+    tela = android.Tela(d, seletores=SEL_NOTIF)
+    tela.print(tmp_path / "p.png")
+    with Image.open(tmp_path / "p.png") as img:
+        assert img.getpixel((500, 120)) == (200, 200, 200)
+
+
 def test_tela_tenta_alternativas_em_ordem(cfg, relogio):
     d, tela = _tela([elemento_u2(desc="Avançar", limites=(100, 200, 300, 260))])
     el = tela.achar("botao")
@@ -292,7 +374,8 @@ def test_seletores_da_config_sao_validos_e_publicar_nunca_tem_plano_b(cfg):
               "miniaturas_editor", "musica", "figurinhas", "figurinha_musica", "buscar_musica",
               "concluir_musica", "buscar_figurinha", "figurinha_link", "campo_url", "personalizar_texto",
               "campo_texto_figurinha", "confirmar_teclado", "concluir_figurinha", "figurinha_na_tela", "seu_story",
-              "enviar_busca_musica", "faixas_musica", "limpar_busca_musica", "popup_sugestao_teclado",
+              "enviar_busca_musica", "faixas_musica", "usar_musica", "popup_sugestao_teclado", "tela_privada",
+              "notificacao_flutuante",
               "itens_lista_album",
               "compartilhar_facebook_toggle", "interruptores", "concluir_publicacao", "descartar"}
     assert usados <= set(seletores)

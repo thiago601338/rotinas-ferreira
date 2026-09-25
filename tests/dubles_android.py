@@ -167,10 +167,11 @@ class AdbFalso:
 # ---------------------------------------------------------------- uiautomator2 falso
 
 def elemento_u2(text="", desc="", classe="android.widget.TextView", rid="", limites=(0, 0, 100, 50),
-                checked=False, checkable=False) -> dict:
+                checked=False, checkable=False, pacote="com.instagram.android") -> dict:
     l, t, r, b = limites
     return {"text": text, "contentDescription": desc, "className": classe, "resourceName": rid,
-            "bounds": {"left": l, "top": t, "right": r, "bottom": b}, "checked": checked, "checkable": checkable}
+            "bounds": {"left": l, "top": t, "right": r, "bottom": b}, "checked": checked, "checkable": checkable,
+            "packageName": pacote}
 
 
 class _ObjFalso:
@@ -185,7 +186,8 @@ class _ObjFalso:
             valor = {"text": e["text"], "textContains": e["text"], "textMatches": e["text"],
                      "description": e["contentDescription"], "descriptionContains": e["contentDescription"],
                      "descriptionMatches": e["contentDescription"], "className": e["className"],
-                     "resourceId": e["resourceName"], "checkable": e["checkable"]}.get(k)
+                     "resourceId": e["resourceName"], "resourceIdMatches": e["resourceName"],
+                     "packageName": e.get("packageName", "com.instagram.android"), "checkable": e["checkable"]}.get(k)
             if k.endswith("Contains"):
                 if v not in (valor or ""):
                     return False
@@ -301,6 +303,10 @@ class TelaFalsa:
         self.rolados: list[tuple] = []  # limites de cada arrasto
         self.sugestao_ao_redigitar = False  # digitar com texto no campo abre o balão de correção do teclado
         self.popup_apos_digitar = 0  # quantas vezes o balão aparece logo depois de digitar (mesmo com o campo limpo)
+        self.musica_sem_ajuste = False  # a seta da barra da música volta direto ao editor (sem "Concluído")
+        self.direct_ao_digitar = False  # a notificação é tocada logo depois de digitar a busca (antes do Enter)
+        self.salvos_no_direct = 0  # prints/XML tirados com o Direct na tela (tem que ficar 0)
+        self.toque_abre_direct = None  # chave cujo toque cai numa notificação de mensagem e abre o Direct
         self.busca_lembrada = None  # texto que já está no campo quando a busca de música abre
         self.busca_exige_enter = False  # os resultados só vêm depois da tecla de busca do teclado
         self.musicas_fora = set()  # autores que a busca não mostra (ex.: música fora do catálogo da conta)
@@ -360,11 +366,15 @@ class TelaFalsa:
         elif e == "figurinhas":
             v = {"figurinha_link", "figurinha_musica", "buscar_figurinha"}
         elif e == "musica":
-            v = {"buscar_musica", "enviar_busca_musica"} | ({"limpar_busca_musica"} if self.busca else set())
+            v = {"buscar_musica", "enviar_busca_musica"}
             if self.busca and (self.busca_enviada or not self.busca_exige_enter):
                 v |= {"faixas_musica"}
             if self.musica_escolhida:
-                v.add("concluir_musica")
+                v.add("usar_musica")  # barra de baixo com a faixa tocando e a seta
+        elif e == "ajuste_musica":
+            v = {"concluir_musica"}
+        elif e == "direct":
+            v = {"tela_privada", "campo_mensagem"}
         elif e == "link":
             v = {"campo_url", "personalizar_texto", "confirmar_teclado", "concluir_figurinha"}
             if self.personalizado:
@@ -393,6 +403,10 @@ class TelaFalsa:
         def tocar():
             self.toques.append(chave)
             e = self.estado
+            if chave == self.toque_abre_direct:
+                self.toque_abre_direct = None
+                self.estado = "direct"  # o toque caiu na notificação de mensagem
+                return
             if chave == "criar" and self.criar_ignorado > 0:
                 self.criar_ignorado -= 1
             elif chave == "criar":
@@ -453,8 +467,12 @@ class TelaFalsa:
                     self.campo_texto += "\n"
             elif chave == "enviar_busca_musica":
                 self.busca_enviada = True
-            elif chave == "limpar_busca_musica":
-                self.busca, self.busca_enviada = None, False
+            elif chave == "usar_musica":
+                if self.musica_sem_ajuste:
+                    self.midias[self.atual]["musica"] = self.musica_escolhida
+                    self.estado = "editor"
+                else:
+                    self.estado = "ajuste_musica"
             elif chave == "concluir_figurinha":
                 self.midias[self.atual]["figurinha"] = {"url": self.campo_url, "texto": self.campo_texto,
                                                         "teclado_confirmado": self.teclado}
@@ -525,10 +543,12 @@ class TelaFalsa:
             raise AssertionError(f"campo '{chave}' não está na tela ({self.estado})")
         self.digitados.append((chave, texto))
         if chave == "buscar_musica":
-            if (self.sugestao_ao_redigitar and self.busca) or self.popup_apos_digitar > 0:
+            if texto and ((self.sugestao_ao_redigitar and self.busca) or self.popup_apos_digitar > 0):
                 self.popup_apos_digitar = max(0, self.popup_apos_digitar - 1)
                 self.estado = "sugestao_teclado"
             self.busca, self.busca_enviada = texto or None, False
+            if texto and self.direct_ao_digitar:
+                self.estado = "direct"
         elif chave == "campo_url":
             if texto and self.url_https > 0:
                 self.url_https -= 1
@@ -615,10 +635,12 @@ class TelaFalsa:
 
     def xml(self):
         self.xmls += 1
+        self.salvos_no_direct += self.estado == "direct"
         nos = "".join(f'<node resource-id="falso:{k}" />' for k in sorted(self._visiveis()))
         return f"<hierarchy estado=\"{self.estado}\">{nos}</hierarchy>"
 
     def print(self, caminho):
+        self.salvos_no_direct += self.estado == "direct"
         Path(caminho).write_bytes(b"\x89PNG falso")
         self.prints.append(Path(caminho))
 
@@ -634,6 +656,7 @@ class TelaFalsa:
             "feed": "fora", "criacao": "feed", "camera": "feed", "galeria": "camera", "album_menu": "galeria",
             "editor": "dialogo", "dialogo": "editor", "musica": "editor", "figurinhas": "editor", "link": "editor",
             "compartilhar": "editor", "aviso_fb": "editor", "visualizador_story": "feed", "sugestao_teclado": "musica",
+            "ajuste_musica": "musica", "direct": "feed",
         }.get(self.estado, self.estado)
 
     def tamanho(self):

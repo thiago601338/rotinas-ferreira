@@ -691,7 +691,7 @@ def test_musica_busca_fashion_aperta_a_tecla_de_busca_e_sorteia_uma_faixa(ambien
     monkeypatch.setattr(bluestacks, "sortear", lambda faixas: sorteios.append(faixas) or faixas[2])
     res = rodar(a, _plano_video_com_musica(a), ensaio=True)
     assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
-    assert [t for c, t in a.tela.digitados if c == "buscar_musica"] == ["fashion"]
+    assert [t for c, t in a.tela.digitados if c == "buscar_musica"] == ["", "fashion"]
     assert "enviar_busca_musica" in a.tela.toques
     titulo, autor = a.tela.resultados_musica[2]
     assert f"musica:{titulo}|{autor}" in a.tela.toques
@@ -732,7 +732,7 @@ def test_busca_lembrada_e_limpa_antes_de_digitar(ambiente):
     a.tela.sugestao_ao_redigitar = True
     res = rodar(a, _plano_video_com_musica(a), ensaio=True)
     assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
-    assert a.tela.toques.count("limpar_busca_musica") == 1
+    assert [t for c, t in a.tela.digitados if c == "buscar_musica"] == ["", "fashion"]  # apaga sem tocar no "X"
     i = a.tela.toques.index("musica")
     j = next(k for k, t in enumerate(a.tela.toques) if t.startswith("musica:"))
     assert "voltar" not in a.tela.toques[i:j]
@@ -746,6 +746,43 @@ def test_balao_de_correcao_depois_de_digitar_e_fechado_com_voltar(ambiente):
     i = a.tela.toques.index("musica")
     j = next(k for k, t in enumerate(a.tela.toques) if t.startswith("musica:"))
     assert a.tela.toques[i:j].count("voltar") == 1  # só o balão foi fechado; a busca seguiu aberta
+
+
+def test_musica_sem_tela_de_ajuste_volta_direto_ao_editor(ambiente):
+    a = ambiente
+    a.tela.musica_sem_ajuste = True
+    res = rodar(a, _plano_video_com_musica(a), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert "usar_musica" in a.tela.toques and "concluir_musica" not in a.tela.toques
+
+
+def test_musica_usa_a_seta_da_barra_e_depois_concluido(ambiente):
+    """Como no ensaio de 25/09 19:44: tocar na faixa só toca a prévia; a seta da barra de baixo usa a faixa."""
+    a = ambiente
+    res = rodar(a, _plano_video_com_musica(a), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert a.tela.toques.index("usar_musica") < a.tela.toques.index("concluir_musica")
+
+
+def test_toque_que_cai_na_notificacao_e_abre_o_direct_para_sem_digitar_nem_salvar_tela(ambiente):
+    """Ensaio de 25/09 19:42: a notificação de mensagem de cliente foi tocada e a tela foi para a conversa."""
+    a = ambiente
+    a.tela.toque_abre_direct = "musica"
+    with pytest.raises(bluestacks.ErroPostagem, match="conversa do Direct"):
+        rodar(a, _plano_video_com_musica(a), ensaio=True, diagnostico=True)
+    assert not [c for c, _ in a.tela.digitados]  # nada digitado na conversa
+    assert "enviar_busca_musica" not in a.tela.toques
+    assert a.tela.salvos_no_direct == 0  # nenhum print/XML da conversa
+    assert a.tela.publicacoes == []
+
+
+def test_direct_depois_de_digitar_nao_aperta_enter(ambiente):
+    a = ambiente
+    a.tela.direct_ao_digitar = True
+    with pytest.raises(bluestacks.ErroPostagem, match="conversa do Direct"):
+        rodar(a, _plano_video_com_musica(a), ensaio=True, diagnostico=True)
+    assert "enviar_busca_musica" not in a.tela.toques  # o Enter numa conversa enviaria a mensagem
+    assert a.tela.salvos_no_direct == 0
 
 
 def test_busca_sem_nenhuma_faixa_para_sem_publicar(ambiente):

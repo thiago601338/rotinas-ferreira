@@ -163,11 +163,29 @@ class Postador:
         self.passo = nome
         self.n_passo += 1
         log.info("Letra %s: %s", self.letra, nome.replace("_", " "))
+        self._conferir_fora_do_direct()
         if self.diagnostico:
             self._salvar_tela(f"passo_{self.n_passo:03d}_{self.letra}_{nome}")
         yield
 
+    def _na_tela_privada(self) -> bool:
+        try:
+            return bool(self.tela.existe("tela_privada"))
+        except android.ErroSeletor:
+            raise  # seletor faltando na config: erro de configuração, com a mensagem dele
+        except Exception:  # noqa: BLE001 - tela não respondeu: sem saber, trata como privada (não salva)
+            return True
+
+    def _conferir_fora_do_direct(self) -> None:
+        """Conversa do Direct na tela (ex.: toque que caiu numa notificação de mensagem): para tudo, sem digitar."""
+        if self._na_tela_privada():
+            raise ErroPasso("a tela saiu do story e foi para uma conversa do Direct (notificação de mensagem tocada?); "
+                            "parei sem digitar nada")
+
     def _salvar_tela(self, prefixo: str) -> list[str]:
+        if self._na_tela_privada():
+            log.warning("Não salvei %s: a tela é do Direct (conversa de cliente)", prefixo)
+            return []
         nomes = []
         try:
             self.ctx.arquivo(prefixo + ".xml").write_text(self.tela.xml() or "", encoding="utf-8")
@@ -179,6 +197,9 @@ class Postador:
         return nomes
 
     def _print(self, nome: str, r: dict | None = None) -> bool:
+        if self._na_tela_privada():
+            log.warning("Não salvei o print %s: a tela é do Direct (conversa de cliente)", nome)
+            return False
         try:
             self.tela.print(self.ctx.arquivo(nome))
         except Exception as e:  # noqa: BLE001
@@ -483,6 +504,7 @@ class Postador:
         tentativas = int(self.cfg.get("tentativas_digitar", 3))
         lido = None
         for n in range(1, tentativas + 1):
+            self._conferir_fora_do_direct()
             if n > 1:
                 self.tela.digitar(chave, "", espera_s=self._t("espera_curta_s", 2))  # apaga antes de redigitar
             self.tela.digitar(chave, texto, espera_s=self._t("espera_padrao_s", 10))
@@ -540,15 +562,15 @@ class Postador:
             self._tocar("figurinhas")
             self._tocar("figurinha_musica")
         antes = {self._nome_faixa(e) for e in self._faixas()}
-        # limpar antes: digitar tocando numa palavra sublinhada abre o balão de correção do teclado (ensaio 19:25)
+        # apaga o que ficou no campo sem tocar no "X" (fica no topo, onde cai a notificação do Android: ensaio 19:42)
+        # e antes de digitar (digitar sobre palavra sublinhada abriu o balão de correção do teclado: ensaio 19:25)
         self._fechar_sugestao_teclado()
-        limpar = self.tela.achar("limpar_busca_musica", 0, plano_b=False)
-        if limpar is not None:
-            limpar.tocar()
-            self._pausa()
+        self._conferir_fora_do_direct()
+        self.tela.digitar("buscar_musica", "", espera_s=self._t("espera_padrao_s", 10))
         self.tela.digitar("buscar_musica", busca, espera_s=self._t("espera_padrao_s", 10))
         self._pausa()
         self._fechar_sugestao_teclado()
+        self._conferir_fora_do_direct()  # a tecla Enter numa conversa enviaria mensagem
         enviar = self.tela.achar("enviar_busca_musica", 0)
         if enviar is not None:
             enviar.tocar()
@@ -564,9 +586,27 @@ class Postador:
         log.info("Letra %s: música sorteada entre %d da busca '%s': %s", self.letra, len(entre), busca, nome)
         escolhido.tocar()
         self._pausa()
-        self._tocar("concluir_musica")
-        self._esperar_editor("a música")
+        self._usar_musica()
         r.setdefault("musicas", []).append({"midia": m.get("nome"), "busca": busca, "musica": nome, "entre": len(entre)})
+
+    def _usar_musica(self) -> None:
+        """Instagram 448 (ensaio 19:44): tocar na faixa só toca a prévia e abre a barra de baixo; a seta da barra
+        (``usar_musica``) usa a faixa. Depois pode vir a tela de ajuste com "Concluído" (``concluir_musica``) ou já o
+        editor."""
+        self._tocar("usar_musica")
+        limite = agora() + self._t("espera_editor_s", 20)
+        while True:
+            if self.tela.existe("editor"):
+                return
+            concluir = self.tela.achar("concluir_musica", 0, plano_b=False)
+            if concluir is not None:
+                concluir.tocar()
+                self._pausa()
+                continue
+            if agora() >= limite:
+                raise ErroPasso("depois de escolher a música o editor não voltou")
+            self._conferir_fora_do_direct()
+            dormir(self._t("intervalo_busca_s", 0.4))
 
     def _conferir_figurinha(self, fig: dict) -> None:
         if self.tela.existe("figurinha_na_tela"):

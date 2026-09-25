@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Callable
 
-from .. import config, ferramentas, registro
+from .. import config, ferramentas, privacidade, registro
 
 log = registro.obter("stories.android")
 
@@ -543,6 +543,7 @@ class Tela:
             raise ErroSeletor("Seletores inválidos em config/bluestacks.json: " + "; ".join(problemas))
         self.espera_padrao = float(cfg.get("espera_padrao_s", 10))
         self.intervalo = float(cfg.get("intervalo_busca_s", 0.4))
+        self.espera_notificacao = float(cfg.get("espera_notificacao_s", 15))
         self._tamanho: tuple[int, int] | None = None
 
     # -- alternativas
@@ -563,7 +564,7 @@ class Tela:
             marcavel=info.get("checkable"),
             classe=info.get("className") or "",
             id_recurso=info.get("resourceName") or "",
-            acao=lambda: self.d.click(x, y),
+            acao=lambda: self._clicar(x, y),
         )
 
     def _todos(self, alt: dict) -> list[Elemento]:
@@ -604,7 +605,7 @@ class Tela:
         log.warning("PLANO B para '%s': nenhum seletor por texto/descrição achou; tocando na coordenada %s (%d, %d)",
                     chave, alt["coordenada_relativa"], x, y)
         return Elemento(texto=f"coordenada {fx},{fy}", limites=(x, y, x, y), plano_b=True,
-                        acao=lambda: self.d.click(x, y))
+                        acao=lambda: self._clicar(x, y))
 
     def _achar_alt(self, chave: str, espera_s: float | None, plano_b: bool, valores: dict):
         alts = self._alternativas(chave, valores)
@@ -667,8 +668,45 @@ class Tela:
     def xml(self) -> str:
         return self.d.dump_hierarchy()
 
+    # -- notificação flutuante do Android (ex.: mensagem de cliente no Direct, 25/09/2026)
+    def faixa_notificacao(self) -> tuple[int, int] | None:
+        """Faixa ``(y0, y1)`` da notificação flutuante na tela (seletor ``notificacao_flutuante``), ou ``None``."""
+        if "notificacao_flutuante" not in self.seletores:
+            return None
+        els = self.grade("notificacao_flutuante")
+        return (min(e.limites[1] for e in els), max(e.limites[3] for e in els)) if els else None
+
+    def esperar_sem_notificacao(self, y: int | None = None) -> bool:
+        """Espera a notificação flutuante sumir (até ``espera_notificacao_s``): tocar nela abre a conversa do cliente
+        e ela aparece nos prints. Com ``y``, só espera se o toque cairia sobre ela. ``True`` = livre."""
+        limite = agora() + self.espera_notificacao
+        avisou = False
+        while True:
+            faixa = self.faixa_notificacao()
+            if faixa is None or (y is not None and not faixa[0] - 80 <= y <= faixa[1] + 120):
+                return True
+            if not avisou:
+                log.info("Notificação do Android na tela: espero ela sumir antes de %s",
+                         "tocar" if y is not None else "tirar o print")
+                avisou = True
+            if agora() >= limite:
+                return False
+            dormir(self.intervalo)
+
+    def _clicar(self, x: int, y: int) -> None:
+        if not self.esperar_sem_notificacao(y):
+            raise ErroSeletor("uma notificação do Android ficou por cima do ponto do toque e não sumiu; não toquei "
+                              "(tocar nela abre a conversa do cliente)")
+        self.d.click(x, y)
+
     def print(self, caminho: Path) -> None:
+        """Print da tela, sem notificação do Android: espera ela sumir; se não sumir, cobre a faixa dela."""
+        self.esperar_sem_notificacao()
+        faixa = self.faixa_notificacao()
         self.d.screenshot(str(caminho))
+        if faixa is not None:
+            log.warning("A notificação do Android não sumiu: cobri a faixa dela no print %s", Path(caminho).name)
+            privacidade.cobrir_print(Path(caminho), faixa, self.tamanho()[0], (80, 120))
 
     def voltar(self) -> None:
         self.d.press("back")

@@ -299,17 +299,28 @@
       },
       {
         "text": "Pesquisar música"
-      },
-      {
-        "textContains": "Pesquisar"
-      },
-      {
-        "className": "android.widget.EditText"
       }
     ],
-    "limpar_busca_musica": [
+    "usar_musica": [
       {
-        "description": "Limpar texto"
+        "resourceId": "com.instagram.android:id/audio_bar_select_tap_target"
+      }
+    ],
+    "tela_privada": [
+      {
+        "resourceId": "com.instagram.android:id/direct_thread_header"
+      },
+      {
+        "resourceId": "com.instagram.android:id/row_thread_composer_edittext"
+      },
+      {
+        "resourceId": "com.instagram.android:id/thread_fragment_container"
+      }
+    ],
+    "notificacao_flutuante": [
+      {
+        "packageName": "com.android.systemui",
+        "resourceIdMatches": "^android:id/(message_name|message_text|title|text|big_text|action0)$"
       }
     ],
     "popup_sugestao_teclado": [
@@ -330,7 +341,7 @@
     ],
     "faixas_musica": [
       {
-        "descriptionStartsWith": "Selecionar faixa"
+        "resourceIdMatches": "^com\\.instagram\\.android:id/audio_browser_track_.*"
       }
     ],
     "concluir_musica": [
@@ -528,6 +539,8 @@
   "_album": "Depois de 'Todos os álbuns', espera espera_lista_albuns_s pela pasta da letra; se não aparece, rola a lista (arrasto dentro dos itens do menu, itens_lista_album) até max_rolagens_album vezes.",
   "espera_lista_albuns_s": 4,
   "max_rolagens_album": 4,
+  "_notificacao": "Notificação flutuante do Android (seletor notificacao_flutuante): antes de tocar num ponto embaixo dela e antes de cada print, espera até espera_notificacao_s ela sumir; se não sumir, não toca (tocar nela abre a conversa do cliente) e cobre a faixa no print. Tela do Direct (tela_privada) para a postagem e não é salva.",
+  "espera_notificacao_s": 15,
   "_musica": "Música do vídeo sem som: busca de config/stories.json (musica_sem_som, 'fashion') e sorteio entre as musica_aleatoria_entre primeiras faixas (as que cabem na tela acima do teclado).",
   "musica_aleatoria_entre": 6,
   "tentativas_criar": 3,
