@@ -45,7 +45,7 @@ ainda não foi confirmado no PC real está marcado "(a confirmar)".
 - O repositório é **público**: prints e XML de tela que vão para `execucoes/` ficam visíveis na internet.
 - **Privacidade das telas (25/09/2026):** no ensaio das 19:42 a notificação flutuante do Android (mensagem de cliente
   no Direct: nome, foto e texto) apareceu no topo, um toque caiu nela e o ensaio foi parar na conversa; o print e o XML
-  da conversa foram para o GitHub (tirados no commit seguinte; ainda ficam no histórico do ramo). Agora o saneamento
+  da conversa foram para o GitHub (tirados no commit seguinte; ainda ficam no histórico do ramo — o usuário decidiu deixar o histórico como está). Agora o saneamento
   (`rotinas/privacidade.py`, config `execucao.privacidade` em `config/diagnostico.json`) confere cada `.xml` de tela:
   tela do Direct (`:id/direct_thread`, `:id/row_thread_composer`…) → o par `.xml`/`.png` fica só no PC
   (`saida_local/`, listado em `omitidos.txt`); notificação do Android (pacote `com.android.systemui`) → texto e
