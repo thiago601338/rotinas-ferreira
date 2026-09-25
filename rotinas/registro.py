@@ -15,8 +15,8 @@ DATA = "%Y-%m-%d %H:%M:%S"
 _PADROES = [
     # JWT (chaves do Supabase são JWT) e tokens longos
     re.compile(r"eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}"),
-    re.compile(r"(?i)\b(apikey|api_key|authorization|token|senha|password|secret|supabase_key)\b(\s*[:=]\s*)([^\s,;\"']{6,})"),
-    re.compile(r"(?i)\b(bearer)(\s+)([^\s,;\"']{6,})"),
+    re.compile(r"(?i)\b(bearer)(\s+)([^\s,;\"'\\{}]{6,})"),
+    re.compile(r"(?i)\b(apikey|api_key|authorization|token|senha|password|supabase_key)\b(\s*[:=]\s*)([^\s,;\"'\\]{6,})"),
     re.compile(r"sb_(?:secret|publishable)_[A-Za-z0-9_\-]{10,}"),
     re.compile(r"gh[pousr]_[A-Za-z0-9]{20,}"),
 ]
@@ -34,6 +34,17 @@ def ocultar(texto: str) -> str:
         else:
             texto = padrao.sub("***", texto)
     return texto
+
+
+def ocultar_estrutura(dados):
+    """Aplica :func:`ocultar` em todas as strings de um dict/lista (sem mexer na estrutura)."""
+    if isinstance(dados, str):
+        return ocultar(dados)
+    if isinstance(dados, dict):
+        return {ocultar(str(k)) if isinstance(k, str) else k: ocultar_estrutura(v) for k, v in dados.items()}
+    if isinstance(dados, (list, tuple)):
+        return [ocultar_estrutura(v) for v in dados]
+    return dados
 
 
 class FiltroSegredos(logging.Filter):

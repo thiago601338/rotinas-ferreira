@@ -25,10 +25,11 @@
   "execucao": {
     "pasta": "execucoes",
     "max_mb_por_arquivo": 20,
+    "pasta_local_omitidos": "saida_local/execucoes",
     "extensoes_texto": [".txt", ".json", ".xml", ".log", ".csv", ".md", ".srt", ".conf", ".ini", ".cfg", ".tmp", ".yaml", ".yml", ".html"],
     "extensoes_video": [".mp4", ".mov", ".m4v", ".3gp", ".avi", ".mkv", ".webm", ".wmv", ".ts", ".mts"],
     "timeout_pytest_s": 1800,
     "timeout_git_s": 180,
-    "git_autor_padrao": {"nome": "PC da loja (rotinas)", "email": "rotinas-ferreira@pc.local"}
+    "git_autor_padrao": {"nome": "PC Ferreira Boutique", "email": "pc-ferreira@users.noreply.github.com"}
   }
 }

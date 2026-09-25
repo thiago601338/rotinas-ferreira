@@ -19,8 +19,8 @@ import argparse
 import json
 import os
 import re
-import shutil
 import sys
+import threading
 import time
 import traceback
 from datetime import datetime
@@ -32,8 +32,11 @@ from .contexto import Contexto
 log = registro.obter("fila")
 
 ESTADOS = ("pendente", "andamento", "feito", "erro")
-ID_VALIDO = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.\-]{0,120}$")
+# letras, números, ponto, hífen e sublinhado; começa e termina com letra ou número; sem nomes reservados do Windows
+ID_VALIDO = re.compile(r"^(?!(?i:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$))[A-Za-z0-9](?:[A-Za-z0-9_.\-]{0,119}[A-Za-z0-9])?$")
 ESPERA_ARQUIVO_S = 5.0  # arquivo inválido mais novo que isso pode estar sendo gravado
+TENTATIVAS_ARQUIVO = 10  # antivírus, miniatura do Explorer ou a IA lendo podem segurar arquivo por instantes
+BATIDA_S = 30.0  # sinal de vida durante pedido longo
 
 
 def pasta_fila(base: Path | None = None) -> Path:
@@ -51,12 +54,23 @@ def agora_iso() -> str:
     return datetime.now().astimezone().isoformat(timespec="seconds")
 
 
+def _com_tentativas(funcao, *args):
+    """Repete uma operação de arquivo que o Windows pode recusar por instantes (arquivo em uso)."""
+    for n in range(TENTATIVAS_ARQUIVO):
+        try:
+            return funcao(*args)
+        except PermissionError:
+            if n == TENTATIVAS_ARQUIVO - 1:
+                raise
+            time.sleep(0.3)
+
+
 def _gravar_json(caminho: Path, dados: dict) -> None:
     """Grava JSON de forma atômica (arquivo temporário + troca)."""
     caminho.parent.mkdir(parents=True, exist_ok=True)
     tmp = caminho.with_name(caminho.name + ".tmp")
-    tmp.write_text(json.dumps(dados, ensure_ascii=False, indent=2), encoding="utf-8")
-    os.replace(tmp, caminho)
+    tmp.write_text(json.dumps(dados, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    _com_tentativas(os.replace, tmp, caminho)
 
 
 def _ler_json(caminho: Path) -> dict:
@@ -184,63 +198,121 @@ class Vigia:
 
     # -- utilidades
     def _historico(self, registro_: dict) -> None:
-        with open(self.raiz / "historico.jsonl", "a", encoding="utf-8") as f:
-            f.write(json.dumps(registro_, ensure_ascii=False) + "\n")
+        try:
+            with open(self.raiz / "historico.jsonl", "a", encoding="utf-8") as f:
+                f.write(json.dumps(registro_, ensure_ascii=False, default=str) + "\n")
+        except OSError as e:
+            log.warning("Não consegui gravar o histórico: %s", e)
 
     def sinal_de_vida(self, estado: str = "ocioso", id_: str | None = None) -> None:
-        _gravar_json(self.raiz / "vigia.vivo", {"pid": os.getpid(), "em": agora_iso(), "estado": estado, "pedido": id_})
+        """Nunca derruba o vigia: se o arquivo estiver em uso, tenta de novo na próxima volta."""
+        try:
+            _gravar_json(self.raiz / "vigia.vivo", {"pid": os.getpid(), "em": agora_iso(), "estado": estado, "pedido": id_})
+        except OSError as e:
+            log.debug("vigia.vivo não atualizado: %s", e)
+
+    def _batidas(self, id_: str) -> threading.Event:
+        """Mantém ``vigia.vivo`` atualizado enquanto um pedido longo roda."""
+        parar = threading.Event()
+
+        def bater() -> None:
+            while not parar.wait(BATIDA_S):
+                self.sinal_de_vida("executando", id_)
+
+        threading.Thread(target=bater, name=f"vigia-vivo-{id_}", daemon=True).start()
+        return parar
 
     def _mover_pasta(self, id_: str, de: str, para: str) -> Path:
+        """Move a pasta do pedido. Se o Windows não deixar, ela fica onde está (o resultado aponta para ela)."""
         origem = self.raiz / de / id_
         destino = self.raiz / para / id_
         if destino.exists():
             destino = self.raiz / para / f"{id_}__{datetime.now().strftime('%H%M%S')}"
-        if origem.exists():
-            shutil.move(str(origem), str(destino))
-        else:
+        if not origem.exists():
             destino.mkdir(parents=True, exist_ok=True)
-        return destino
+            return destino
+        try:
+            _com_tentativas(os.replace, origem, destino)
+            return destino
+        except OSError as e:
+            log.warning("Não consegui mover a pasta %s (%s); o resultado aponta para ela onde está.", origem, e)
+            return origem
 
     def _finalizar(self, pedido: dict, estado: str, corpo: dict, pasta_de: str = "andamento") -> Path:
         id_ = pedido["id"]
+        dados = {"id": id_, "tipo": pedido.get("tipo"), "estado": estado, "pedido": pedido, **corpo}
+        # serializa e oculta segredos ANTES de mexer em qualquer arquivo
+        dados = registro.ocultar_estrutura(json.loads(json.dumps(dados, ensure_ascii=False, default=str)))
         pasta = self._mover_pasta(id_, pasta_de, estado)
-        arquivos = sorted(str(p.relative_to(pasta)).replace("\\", "/") for p in pasta.rglob("*") if p.is_file())
-        dados = {"id": id_, "tipo": pedido.get("tipo"), "estado": estado, "pedido": pedido, "pasta": str(pasta), "arquivos": arquivos, **corpo}
-        dados = json.loads(registro.ocultar(json.dumps(dados, ensure_ascii=False)))
+        dados["pasta"] = str(pasta)
+        try:
+            dados["arquivos"] = sorted(str(p.relative_to(pasta)).replace("\\", "/") for p in pasta.rglob("*") if p.is_file())
+        except OSError:
+            dados["arquivos"] = []
         destino = self.raiz / estado / f"{id_}.json"
         if destino.exists():
             destino = self.raiz / estado / f"{id_}__{datetime.now().strftime('%H%M%S')}.json"
         _gravar_json(destino, dados)
         resto = self.raiz / pasta_de / f"{id_}.json"
-        if resto.exists():
-            resto.unlink()
+        try:
+            if resto.exists():
+                _com_tentativas(resto.unlink)
+        except OSError as e:
+            log.warning("Não consegui apagar %s: %s", resto, e)
         self._historico({"id": id_, "tipo": pedido.get("tipo"), "estado": estado, "fim": agora_iso()})
         return destino
 
     # -- recuperação
-    def recuperar_interrompidos(self) -> list[str]:
+    def recuperar_interrompidos(self, motivo: str | None = None) -> list[str]:
         """Pedidos que ficaram em ``andamento`` (vigia caiu) vão para ``erro`` sem reexecutar."""
+        motivo = motivo or (
+            "Interrompido: o vigia parou no meio deste pedido. Não reexecutei para não repetir nada. "
+            "Confira o que já foi feito (log e prints na pasta) antes de pedir de novo, com outro id."
+        )
         ids = []
         for arq in sorted((self.raiz / "andamento").glob("*.json")):
+            id_ = arq.stem
             try:
-                pedido = _ler_json(arq)
-            except Exception:
-                pedido = {"id": arq.stem, "tipo": None}
-            pedido.setdefault("id", arq.stem)
-            self._finalizar(
-                pedido,
-                "erro",
-                {"erro": "Interrompido: o vigia parou no meio deste pedido. Não reexecutei para não repetir nada. "
-                         "Confira o que já foi feito (log e prints na pasta) antes de pedir de novo, com outro id."},
-            )
-            log.warning("Pedido interrompido movido para erro: %s", pedido["id"])
-            ids.append(pedido["id"])
+                if any((self.raiz / e / f"{id_}.json").exists() for e in ("feito", "erro")):
+                    # o resultado já foi gravado; sobrou só o arquivo do pedido
+                    _com_tentativas(arq.unlink)
+                    continue
+                try:
+                    pedido = _ler_json(arq)
+                except Exception:
+                    pedido = {}
+                if not isinstance(pedido, dict):
+                    pedido = {}
+                pedido = dict(pedido, id=id_)
+                self._finalizar(pedido, "erro", {"erro": motivo})
+                log.warning("Pedido interrompido movido para erro: %s", id_)
+                ids.append(id_)
+            except Exception:  # noqa: BLE001 - um arquivo ruim não impede o vigia de subir
+                log.exception("Não consegui recuperar %s", arq.name)
         return ids
 
     # -- ciclo
     def proximo(self) -> Path | None:
-        candidatos = sorted((self.raiz / "pendente").glob("*.json"), key=lambda p: (p.stat().st_mtime, p.name))
+        def chave(p: Path):
+            try:
+                return (p.stat().st_mtime, p.name)
+            except OSError:
+                return (float("inf"), p.name)
+
+        candidatos = sorted((self.raiz / "pendente").glob("*.json"), key=chave)
         return candidatos[0] if candidatos else None
+
+    def _reservar(self, arq: Path, nome: str | None = None) -> Path | None:
+        """pendente → andamento. ``None`` se o arquivo sumiu (cancelado) ou está preso."""
+        destino = self.raiz / "andamento" / (nome or arq.name)
+        try:
+            _com_tentativas(os.replace, arq, destino)
+            return destino
+        except FileNotFoundError:
+            return None
+        except OSError as e:
+            log.warning("Não consegui reservar %s: %s", arq.name, e)
+            return None
 
     def processar(self, arq: Path) -> tuple[str, Path | None]:
         """Executa um pedido. Devolve (estado, caminho do resultado)."""
@@ -248,44 +320,48 @@ class Vigia:
             pedido = _ler_json(arq)
             if not isinstance(pedido, dict):
                 raise ValueError("o pedido precisa ser um objeto JSON")
+        except FileNotFoundError:
+            return "aguardando", None  # apagado (cancelado) entre a listagem e a leitura
         except Exception as e:
-            if time.time() - arq.stat().st_mtime < ESPERA_ARQUIVO_S:
+            try:
+                recente = time.time() - arq.stat().st_mtime < ESPERA_ARQUIVO_S
+            except OSError:
+                return "aguardando", None
+            if recente:
                 return "aguardando", None  # talvez ainda esteja sendo gravado
-            pedido = {"id": arq.stem, "tipo": None}
-            destino_ped = self.raiz / "andamento" / arq.name
-            os.replace(arq, destino_ped)
-            return "erro", self._finalizar(pedido, "erro", {"erro": f"JSON inválido: {e}"})
+            if not ID_VALIDO.match(arq.stem):
+                return "erro", self._rejeitar(arq, f"JSON inválido e nome de arquivo inválido: {e}")
+            if self._reservar(arq) is None:
+                return "aguardando", None
+            return "erro", self._finalizar({"id": arq.stem, "tipo": None}, "erro", {"erro": f"JSON inválido: {e}"})
 
         id_ = str(pedido.get("id") or arq.stem)
-        pedido["id"] = id_
+        if not ID_VALIDO.match(arq.stem):
+            return "erro", self._rejeitar(arq, f"Nome de arquivo inválido: {arq.name!r} (use letras, números, ponto, hífen e sublinhado; começar e terminar com letra ou número)")
         if id_ != arq.stem:
-            os.replace(arq, self.raiz / "andamento" / arq.name)
+            if self._reservar(arq) is None:
+                return "aguardando", None
             pedido["id"] = arq.stem
             return "erro", self._finalizar(pedido, "erro", {"erro": f"O campo id ({id_}) tem que ser igual ao nome do arquivo ({arq.stem})."})
-        if not ID_VALIDO.match(id_):
-            os.replace(arq, self.raiz / "andamento" / arq.name)
-            return "erro", self._finalizar(pedido, "erro", {"erro": f"id inválido: {id_!r}"})
+        pedido["id"] = id_
         ja_feito = any((self.raiz / e / f"{id_}.json").exists() for e in ("feito", "erro")) or id_ in ids_do_historico(self.raiz)
         if ja_feito:
             novo = f"{id_}__duplicado-{datetime.now():%H%M%S}"
-            os.replace(arq, self.raiz / "andamento" / f"{novo}.json")
+            if self._reservar(arq, f"{novo}.json") is None:
+                return "aguardando", None
             return "erro", self._finalizar(
                 dict(pedido, id=novo, id_original=id_), "erro",
                 {"erro": f"Pedido {id_} já foi executado antes. Não executo de novo. Use outro id."},
             )
 
-        # reserva: pendente → andamento (atômico)
-        andamento = self.raiz / "andamento" / arq.name
-        try:
-            os.replace(arq, andamento)
-        except OSError as e:
-            log.warning("Não consegui reservar %s: %s", arq.name, e)
+        if self._reservar(arq) is None:
             return "aguardando", None
         pasta = self.raiz / "andamento" / id_
         pasta.mkdir(parents=True, exist_ok=True)
         handler = registro.anexar_arquivo(pasta / "log.txt")
         inicio = time.time()
         self.sinal_de_vida("executando", id_)
+        batidas = self._batidas(id_)
         log.info("Executando %s (%s)%s", id_, pedido.get("tipo"), " [ensaio]" if pedido.get("ensaio") else "")
         estado, corpo = "feito", {}
         try:
@@ -302,29 +378,57 @@ class Vigia:
                 corpo["resultado_parcial"] = resultado_parcial
             log.error("Pedido %s falhou: %s", id_, e)
         finally:
+            batidas.set()
             registro.remover(handler)
         corpo.update({"inicio": datetime.fromtimestamp(inicio).astimezone().isoformat(timespec="seconds"), "fim": agora_iso(), "duracao_s": round(time.time() - inicio, 1)})
         return estado, self._finalizar(pedido, estado, corpo)
 
+    def _rejeitar(self, arq: Path, motivo: str) -> Path | None:
+        """Pedido com nome de arquivo inválido: vai para erro com um nome seguro, sem executar."""
+        seguro = "invalido-" + datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        if self._reservar(arq, f"{seguro}.json") is None:
+            return None
+        return self._finalizar({"id": seguro, "tipo": None, "arquivo_original": arq.name}, "erro", {"erro": motivo})
+
+    def _adquirir_trava(self, espera_s: float = 10.0) -> bool:
+        limite = time.time() + espera_s
+        while True:
+            if self.trava.adquirir():
+                return True
+            if time.time() >= limite:
+                return False
+            time.sleep(0.5)
+
     def rodar(self, uma_vez: bool = False) -> int:
-        if not self.trava.adquirir():
+        if not self._adquirir_trava():
             log.info("Já existe um vigia rodando (%s). Saindo.", self.raiz / "vigia.lock")
             return 0
         try:
             self.recuperar_interrompidos()
             log.info("Vigia rodando em %s", self.raiz)
             while True:
-                arq = self.proximo()
-                if arq is not None:
-                    estado, _ = self.processar(arq)
-                    if estado != "aguardando":
-                        continue
-                self.sinal_de_vida()
-                flag = self.raiz / "parar.flag"
-                if flag.exists():
-                    flag.unlink()
-                    log.info("Pedido de parada recebido (parar.flag). Saindo.")
-                    return 0
+                arq = None
+                try:
+                    arq = self.proximo()
+                    if arq is not None:
+                        estado, _ = self.processar(arq)
+                        if estado != "aguardando":
+                            continue
+                    self.sinal_de_vida()
+                    flag = self.raiz / "parar.flag"
+                    if flag.exists():
+                        flag.unlink()
+                        log.info("Pedido de parada recebido (parar.flag). Saindo.")
+                        return 0
+                except Exception:  # noqa: BLE001 - o vigia não pode cair por um problema pontual
+                    log.exception("Erro no vigia; sigo em frente")
+                    try:
+                        self.recuperar_interrompidos(
+                            "Falha interna do vigia ao processar este pedido. Não reexecutei. "
+                            "Veja o log do vigia (Rotinas Ferreira\\logs) e a pasta do pedido antes de pedir de novo, com outro id."
+                        )
+                    except Exception:  # noqa: BLE001
+                        log.exception("Falha ao recuperar pedidos em andamento")
                 if uma_vez:
                     if arq is None or not any((self.raiz / "pendente").glob("*.json")):
                         return 0

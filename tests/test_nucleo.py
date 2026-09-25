@@ -196,3 +196,75 @@ def test_folha_de_contato(tmp_path):
     saida = folha.montar(itens, tmp_path / "A.jpg", titulo="Letra A")
     img = Image.open(saida)
     assert img.width > 300 and img.height > 480
+
+
+# ------------------------------------------------------------ fila: robustez (Windows)
+
+def devolve_path(args, ctx):
+    return {"arquivo": ctx.pasta_saida / "x.png", "texto": 'Authorization: Bearer abcdef123456" e "Conjunto Secret: Elegance"'}
+
+
+def test_fila_resultado_com_path_e_texto_de_token(fila_teste, monkeypatch):
+    monkeypatch.setitem(tarefas.TAREFAS, "teste.path", "test_nucleo:devolve_path")
+    caminho = fila.criar_pedido("teste.path", {})
+    fila.Vigia(intervalo_s=0.01).rodar(uma_vez=True)
+    res = json.loads((fila_teste / "feito" / caminho.name).read_text(encoding="utf-8"))
+    assert res["estado"] == "feito"
+    assert res["resultado"]["arquivo"].endswith("x.png")
+    assert "abcdef123456" not in res["resultado"]["texto"]
+    assert "Secret: Elegance" in res["resultado"]["texto"]
+
+
+@pytest.mark.parametrize("nome", ["nul", "CON", "com1", "aux.json-x", "termina.", "-comeca", "a" * 130])
+def test_id_invalido(nome):
+    assert not fila.ID_VALIDO.match(nome)
+
+
+@pytest.mark.parametrize("nome", ["a", "20260925-183000-stories-montar", "pedido_1.2", "console", "nulo"])
+def test_id_valido(nome):
+    assert fila.ID_VALIDO.match(nome)
+
+
+def test_fila_nome_de_arquivo_reservado_vai_para_erro(fila_teste):
+    (fila_teste / "pendente" / "nul.json").write_text(json.dumps({"id": "nul", "tipo": "teste.eco"}), encoding="utf-8")
+    fila.Vigia(intervalo_s=0.01).rodar(uma_vez=True)
+    erros = list((fila_teste / "erro").glob("invalido-*.json"))
+    assert len(erros) == 1 and "inválido" in json.loads(erros[0].read_text(encoding="utf-8"))["erro"]
+
+
+def test_recuperar_json_que_nao_e_objeto_e_resultado_ja_gravado(fila_teste):
+    (fila_teste / "andamento" / "lista.json").write_text("[1, 2]", encoding="utf-8")
+    (fila_teste / "feito" / "pronto.json").write_text("{}", encoding="utf-8")
+    (fila_teste / "andamento" / "pronto.json").write_text(json.dumps({"id": "pronto"}), encoding="utf-8")
+    ids = fila.Vigia(intervalo_s=0.01).recuperar_interrompidos()
+    assert ids == ["lista"]
+    assert not (fila_teste / "erro" / "pronto.json").exists()
+    assert not (fila_teste / "andamento" / "pronto.json").exists()
+
+
+def test_pasta_presa_nao_vira_interrompido(fila_teste, monkeypatch):
+    real = os.replace
+
+    def replace_que_falha_em_pasta(a, b):
+        if Path(a).is_dir():
+            raise PermissionError("em uso")
+        return real(a, b)
+
+    monkeypatch.setattr(fila.os, "replace", replace_que_falha_em_pasta)
+    monkeypatch.setattr(fila.time, "sleep", lambda s: None)
+    caminho = fila.criar_pedido("teste.eco", {"x": 2})
+    fila.Vigia(intervalo_s=0.01).rodar(uma_vez=True)
+    res = json.loads((fila_teste / "feito" / caminho.name).read_text(encoding="utf-8"))
+    assert res["estado"] == "feito"
+    assert Path(res["pasta"]).parent.name == "andamento"
+    assert not list((fila_teste / "erro").glob("*.json"))
+
+
+def test_sinal_de_vida_nao_derruba(fila_teste, monkeypatch):
+    vigia = fila.Vigia(intervalo_s=0.01)
+
+    def falha(*a, **k):
+        raise PermissionError("em uso")
+
+    monkeypatch.setattr(fila, "_gravar_json", falha)
+    vigia.sinal_de_vida()  # não levanta

@@ -1,0 +1,38 @@
+{
+  "_comentario": "Instalação no PC (instalar.bat, atualizar.bat, python -m rotinas instalar/verificar). O endereço do repositório e os ids do Git e do Python também estão escritos no instalar.bat, porque ele roda antes de existir Python: mudou aqui, mude lá.",
+  "winget": {
+    "git": "Git.Git",
+    "python": "Python.Python.3.12",
+    "ffmpeg": "Gyan.FFmpeg",
+    "adb": "Google.PlatformTools"
+  },
+  "winget_candidatos": [
+    "%LOCALAPPDATA%\\Microsoft\\WindowsApps\\winget.exe"
+  ],
+  "powershell_candidatos": [
+    "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+  ],
+  "winget_espera_s": 900,
+  "tarefa_vigia": "Rotinas Ferreira - Vigia",
+  "atalho_vigia": "Rotinas Ferreira - Vigia.lnk",
+  "pasta_inicializar": "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup",
+  "git_usuario": {
+    "nome": "PC Ferreira Boutique",
+    "email": "pc-ferreira@users.noreply.github.com"
+  },
+  "subpastas_videos": ["bruto", "exportado", "trabalho"],
+  "env_obrigatorias": ["SUPABASE_URL", "SUPABASE_KEY"],
+  "python_minimo": "3.10",
+  "pacotes_python": {
+    "PIL": "pillow",
+    "numpy": "numpy",
+    "requests": "requests",
+    "uiautomator2": "uiautomator2",
+    "faster_whisper": "faster-whisper",
+    "pillow_heif": "pillow-heif"
+  },
+  "vigia_vivo_max_s": 120,
+  "vigia_parar_espera_s": 30,
+  "vigia_iniciar_espera_s": 15,
+  "supabase_timeout_s": 15
+}
