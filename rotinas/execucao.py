@@ -37,7 +37,7 @@ ALVOS: dict[str, str] = {
     "verificar": "rotinas.execucao:alvo_verificar",
     "pytest": "rotinas.execucao:alvo_pytest",
     "bluestacks": "rotinas.stories.bluestacks:teste_real",
-    "stories-ensaio": "rotinas.stories.bluestacks:teste_ensaio",
+    "stories-ensaio": "stories em modo ensaio (--data D, --plano arquivo ou --sintetico): monta tudo e para antes de publicar",
     "capcut-rascunho": "rotinas.video.rascunho:teste_real",
     "conferir": "rotinas.video.conferencia:teste_real",
 }

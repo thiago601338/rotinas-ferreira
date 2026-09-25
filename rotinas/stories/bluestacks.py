@@ -25,7 +25,7 @@ import unicodedata
 from contextlib import contextmanager
 from pathlib import Path
 
-from .. import config, midia, registro
+from .. import config, ferramentas, midia, registro
 from ..contexto import Contexto, carimbo
 from . import android, postados
 
@@ -252,8 +252,10 @@ class Postador:
         em versões com a aba "Criar", ainda é preciso escolher "Story". A aba só é tocada se a galeria não apareceu."""
         with self._passo("criar"):
             self._tocar("criar")
-        if self.tela.achar("abrir_galeria", self._t("espera_curta_s", 2), plano_b=False) is not None:
-            log.info("Letra %s: a câmera de story abriu direto (sem escolher 'Story')", self.letra)
+        espera = self._t("espera_curta_s", 2)
+        if (self.tela.achar("selecionar_varios", espera, plano_b=False) is not None
+                or self.tela.achar("abrir_galeria", 0, plano_b=False) is not None):
+            log.info("Letra %s: 'Adicionar ao story' abriu direto a galeria/câmera (sem escolher 'Story')", self.letra)
             return
         with self._passo("abrir_story"):
             self._tocar("abrir_story")
@@ -310,7 +312,14 @@ class Postador:
             return
         menu.tocar()
         self._pausa()
-        item = self.tela.achar("album_item", self._t("espera_padrao_s", 10), plano_b=False, album=album)
+        item = self.tela.achar("album_item", self._t("espera_curta_s", 2), plano_b=False, album=album)
+        if item is None:
+            # Instagram 448: o menu mostra Recentes/Fotos/Vídeos/Todos os álbuns; as pastas ficam em "Todos os álbuns"
+            todos = self.tela.achar("album_todos", self._t("espera_curta_s", 2), plano_b=False)
+            if todos is not None:
+                todos.tocar()
+                self._pausa()
+                item = self.tela.achar("album_item", self._t("espera_padrao_s", 10), plano_b=False, album=album)
         if item is None:
             self.tela.voltar()  # fecha a lista de álbuns (no real, antes de parar)
             self._pausa()
@@ -359,11 +368,20 @@ class Postador:
         m = re.search(r"\d+", texto or "")
         if m:
             return int(m.group()), f"contador '{texto}'"
+        prefixo = str(self.cfg.get("descricao_nao_selecionado") or "").strip().lower()
+        if prefixo:
+            grade = self.tela.grade("miniaturas_galeria")
+            if grade and all((e.descricao or "").strip() for e in grade):
+                marcadas = [e for e in grade if not (e.descricao or "").strip().lower().startswith(prefixo)]
+                return len(marcadas), "descrição das miniaturas (não confere a ordem)"
         raise ErroPasso("não consegui conferir quantas mídias ficaram selecionadas (sem números nas miniaturas e sem contador)")
 
     def _selecionar(self, n: int) -> None:
         with self._passo("selecionar_varios"):
-            self._tocar("selecionar_varios")
+            if self.tela.achar("selecao_ativa", 0, plano_b=False) is not None:
+                log.info("Letra %s: a seleção de várias já estava ligada (botão 'Cancelar'); não toquei", self.letra)
+            else:
+                self._tocar("selecionar_varios")
         with self._passo("tocar_midias"):
             grade = self.tela.grade("miniaturas_galeria")
             if len(grade) < n:
@@ -923,16 +941,58 @@ def _teste_real(ctx: Contexto) -> dict:
             "resumo": "\n".join(linhas)}
 
 
+def plano_sintetico(pasta: Path) -> dict:
+    """Letra de teste "T" (1 vídeo sem som + 2 fotos geradas na hora, em ``pasta``; nunca na pasta do usuário)
+    com música no vídeo e figurinha de link na última foto — para afinar os passos do editor em ENSAIO."""
+    from PIL import Image, ImageDraw
+
+    from . import link
+
+    pasta.mkdir(parents=True, exist_ok=True)
+    video = pasta / "T - 1.mp4"
+    if not video.exists():
+        ferramentas.rodar([midia.ffmpeg(), "-hide_banner", "-nostdin", "-y", "-f", "lavfi", "-i",
+                           "testsrc2=s=1080x1920:r=30:d=5", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(video)],
+                          timeout=180)
+    fotos = []
+    for n, cor in ((2, (170, 40, 70)), (3, (40, 110, 70))):
+        foto = pasta / f"T - {n}.jpg"
+        if not foto.exists():
+            img = Image.new("RGB", (1080, 1920), cor)
+            ImageDraw.Draw(img).text((80, 900), f"TESTE ROTINAS {n} - NAO POSTAR", fill=(255, 255, 255))
+            img.save(foto, "JPEG", quality=90)
+        fotos.append(foto)
+    peca = "Peça de Teste"
+    midias = [{"nome": "T - 1", "arquivo": video.name, "caminho": str(video), "tipo": "video", "hash": midia.hash_arquivo(video),
+               "cores": ["Teste"], "precisa_musica": True, "musica": link.musica_para(0), "figurinha": None}]
+    for i, foto in enumerate(fotos):
+        ultima = i == len(fotos) - 1
+        midias.append({"nome": foto.stem, "arquivo": foto.name, "caminho": str(foto), "tipo": "foto",
+                       "hash": midia.hash_arquivo(foto), "cores": ["Teste"], "precisa_musica": False, "musica": None,
+                       "figurinha": {"url": link.montar_link(peca), "texto": link.texto_figurinha(0)} if ultima else None})
+    return {"data": "2000-01-01", "id": "teste-sintetico", "ensaio": True, "ordem": "letras",
+            "letras": [{"letra": "T", "sku": "TESTE", "peca": peca, "categoria": "Teste", "midias": midias}],
+            "cortes": [], "avisos": ["Plano sintético de teste: nunca publicar."]}
+
+
 def teste_ensaio(ctx: Contexto, argv: list[str]) -> dict:
-    """``testar.bat stories-ensaio --data D`` (plano mais recente) ou ``--plano arquivo``: ensaio + diagnóstico."""
+    """``testar.bat stories-ensaio --data D`` (plano mais recente), ``--plano arquivo`` ou ``--sintetico`` (letra de
+    teste gerada na hora): ensaio + diagnóstico. Nunca publica."""
     p = argparse.ArgumentParser(prog="testar.bat stories-ensaio", description=teste_ensaio.__doc__)
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--data", help="AAAA-MM-DD: usa o plano mais recente de stories/<data>/")
     g.add_argument("--plano", help="arquivo plano-<id>.json")
+    g.add_argument("--sintetico", action="store_true", help="letra de teste (1 vídeo sem som + 2 fotos) gerada na hora")
     a = p.parse_args(argv)
-    caminho = Path(a.plano) if a.plano else plano_mais_recente(a.data)
-    log.info("Ensaio com o plano %s", caminho)
-    res = executar(_ler_plano(caminho), ctx, ensaio=True, diagnostico=True)
+    if a.sintetico:
+        caminho = config.pastas().trabalho_stories / "_teste" / carimbo()
+        plano = plano_sintetico(caminho)
+        log.info("Ensaio com a letra de teste gerada em %s", caminho)
+    else:
+        caminho = Path(a.plano) if a.plano else plano_mais_recente(a.data)
+        plano = _ler_plano(caminho)
+        log.info("Ensaio com o plano %s", caminho)
+    res = executar(plano, ctx, ensaio=True, diagnostico=True)
     res["plano"] = str(caminho)
     # "Recentes" no lugar do álbum passa no ensaio, mas a postagem real para ali: não é ok
     res["ok"] = all((x["estado"] == "ensaio_ok" and not x.get("recuo_recentes")) or x.get("pulada") for x in res["letras"])

@@ -140,7 +140,7 @@
         "description": "Galeria"
       },
       {
-        "descriptionContains": "aleria"
+        "descriptionStartsWith": "Abrir galeria"
       },
       {
         "coordenada_relativa": [
@@ -151,13 +151,13 @@
     ],
     "album_menu": [
       {
+        "resourceId": "com.instagram.android:id/gallery_folder_menu_tv"
+      },
+      {
         "text": "Recentes"
       },
       {
         "textContains": "Recentes"
-      },
-      {
-        "resourceId": "com.instagram.android:id/gallery_folder_menu"
       }
     ],
     "album_item": [
@@ -170,19 +170,17 @@
     ],
     "selecionar_varios": [
       {
+        "resourceId": "com.instagram.android:id/gallery_menu_multi_select_button",
+        "descriptionStartsWith": "Selecionar"
+      },
+      {
+        "descriptionStartsWith": "Selecionar várias"
+      },
+      {
         "text": "Selecionar"
       },
       {
         "text": "SELECIONAR"
-      },
-      {
-        "description": "Selecionar"
-      },
-      {
-        "descriptionContains": "Selecionar vários"
-      },
-      {
-        "resourceId": "com.instagram.android:id/multi_select_button"
       }
     ],
     "miniaturas_galeria": [
@@ -193,15 +191,17 @@
         "resourceId": "com.instagram.android:id/media_thumbnail"
       },
       {
-        "descriptionMatches": "(?i)^(foto|v[ií]deo|imagem|miniatura).*"
+        "descriptionMatches": "(?i)^(n[ãa]o selecionad|selecionad).*miniatura.*"
       }
     ],
     "badge_selecao": [
       {
-        "resourceId": "com.instagram.android:id/gallery_grid_item_selection_circle"
+        "resourceId": "com.instagram.android:id/gallery_grid_item_selection_circle",
+        "textMatches": "^[0-9]{1,2}$"
       },
       {
-        "textMatches": "^[0-9]{1,2}$"
+        "textMatches": "^[0-9]{1,2}$",
+        "resourceIdMatches": ".*selection.*"
       }
     ],
     "contador_selecao": [
@@ -463,7 +463,29 @@
       {
         "textContains": "Descartar"
       }
+    ],
+    "selecao_ativa": [
+      {
+        "resourceId": "com.instagram.android:id/gallery_menu_multi_select_button",
+        "descriptionStartsWith": "Cancelar"
+      },
+      {
+        "resourceId": "com.instagram.android:id/slideout_iconview_text",
+        "text": "Cancelar"
+      }
+    ],
+    "album_todos": [
+      {
+        "text": "Todos os álbuns"
+      },
+      {
+        "textContains": "Todos os álbuns"
+      },
+      {
+        "textStartsWith": "Todos os"
+      }
     ]
   },
-  "_seletores_conferidos": "25/09/2026, Instagram 448.0.0.52.84 (Android 9, tela 900×1600 em pé): feed_tab 'Página inicial'; sem aba 'Criar' — story pelo reel_empty_badge 'Adicionar ao story'. Os demais passos ainda são chutes até o testar.bat bluestacks."
+  "_seletores_conferidos": "25/09/2026, Instagram 448.0.0.52.84 (Android 9, tela 900×1600 em pé), testar.bat bluestacks: feed_tab 'Página inicial'; sem aba 'Criar' — 'Adicionar ao story' (reel_empty_badge) abre direto a galeria (gallery_title_text 'Adicionar ao story'); 'Selecionar' = gallery_menu_multi_select_button (vira 'Cancelar' quando ligado); 'Recentes ▾' = gallery_folder_menu_tv, menu com Recentes/Fotos/Vídeos/Todos os álbuns/Dos apps da Meta; miniaturas = gallery_grid_item_thumbnail com descrição 'Não selecionado Miniatura de foto/vídeo…' (a célula 'Abrir câmera' não tem esse id); o círculo gallery_grid_item_selection_circle existe em todas. Do editor em diante ainda são chutes.",
+  "descricao_nao_selecionado": "Não selecionado"
 }

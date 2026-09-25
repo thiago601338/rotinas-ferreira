@@ -285,6 +285,10 @@ class TelaFalsa:
         self.plano_b_chaves: set[str] = set()  # chaves que, sem seletor na tela, caem na coordenada (plano B)
         self.story_abre_rascunho = False  # "Story" reabre um rascunho no editor (em vez da câmera)
         self.criar_abre_camera = False  # Instagram 448: "Adicionar ao story" já abre a câmera de story
+        self.criar_abre_galeria = False  # Instagram 448 no PC: "Adicionar ao story" já abre a galeria
+        self.album_via_todos = False  # Instagram 448: as pastas ficam em "Todos os álbuns" dentro do menu
+        self.numeros_na_selecao = True  # False: sem número na miniatura; só a descrição muda
+        self.selecao_ja_ativa = False  # a galeria abre com "Selecionar várias" já ligado (botão "Cancelar")
         self.pre_selecionados = 0  # mídias já selecionadas (fora da tela) quando liga o "Selecionar"
         self.miniaturas_editor_extra = 0  # elementos a mais na faixa de miniaturas do editor (ex.: "+")
         self.caixa_seu_story = False  # na folha de compartilhar, a caixa marcada de "Seu story" logo acima
@@ -311,6 +315,7 @@ class TelaFalsa:
         self.personalizado = False
         self.teclado = False
         self.anterior = "editor"
+        self.todos_aberto = False
 
     def _n_grade(self) -> int:
         return self.albuns.get(self.album, 0) if self.album != "Recentes" else self.recentes
@@ -326,10 +331,12 @@ class TelaFalsa:
             v = {"abrir_galeria"}
         elif e == "galeria":
             v = {"album_menu", "selecionar_varios", "miniaturas_galeria"}
+            if self.modo_selecao:
+                v.add("selecao_ativa")
             if self.selecao:
-                v |= {"avancar", "badge_selecao"}
+                v |= {"avancar"} | ({"badge_selecao"} if self.numeros_na_selecao else set())
         elif e == "album_menu":
-            v = {"album_item"}
+            v = {"album_todos"} if self.album_via_todos and not self.todos_aberto else {"album_item"}
         elif e == "editor":
             v = {"editor", "figurinhas", "musica", "seu_story", "miniaturas_editor"}
             if self.midias and self.midias[self.atual].get("figurinha"):
@@ -368,7 +375,12 @@ class TelaFalsa:
             e = self.estado
             if chave == "criar":
                 self.estado = "criacao"
-                if self.criar_abre_camera:
+                if self.criar_abre_galeria:
+                    self.aberturas += 1
+                    self._limpar_story()
+                    self.estado = "galeria"
+                    self.modo_selecao = self.selecao_ja_ativa
+                elif self.criar_abre_camera:
                     self.aberturas += 1
                     self._limpar_story()
                     self.estado = "camera"
@@ -385,12 +397,15 @@ class TelaFalsa:
                 self.estado = "galeria"
             elif chave == "album_menu":
                 self.estado = "album_menu"
+                self.todos_aberto = False
+            elif chave == "album_todos":
+                self.todos_aberto = True
             elif chave == "album_item":
                 self.album = valores["album"]
                 self.estado = "galeria"
             elif chave == "selecionar_varios":
-                self.modo_selecao = True
-                self.selecao = [-1 - k for k in range(self.pre_selecionados)]  # negativas = fora da tela
+                self.modo_selecao = not self.modo_selecao  # o mesmo botão liga e desliga ("Cancelar")
+                self.selecao = [-1 - k for k in range(self.pre_selecionados)] if self.modo_selecao else []
             elif chave == "avancar":
                 self.midias = [{"indice": i, "musica": None, "figurinha": None} for i in self.selecao]
                 self.atual = 0
@@ -503,7 +518,9 @@ class TelaFalsa:
         if chave == "miniaturas_galeria":
             for i in range(self._n_grade()):
                 linha, coluna = divmod(i, 4)
-                els.append(Elemento(texto="", limites=(coluna * 250, 400 + linha * 250, coluna * 250 + 240, 640 + linha * 250),
+                desc = ("Selecionado" if i in self.selecao else "Não selecionado") + " Miniatura de foto com criação em 24 de setembro"
+                els.append(Elemento(texto="", descricao=desc,
+                                    limites=(coluna * 250, 400 + linha * 250, coluna * 250 + 240, 640 + linha * 250),
                                     acao=self._tocar_miniatura(i)))
         elif chave == "badge_selecao":
             for ordem, i in enumerate(self.selecao, 1):

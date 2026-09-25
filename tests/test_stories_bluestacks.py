@@ -98,6 +98,39 @@ def test_instagram_448_adicionar_ao_story_abre_a_camera_direto(ambiente):
     assert "abrir_story" not in a.tela.toques and a.tela.toques.count("criar") == 1
 
 
+def test_instagram_448_como_no_pc(ambiente):
+    """Como no testar.bat bluestacks de 25/09: "Adicionar ao story" abre a galeria; o álbum fica em "Todos os
+    álbuns"; a seleção não mostra número (só a descrição da miniatura muda). Real publica certo."""
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.album_via_todos = True
+    a.tela.numeros_na_selecao = False
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto", "foto", "foto"]}, ensaio=False), ensaio=False)
+    assert res["publicadas"] == ["A"]
+    assert "abrir_story" not in a.tela.toques and "abrir_galeria" not in a.tela.toques
+    assert a.tela.toques.index("album_todos") < a.tela.toques.index("album_item")
+    assert a.tela.publicacoes[0]["album"] == "2026-09-22_A" and len(a.tela.publicacoes[0]["midias"]) == 3
+
+
+def test_selecao_ja_ligada_nao_e_desligada(ambiente):
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.selecao_ja_ativa = True
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto", "foto"]}), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert "selecionar_varios" not in a.tela.toques
+
+
+def test_sem_numero_e_com_uma_miniatura_ignorada_nao_publica(ambiente):
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.numeros_na_selecao = False
+    a.tela.ignorar_miniatura = {1}  # o toque na 2ª não pegou
+    with pytest.raises(bluestacks.ErroPostagem):
+        rodar(a, montar_plano(a.midias, {"A": ["foto", "foto", "foto"]}, ensaio=False), ensaio=False)
+    assert a.tela.publicacoes == []
+
+
 def test_versao_com_aba_criar_ainda_escolhe_story(ambiente):
     a = ambiente
     res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)
@@ -689,3 +722,23 @@ def test_teste_ensaio_usa_o_plano_mais_recente_da_data(sem_emulador, cfg):
     assert a.tela.publicacoes == []
     assert (ctx.pasta_saida / "ensaio_A_1.png").is_file()
     assert list(ctx.pasta_saida.glob("passo_*.xml"))
+
+
+@pytest.mark.ffmpeg
+def test_ensaio_sintetico_monta_letra_de_teste_sem_publicar(sem_emulador, cfg):
+    a = sem_emulador
+    a.tela.criar_abre_galeria = True
+    a.tela.albuns["2000-01-01_T"] = 3
+    ctx = Contexto(a.ctx.pasta_saida / "ensaio-sintetico", diagnostico=True)
+    res = bluestacks.teste_ensaio(ctx, ["--sintetico"])
+    assert res["ok"] is True, res
+    assert a.tela.publicacoes == [] and not set(a.tela.toques) & bluestacks.CHAVES_PUBLICAR
+    (letra,) = res["letras"]
+    assert letra["estado"] == "ensaio_ok" and len(letra["prints"]) == 3
+    # mídia de teste fica na pasta de trabalho das rotinas, nunca em Stories da Loja
+    assert Path(res["plano"]).is_relative_to(cfg.p.trabalho_stories)
+    assert not any(cfg.p.stories_fonte.rglob("T - *"))
+    plano = bluestacks.plano_sintetico(Path(res["plano"]))
+    midias = plano["letras"][0]["midias"]
+    assert midias[0]["precisa_musica"] and midias[0]["musica"]
+    assert midias[-1]["figurinha"]["url"].startswith("wa.me/") and all(m["figurinha"] is None for m in midias[:-1])
