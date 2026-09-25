@@ -1,0 +1,20 @@
+2026-09-25 18:45:05 INFO    rotinas.execucao: Teste 'stories-ensaio' começou. Pasta: C:\Users\V15\Documents\Rotinas Ferreira\sistema\execucoes\2026-09-25_1845_stories-ensaio
+2026-09-25 18:45:09 INFO    rotinas.stories.bluestacks: Ensaio com a letra de teste gerada em C:\Users\V15\Documents\Rotinas Ferreira\stories\_teste\2026-09-25_1845
+2026-09-25 18:45:10 INFO    rotinas.stories.android: adb usado nesta execução: C:\Program Files\BlueStacks_nxt\HD-Adb.exe
+2026-09-25 18:45:10 INFO    rotinas.stories.android: Conectado ao BlueStacks em 127.0.0.1:5555
+2026-09-25 18:45:10 INFO    rotinas.stories.bluestacks: BlueStacks: {'serial': '127.0.0.1:5555', 'adb': 'C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe', 'android': '9', 'sdk': '28', 'modelo': 'SM-S908E', 'tela': 'Physical size: 1600x900', 'densidade': 'Physical density: 240\nOverride density: 320', 'instagram': '448.0.0.52.84'}
+2026-09-25 18:45:11 INFO    rotinas.stories.bluestacks: Postando 1 letra(s) de 2000-01-01 em modo ENSAIO
+2026-09-25 18:45:11 INFO    rotinas.stories.bluestacks: Letra T: enviar midias
+2026-09-25 18:45:12 INFO    rotinas.stories.android: Enviando 3 mídia(s) da letra T para a galeria do BlueStacks (/sdcard/Pictures/RotinasFerreira/2000-01-01_T)
+2026-09-25 18:45:14 INFO    rotinas.stories.android: Varredura da galeria que funcionou: broadcast
+2026-09-25 18:45:19 INFO    rotinas.stories.android: Letra T na galeria: 3 de 3 mídia(s), na ordem
+2026-09-25 18:45:19 INFO    rotinas.stories.bluestacks: Letra T: abrir instagram
+2026-09-25 18:45:22 INFO    rotinas.stories.bluestacks: Letra T: criar
+2026-09-25 18:45:23 INFO    rotinas.stories.bluestacks: Letra T: 'Adicionar ao story' abriu direto a galeria/câmera (sem escolher 'Story')
+2026-09-25 18:45:23 INFO    rotinas.stories.bluestacks: Letra T: abrir galeria
+2026-09-25 18:45:24 INFO    rotinas.stories.bluestacks: Letra T: escolher album
+2026-09-25 18:45:29 INFO    rotinas.stories.bluestacks: Letra T: selecionar varios
+2026-09-25 18:45:31 INFO    rotinas.stories.bluestacks: Letra T: tocar midias
+2026-09-25 18:45:34 INFO    rotinas.stories.bluestacks: Letra T: conferir selecao
+2026-09-25 18:45:34 ERROR   rotinas.stories.bluestacks: Letra T falhou no passo 'conferir_selecao': a seleção tem 2 de 3 mídia(s) (descrição das miniaturas (não confere a ordem)); não publico letra pela metade
+2026-09-25 18:45:36 ERROR   rotinas.execucao: Teste 'stories-ensaio' terminou com erro: Parei na letra T (passo 'conferir_selecao'): a seleção tem 2 de 3 mídia(s) (descrição das miniaturas (não confere a ordem)); não publico letra pela metade Publicadas antes: nenhuma. Não iniciadas: nenhuma.
