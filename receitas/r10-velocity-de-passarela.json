@@ -1,0 +1,34 @@
+{
+  "id": "r10-velocity-de-passarela",
+  "nome": "Velocity de passarela",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R10",
+  "descricao": "Caminhada com speed ramp (+ borrão de movimento) → strobe no drop. Tremor e brilho do guia ficam de fora pelo orçamento de 8–15 s (1 assinatura + 1 apoio, §4.1); o brilho também seria item da biblioteca (§7).",
+  "objetivo": "inspirar",
+  "estetica": "festa",
+  "destinos": ["reels", "tiktok", "stories"],
+  "duracao_s": [8, 15],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [0.7, 1.2], "batidas": 2, "tomada_sugerida": "o pico do desfile (giro ou pose final: o melhor 0,7–1 s)", "texto": "gancho", "efeito": 21, "repete": null},
+    {"papel": "passarela", "dur_s": [1.5, 3.0], "tomada_sugerida": "caminhada até a câmera em 4K a 60 fps (rampa: aproximação 2–4x, pico 0,3–0,5x na batida, saída 2–3x)", "texto": null, "efeito": 8, "som": "whoosh", "som_max": 2, "repete": [2, 4]},
+    {"papel": "drop", "dur_s": [2.0, 3.0], "tomada_sugerida": "pose final ou giro no drop da música, corpo inteiro", "texto": "cta", "efeito": 31, "payoff": true, "repete": null}
+  ],
+  "ritmo": {"troca_s": [1.0, 3.0], "corte_na_batida": true, "batidas_por_troca": 4, "bpm": [100, 128]},
+  "textos": {
+    "gancho": {"y": [420, 580], "tamanho_px": 96, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]},
+    "cta":    {"y": [1200, 1240], "tamanho_px": 64, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "cta", "animacao": "pop", "atraso_s": 0.5, "padrao": "Chama no WhatsApp"}
+  },
+  "legendas": {"ligado": false, "estilo": "legenda", "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco"], "max": 0},
+  "efeitos": {"assinatura": 8, "apoio": [31], "sonoros": ["whoosh"]},
+  "musica": {"origem": "instagram", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -7, "volume_voz_db": 0, "volume_clipe_sem_fala_db": null},
+  "cor": {"look": "editorial", "filtro_max": 0.4, "tomada_cor_fiel": true},
+  "loop": false,
+  "itens_biblioteca": [],
+  "notas": [
+    "Caminhada gravada em 4K a 60 fps (o pico da rampa é câmera lenta); obturador 1/120; corredor livre.",
+    "Câmera na altura da cintura/quadril, 2x a 3–4 m, lente reta; foco e exposição travados.",
+    "Faixa-guia de 100–128 BPM com drop bem marcado (marcar as batidas com video-preparar --musica); a música final entra pelo Instagram.",
+    "Strobe no máximo 3 flashes por segundo (fotossensibilidade); nada de glitch (festa).",
+    "O look Editorial dessatura: manter um plano com a cor real da peça (tomada de cor fiel)."
+  ]
+}

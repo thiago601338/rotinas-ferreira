@@ -1,0 +1,39 @@
+{
+  "id": "r04-detalhe-que-vende",
+  "nome": "Detalhe que vende",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R4",
+  "descricao": "Zoom lento + câmera lenta no tecido + ASMR → lupa + texto mínimo \"forrado · não amassa · P ao GG\" → fusão para a peça inteira + preço discreto.",
+  "objetivo": "vender",
+  "estetica": "luxo",
+  "destinos": ["reels", "stories", "tiktok"],
+  "duracao_s": [10, 15],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [1.5, 3.0], "velocidade": 0.5, "tomada_sugerida": "close do tecido em movimento, 4K a 60 fps, luz lateral rasante (câmera lenta + zoom lento)", "texto": "gancho", "efeito": 2, "repete": null},
+    {"papel": "tecido", "dur_s": [1.5, 3.0], "tomada_sugerida": "mão passando no tecido a 20–30 cm, velocidade normal, com o som (ASMR)", "texto": null, "efeito": 58, "repete": null},
+    {"papel": "textura", "dur_s": [1.5, 3.0], "tomada_sugerida": "segundo detalhe (forro, costura, botão, renda) a 20–30 cm, em 4K, com o som do objeto", "texto": "rotulo", "efeito": 55, "repete": [1, 2]},
+    {"papel": "peca", "dur_s": [2.5, 3.5], "transicao": "fusao", "tomada_sugerida": "peça inteira no corpo, parada, luz de janela, com espaço embaixo para o preço", "texto": ["preco", "parcelas", "cta"], "efeito": 53, "payoff": true, "repete": null}
+  ],
+  "ritmo": {"troca_s": [1.5, 3.0], "corte_na_batida": false, "batidas_por_troca": null, "bpm": [70, 90]},
+  "textos": {
+    "gancho":   {"y": [420, 580], "tamanho_px": 88, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]},
+    "rotulo":   {"y": [1180, 1220], "tamanho_px": 56, "tamanho_min_px": 46, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "padrao", "animacao": "subir", "opcional": true},
+    "preco":    {"y": [1060, 1100], "tamanho_px": 72, "tamanho_min_px": 60, "min_s": 2.0, "entra_max_s": 0.3, "estilo": "preco", "animacao": "pop"},
+    "parcelas": {"y": [1160, 1180], "tamanho_px": 48, "tamanho_min_px": 44, "min_s": 2.0, "entra_max_s": 0.3, "estilo": "preco", "animacao": "pop"},
+    "cta":      {"y": [1250, 1280], "tamanho_px": 56, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "cta", "animacao": "pop", "atraso_s": 0.5, "padrao": "Chama no WhatsApp"}
+  },
+  "legendas": {"ligado": false, "estilo": "legenda", "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco", "fusao"], "max": 1},
+  "efeitos": {"assinatura": 55, "apoio": [2], "sonoros": []},
+  "musica": {"origem": "sem", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -20, "volume_voz_db": 0, "volume_clipe_sem_fala_db": 4},
+  "cor": {"look": "clean", "filtro_max": 0.3, "tomada_cor_fiel": true},
+  "loop": false,
+  "itens_biblioteca": [],
+  "notas": [
+    "Closes em 4K a 60 fps (câmera lenta e lupa pedem 4K); luz lateral rasante para a textura; obturador 1/120.",
+    "Som do tecido/objeto gravado a 20–30 cm (ASMR: som do objeto +3 a +6 dB); ar-condicionado, ventilador e música ambiente desligados.",
+    "Foco e exposição travados no tecido; balanço de branco travado (peça branca, cetim ou paetê: −0,3 a −0,7).",
+    "Peça inteira na luz de janela para a fusão final; tomada de cor fiel (cartão cinza, 5 s).",
+    "Texto mínimo com o que a peça tem de verdade (forro, tecido, tamanhos com estoque).",
+    "Sem música por padrão (o som é o ASMR); se entrar música, bem baixa (−15 a −25 dB) ou pelo Instagram."
+  ]
+}

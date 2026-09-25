@@ -1,0 +1,35 @@
+{
+  "id": "r09-congela-e-recorta",
+  "nome": "Congela e recorta",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R9",
+  "descricao": "Desfile → congela no melhor ângulo → recorte com contorno sobre papel → preço com pop e obturador. O pop é a entrada do preço (animação 0,2–0,3 s, §4.2 #11/#53); o som é o obturador no congelamento (um efeito sonoro a cada 2–3 s, §7).",
+  "objetivo": "vender",
+  "estetica": "jovem",
+  "destinos": ["reels", "tiktok", "stories"],
+  "duracao_s": [6, 10],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [1.5, 3.0], "tomada_sugerida": "desfile caminhando até a câmera, corpo inteiro (2x a 3–4 m, câmera na altura da cintura)", "texto": "gancho", "efeito": null, "repete": null},
+    {"papel": "congela", "dur_s": [3.0, 4.0], "congelar": true, "tomada_sugerida": "o quadro mais nítido e no melhor ângulo do desfile (vira foto congelada, recortada com contorno branco sobre fundo de papel)", "texto": ["preco", "parcelas", "cta"], "efeito": [11, 53], "som": "obturador", "payoff": true, "repete": null}
+  ],
+  "ritmo": {"troca_s": [1.0, 3.0], "corte_na_batida": false, "batidas_por_troca": null, "bpm": [100, 128]},
+  "textos": {
+    "gancho":   {"y": [420, 580], "tamanho_px": 96, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]},
+    "preco":    {"y": [390, 430], "tamanho_px": 96, "tamanho_min_px": 72, "min_s": 2.0, "entra_max_s": 0.3, "estilo": "preco", "animacao": "pop", "atraso_s": 0.6},
+    "parcelas": {"y": [500, 530], "tamanho_px": 56, "tamanho_min_px": 44, "min_s": 2.0, "entra_max_s": 0.3, "estilo": "preco", "animacao": "pop", "atraso_s": 0.6},
+    "cta":      {"y": [1240, 1280], "tamanho_px": 64, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "cta", "animacao": "pop", "atraso_s": 1.4, "padrao": "Chama no WhatsApp"}
+  },
+  "legendas": {"ligado": false, "estilo": "legenda", "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco"], "max": 0},
+  "efeitos": {"assinatura": 11, "apoio": [], "sonoros": ["obturador"]},
+  "musica": {"origem": "instagram", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -7, "volume_voz_db": 0, "volume_clipe_sem_fala_db": null},
+  "cor": {"look": "clean", "filtro_max": 0.4, "tomada_cor_fiel": true},
+  "loop": false,
+  "itens_biblioteca": [],
+  "notas": [
+    "Desfile caminhando até a câmera, corpo inteiro, fundo limpo e contrastado (facilita a Remoção automática).",
+    "Obturador 1/60 a 30 fps (ou 1/120 a 60 fps) e boa luz: o quadro congelado precisa estar nítido; foco e exposição travados.",
+    "Contorno branco feito à mão (cópia do recorte embaixo, toda branca, Escala +3%); \"Efeitos corpo > Traço\" só se tiver marca comercial (§7).",
+    "Fundo de papel: foto própria de papel ou Tela de cor lisa (sem item da biblioteca).",
+    "Tomada de cor fiel da peça (cartão cinza, luz do dia, 5 s); preço e parcelas do cadastro."
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "r05-photo-dump-da-colecao",
+  "nome": "Photo dump da coleção",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R5",
+  "descricao": "15–20 fotos na batida, zoom 3D em 3, obturador e flash nas fotos-chave. A polaroid do guia fica de fora e o obturador vai só nas fotos-chave para caber no orçamento de 8–12 s (§4.1) e em um som a cada 2–3 s (§7).",
+  "objetivo": "inspirar",
+  "estetica": "jovem",
+  "destinos": ["reels", "tiktok", "stories"],
+  "duracao_s": [8, 12],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [0.8, 1.5], "batidas": 2, "tomada_sugerida": "a foto mais forte da coleção (peça inteira, luz do dia)", "texto": "gancho", "efeito": 3, "som": "obturador", "repete": null},
+    {"papel": "foto", "dur_s": [0.4, 0.6], "batidas": 1, "tomada_sugerida": "fotos verticais da coleção, uma peça por foto, mesma luz e balanço de branco", "texto": null, "efeito": 3, "efeito_max": 2, "reforco": "flash", "reforco_max": 3, "som": "obturador", "som_max": 2, "repete": [15, 20]}
+  ],
+  "ritmo": {"troca_s": [0.4, 3.0], "corte_na_batida": true, "batidas_por_troca": 1, "bpm": [120, 128]},
+  "textos": {
+    "gancho": {"y": [420, 580], "tamanho_px": 96, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]}
+  },
+  "legendas": {"ligado": false, "estilo": "legenda", "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco"], "max": 0},
+  "efeitos": {"assinatura": 3, "apoio": [31], "sonoros": ["obturador"]},
+  "musica": {"origem": "instagram", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -7, "volume_voz_db": 0, "volume_clipe_sem_fala_db": null},
+  "cor": {"look": "clean", "filtro_max": 0.4, "tomada_cor_fiel": true},
+  "loop": true,
+  "itens_biblioteca": [],
+  "notas": [
+    "15–20 fotos verticais 9:16 (1080×1920 ou maior, JPG), uma peça por foto, mesma luz e balanço de branco; nunca foto baixada do WhatsApp.",
+    "As 3 fotos-chave (zoom 3D) de corpo inteiro com fundo limpo; evitar tule, franja e cabelo solto nelas (o recorte falha).",
+    "Pelo menos uma foto com a cor real da peça (luz do dia, sem filtro).",
+    "Faixa-guia de 120–128 BPM (0,4–0,5 s por foto); a música final entra pelo Instagram (§7).",
+    "Última foto igual (ou quase) à primeira para o loop.",
+    "Flash no máximo 3 por segundo (fotossensibilidade)."
+  ]
+}

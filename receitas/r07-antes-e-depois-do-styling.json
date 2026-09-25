@@ -1,0 +1,36 @@
+{
+  "id": "r07-antes-e-depois-do-styling",
+  "nome": "Antes e depois do styling",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R7",
+  "descricao": "Básico → cortina → completo + whoosh → lista das peças com preço.",
+  "objetivo": "vender",
+  "estetica": "casual",
+  "destinos": ["reels", "stories", "tiktok"],
+  "duracao_s": [8, 12],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [1.5, 2.5], "tomada_sugerida": "look básico de corpo inteiro (tripé fixo, fita no chão; mesma pose do depois)", "texto": "gancho", "efeito": null, "repete": null},
+    {"papel": "depois", "dur_s": [2.0, 3.0], "tomada_sugerida": "look completo no mesmo enquadramento e na mesma pose", "texto": "rotulo", "efeito": 38, "som": "whoosh", "repete": null},
+    {"papel": "lista", "dur_s": [2.5, 3.5], "tomada_sugerida": "look completo parado de corpo inteiro, com espaço livre no alto para a lista", "texto": ["lista", "cta"], "efeito": 53, "payoff": true, "repete": null}
+  ],
+  "ritmo": {"troca_s": [1.0, 3.0], "corte_na_batida": false, "batidas_por_troca": null, "bpm": [90, 120]},
+  "textos": {
+    "gancho": {"y": [420, 580], "tamanho_px": 96, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]},
+    "rotulo": {"y": [330, 360], "tamanho_px": 60, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "padrao", "animacao": "pop", "atraso_s": 1.0, "padrao": "DEPOIS", "opcional": true},
+    "lista":  {"y": [440, 480], "tamanho_px": 60, "tamanho_min_px": 46, "min_s": 2.5, "entra_max_s": 0.3, "estilo": "preco", "animacao": "pop"},
+    "cta":    {"y": [700, 740], "tamanho_px": 64, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "cta", "animacao": "pop", "atraso_s": 0.5, "padrao": "Chama no WhatsApp"}
+  },
+  "legendas": {"ligado": false, "estilo": "legenda", "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco"], "max": 0},
+  "efeitos": {"assinatura": 38, "apoio": [], "sonoros": ["whoosh"]},
+  "musica": {"origem": "instagram", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -7, "volume_voz_db": 0, "volume_clipe_sem_fala_db": null},
+  "cor": {"look": "clean", "filtro_max": 0.4, "tomada_cor_fiel": true},
+  "loop": false,
+  "itens_biblioteca": [],
+  "notas": [
+    "Tripé fixo e fita no chão: antes e depois no mesmo enquadramento, mesma pose, mesma luz; foco, exposição e branco travados (a cortina precisa casar os dois quadros).",
+    "Do básico ao completo pelo styling (peças e acessórios), nunca comparando corpo.",
+    "2 s de sobra antes e depois de cada tomada.",
+    "Lista com o preço de cada peça no formato da loja (R$89,90), conferido com o cadastro; só peças com estoque.",
+    "Tomada de cor fiel das peças (cartão cinza, luz do dia, 5 s)."
+  ]
+}
