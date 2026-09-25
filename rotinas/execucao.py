@@ -25,7 +25,7 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 
-from . import config, diagnostico, ferramentas, registro
+from . import config, diagnostico, ferramentas, privacidade, registro
 from .contexto import Contexto, carimbo
 
 log = registro.obter("execucao")
@@ -193,6 +193,8 @@ def sanear(pasta: Path, raiz: Path | None = None) -> dict:
 
     Só age dentro de ``execucoes/``. Vídeo e arquivo grande saem da pasta de execução e ficam
     em ``saida_local/`` (fora do git); ``.env`` é apagado. Tudo o que saiu vai para ``omitidos.txt``.
+    Telas salvas (``.xml`` + ``.png``): conversa do Direct fica fora do git; notificação do Android (nome e mensagem
+    de cliente) é apagada do XML e coberta no print (``privacidade``).
     """
     pasta = Path(pasta)
     raiz = Path(raiz or config.RAIZ)
@@ -237,6 +239,23 @@ def sanear(pasta: Path, raiz: Path | None = None) -> dict:
             if limpo != texto:
                 arq.write_bytes(limpo.encode("utf-8", "surrogateescape"))
                 ocultados.append(rel)
+
+    priv = c.get("privacidade") or {}
+    for xml in sorted(pasta.rglob("*.xml")):
+        rel = xml.relative_to(pasta).as_posix()
+        png = xml.with_suffix(".png")
+        try:
+            r = privacidade.conferir_par(xml, priv)
+        except Exception as e:  # noqa: BLE001 - na dúvida, a tela não vai para o git
+            log.warning("Não consegui conferir a privacidade de %s: %s", rel, e)
+            r = {"privada": f"não consegui conferir ({e.__class__.__name__})", "apagados": 0, "coberto": False}
+        if r["privada"]:
+            for arq in (xml, png):
+                if arq.exists():
+                    tirar(arq, arq.relative_to(pasta).as_posix(), arq.stat().st_size,
+                          f"tela privada ({r['privada']}): conversa de cliente não vai para o git")
+        elif r["apagados"] or r["coberto"]:
+            ocultados.append(f"{rel} (notificação do Android{', print coberto' if r['coberto'] else ''})")
 
     for arq in sorted(pasta.rglob("*")):
         rel = arq.relative_to(pasta).as_posix()

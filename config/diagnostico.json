@@ -28,7 +28,14 @@
     "pasta_local_omitidos": "saida_local/execucoes",
     "extensoes_texto": [".txt", ".json", ".xml", ".log", ".csv", ".md", ".srt", ".conf", ".ini", ".cfg", ".tmp", ".yaml", ".yml", ".html"],
     "extensoes_video": [".mp4", ".mov", ".m4v", ".3gp", ".avi", ".mkv", ".webm", ".wmv", ".ts", ".mts"],
-    "timeout_pytest_s": 1800,
+    "_privacidade": "Telas salvas (xml + png) antes do git (repositório público). Tela com um destes resource-id (Direct) fica só no PC; nós do pacote de notificações têm texto/descrição apagados e a faixa da notificação flutuante é coberta no print (margem acima/abaixo em px).",
+  "privacidade": {
+    "marcadores_tela_privada": [":id/direct_thread", ":id/row_thread_composer", ":id/thread_fragment_container", ":id/direct_inbox", ":id/inbox_refreshable_thread_list"],
+    "pacote_notificacoes": "com.android.systemui",
+    "ids_mantidos": ["com.android.systemui:id/clock"],
+    "margem_print_px": [56, 24]
+  },
+  "timeout_pytest_s": 1800,
     "timeout_git_s": 180,
     "git_autor_padrao": {"nome": "PC Ferreira Boutique", "email": "pc-ferreira@users.noreply.github.com"}
   }

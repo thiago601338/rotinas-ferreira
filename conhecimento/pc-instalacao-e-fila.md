@@ -43,6 +43,16 @@ ainda não foi confirmado no PC real está marcado "(a confirmar)".
 - Grava `execucoes/<aaaa-mm-dd_hhmm>_<alvo>/`, tira segredos de todo arquivo de texto, deixa fora do git vídeo e
   arquivo > 20 MB (ficam em `saida_local/`), commita só a pasta da execução e dá `git push`.
 - O repositório é **público**: prints e XML de tela que vão para `execucoes/` ficam visíveis na internet.
+- **Privacidade das telas (25/09/2026):** no ensaio das 19:42 a notificação flutuante do Android (mensagem de cliente
+  no Direct: nome, foto e texto) apareceu no topo, um toque caiu nela e o ensaio foi parar na conversa; o print e o XML
+  da conversa foram para o GitHub (tirados no commit seguinte; ainda ficam no histórico do ramo). Agora o saneamento
+  (`rotinas/privacidade.py`, config `execucao.privacidade` em `config/diagnostico.json`) confere cada `.xml` de tela:
+  tela do Direct (`:id/direct_thread`, `:id/row_thread_composer`…) → o par `.xml`/`.png` fica só no PC
+  (`saida_local/`, listado em `omitidos.txt`); notificação do Android (pacote `com.android.systemui`) → texto e
+  descrição viram `[oculto]` no XML (inclusive "Notificação do Instagram: <nome>" da barra de status) e a faixa da
+  notificação flutuante (nós `android:id/...`) é coberta de preto no print. Na dúvida (erro ao conferir), a tela não
+  vai para o git. Print sem `.xml` do mesmo nome não é conferido: o postador espera a notificação sumir antes de
+  qualquer print.
 - Commits do PC saem como "PC Ferreira Boutique". Push precisa do login do GitHub no Git do PC (Git Credential
   Manager abre o navegador na primeira vez); sem login, `testar.bat enviar` tenta de novo depois.
 
