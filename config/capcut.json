@@ -13,8 +13,8 @@
   ],
   "arquivo_meta": "draft_meta_info.json",
   "arquivo_indice": "root_meta_info.json",
-  "timelines": "omitir",
-  "_timelines": "omitir: não leva a pasta Timelines/ do gabarito (o app monta a dele a partir dos arquivos da raiz, relatado na 8.4 e 9.3); espelhar: recria Timelines/<id>/ com a linha do tempo nova",
+  "timelines": "espelhar",
+  "_timelines": "espelhar (padrão desde 25/09/2026): o projeto '0925' do CapCut 9.5.0.4050 do usuário tem Timelines/project.json (main_timeline_id = id do rascunho) e Timelines/<id>/draft_content.json idêntico ao da raiz; o gerador recria essa pasta com a linha do tempo nova. omitir: não leva Timelines/ (o app monta a dele, relatado na 8.4 e 9.3).",
   "registrar_no_indice": "auto",
   "_registrar_no_indice": "auto: registra no root_meta_info.json só se ele existir na pasta de rascunhos e já listar projetos; sempre; nunca",
   "nao_copiar": [

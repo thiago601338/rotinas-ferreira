@@ -23,6 +23,14 @@ Complementa `edicao-video-capcut.md`. Origem: mapeamento feito no PC do usuário
 - Avaliação rodada de cada uma e a decisão (gerador próprio sobre o gabarito "0925", `rotinas/video/rascunho.py`): `capcut-avaliacao-ferramentas.md`.
 - Regras: CapCut fechado ao gravar, backup antes, validação antes de salvar. Depois, abrir no app, revisar e exportar.
 
+## Formato confirmado no PC (diagnóstico de 25/09/2026, CapCut 9.5.0.4050, projeto "0925")
+- Pasta do projeto: `draft_content.json` (**principal**; não existe `draft_info.json`), `template-2.tmp` (cópia idêntica, JSON aberto), `draft_meta_info.json`, `draft_virtual_store.json`, `draft_agency_config.json`, `draft_biz_config.json`, `key_value.json`, `timeline_layout.json`, `performance_opt_info.json`, `draft_settings`, `draft.extra`, `common_attachment/`, `draft_cover.jpg` e **`Timelines/`**.
+- `Timelines/project.json`: `main_timeline_id` = `id` do rascunho; `timelines[0]` = "Linha do tempo 01". `Timelines/<id>/draft_content.json` e `template-2.tmp` são iguais ao da raiz; `template.tmp` é o modelo vazio inicial (outro id). O gerador espelha essa pasta (`config/capcut.json → timelines: espelhar`).
+- Marcadores: `platform.app_version` 9.5.0, `new_version` 187.0.0, `version` 360000. Projeto novo nasce com `canvas_config.ratio` "original" 1920×1080.
+- Vídeo exige `extra_material_refs`: speeds, placeholder_infos, canvases, sound_channel_mappings, material_colors, vocal_separations; texto: material_animations. O "0925" não tem áudio local: o protótipo de áudio ainda é o de reserva.
+- `root_meta_info.json` (raiz dos rascunhos): `all_draft_store`, `draft_ids` (= quantidade de projetos; 41 no PC) e `root_path` com barras `/`.
+- Gabarito guardado no repositório em `gabaritos/capcut-9.5/0925/` (sem `.bak`), com uma amostra do índice só com a entrada do "0925".
+
 ## Exportação (modal "Exportar-<nome do projeto>", Ctrl+E)
 - Campos: Nome · Exportar para (padrão `C:/Users/V15/AppData/Local/CapCut…`) · ☑ Vídeo: Resolução (480P · 720P · **1080P** · 2K · 4K · 8K), Taxa de bits (Abaixar · **Recomendado** · Superior · Personalizado), Codec (**H.264** · HEVC · HEVC Alpha · HEVC 422 · AV1 · RLE), Formato (mov · **mp4**), Taxa de quadros (24 · 25 · 29.97 · **30** · 50 · 59.94 · 60), Espaço de cores Rec.709 SDR (fixo) · ☑ "Sincronize os vídeos exportados com o espaço" · ☐ Áudio (MP3) · ☐ GIF · ☐ Legendas 💎 (SRT) · Verificar direitos autorais (desligado) · rodapé com o tamanho estimado e os botões **[Exportar]** e **[Cancelar]**.
 - **Bloqueio:** se a linha do tempo tiver só material da Biblioteca sem edição, o Ctrl+E mostra "Não foi possível exportar — Para evitar violação de direitos autorais, não exporte materiais sem editá-los no CapCut." [OK]. Depois de adicionar um texto, abriu normalmente.

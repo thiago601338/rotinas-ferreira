@@ -89,6 +89,22 @@ PADRAO = {"A": ["video_mudo", "foto", "foto"], "B": ["video_som", "foto"], "C": 
 
 # ---------------------------------------------------------------- ensaio
 
+def test_instagram_448_adicionar_ao_story_abre_a_camera_direto(ambiente):
+    """No Instagram 448 não há aba "Criar": "Adicionar ao story" já abre a câmera; a aba "Story" não é tocada."""
+    a = ambiente
+    a.tela.criar_abre_camera = True
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto", "foto"]}), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert "abrir_story" not in a.tela.toques and a.tela.toques.count("criar") == 1
+
+
+def test_versao_com_aba_criar_ainda_escolhe_story(ambiente):
+    a = ambiente
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert a.tela.toques.index("criar") < a.tela.toques.index("abrir_story")
+
+
 def test_ensaio_nao_toca_em_publicar_e_gera_um_print_por_midia(ambiente):
     a = ambiente
     res = rodar(a, montar_plano(a.midias, PADRAO), ensaio=True)
@@ -646,12 +662,13 @@ def test_teste_real_percorre_ate_a_galeria_sem_publicar(sem_emulador):
     ctx = Contexto(a.ctx.pasta_saida / "teste-real", diagnostico=True)
     res = bluestacks.teste_real(ctx, [])
     assert res["ok"] is True, res
-    assert [p["passo"] for p in res["passos"]] == ["abrir_instagram", "criar", "abrir_story", "abrir_galeria",
+    assert [p["passo"] for p in res["passos"]] == ["abrir_instagram", "entrar_no_story", "abrir_galeria",
                                                    "selecionar_varios", "album_menu"]
     assert res["miniaturas_galeria"] == a.tela.recentes
     assert not set(a.tela.toques) & bluestacks.CHAVES_PUBLICAR
     assert not {"avancar"} & set(a.tela.toques)
-    assert len(list(ctx.pasta_saida.glob("passo_*.xml"))) == 7
+    xmls = sorted(p.name for p in ctx.pasta_saida.glob("passo_*.xml"))
+    assert any("criar" in x for x in xmls) and any("abrir_story" in x for x in xmls) and len(xmls) >= 7
     assert res["saiu_com_seguranca"] and a.tela.estado == "feed"
     assert "Instagram 300.0" in res["resumo"]
     from rotinas import fila

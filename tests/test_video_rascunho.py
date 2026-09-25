@@ -551,7 +551,8 @@ def test_timelines_espelhar(amb, tmp_path):
     assert not (r.pasta / "Timelines" / antigo).exists()
 
 
-def test_timelines_omitidas_por_padrao(amb, tmp_path):
+def test_timelines_omitidas_quando_configurado(amb, tmp_path, cfg):
+    cfg.alterar("capcut", timelines="omitir")  # padrão agora é espelhar (como no 0925 real da 9.5)
     gab = tmp_path / "gab" / "0925"
     shutil.copytree(GABARITO, gab)
     (gab / "Timelines" / "X").mkdir(parents=True)
@@ -735,3 +736,26 @@ def test_faixa_guia_sai_muda(amb):
     pasta = amb.gerar(amb.plano(audio=audio)).pasta
     segs = _segs(_doc(pasta), "audio")
     assert segs and all(s["volume"] == 0.0 for s in segs)
+
+
+# ---------------------------------------------------------------- gabarito real do CapCut 9.5 (projeto "0925" do PC)
+
+GABARITO_REAL = Path(__file__).resolve().parent.parent / "gabaritos" / "capcut-9.5" / "0925"
+
+
+def test_gabarito_real_9_5_gera_raiz_e_timelines_iguais(amb):
+    r = amb.gerar(gabarito=GABARITO_REAL)
+    pasta = r.pasta
+    raiz = _doc(pasta, "draft_content.json")
+    assert not (pasta / "draft_info.json").exists()  # a 9.5 não usa draft_info.json
+    assert _doc(pasta, "template-2.tmp") == raiz
+    projeto = json.loads((pasta / "Timelines" / "project.json").read_text(encoding="utf-8"))
+    assert projeto["main_timeline_id"] == raiz["id"] and projeto["timelines"][0]["id"] == raiz["id"]
+    linha = pasta / "Timelines" / raiz["id"]
+    assert json.loads((linha / "draft_content.json").read_text(encoding="utf-8")) == raiz
+    # nada do gabarito que não deve ir: .bak, capa, a pasta da linha do tempo antiga
+    assert not list(pasta.rglob("*.bak")) and not list(pasta.rglob("draft_cover.jpg"))
+    assert not (pasta / "Timelines" / "4011713C-6C6B-48de-BAE0-BA6D68984DBD").exists()
+    assert "4011713C-6C6B-48de-BAE0-BA6D68984DBD" not in (pasta / "Timelines" / "project.json").read_text(encoding="utf-8")
+    assert [t["type"] for t in raiz["tracks"]].count("video") >= 1 and raiz["canvas_config"]["height"] == 1920
+    assert raiz["platform"]["app_version"] == "9.5.0"

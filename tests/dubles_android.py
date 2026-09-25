@@ -284,6 +284,7 @@ class TelaFalsa:
         self.enter_quebra_linha = False  # o Enter vira quebra de linha no texto da figurinha
         self.plano_b_chaves: set[str] = set()  # chaves que, sem seletor na tela, caem na coordenada (plano B)
         self.story_abre_rascunho = False  # "Story" reabre um rascunho no editor (em vez da câmera)
+        self.criar_abre_camera = False  # Instagram 448: "Adicionar ao story" já abre a câmera de story
         self.pre_selecionados = 0  # mídias já selecionadas (fora da tela) quando liga o "Selecionar"
         self.miniaturas_editor_extra = 0  # elementos a mais na faixa de miniaturas do editor (ex.: "+")
         self.caixa_seu_story = False  # na folha de compartilhar, a caixa marcada de "Seu story" logo acima
@@ -367,6 +368,10 @@ class TelaFalsa:
             e = self.estado
             if chave == "criar":
                 self.estado = "criacao"
+                if self.criar_abre_camera:
+                    self.aberturas += 1
+                    self._limpar_story()
+                    self.estado = "camera"
             elif chave == "abrir_story":
                 self.aberturas += 1
                 self._limpar_story()

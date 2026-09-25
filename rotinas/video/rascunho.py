@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import fnmatch
 import json
 import math
 import os
@@ -919,9 +920,10 @@ class _Construtor:
         if antigo:
             mapa[antigo] = novo
         saida: dict[str, bytes] = {}
+        ignorar = [x for x in (self.c.get("nao_copiar") or []) if x != "Timelines"]
         for arq in sorted(base.rglob("*")):
-            if not arq.is_file():
-                continue
+            if not arq.is_file() or any(fnmatch.fnmatch(arq.name, x) for x in ignorar):
+                continue  # .bak, capa e travas do gabarito não vão para o projeto novo
             partes = arq.relative_to(base).parts
             if len(partes) > 1 and principal is not None and partes[0] != principal.name:
                 self.avisos.append(f"Linha do tempo extra do gabarito não copiada: Timelines/{'/'.join(partes)}")

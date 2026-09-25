@@ -24,193 +24,446 @@
   "_envio": "Envio das mídias à galeria do Android (substitui o Gerenciador de Mídia). Ordem inversa, mtime decrescente (A-1 = mais novo) e varredura arquivo a arquivo.",
   "adb_timeout_s": 30,
   "push_timeout_s": 300,
-  "extensoes_galeria": [".mp4", ".m4v", ".3gp", ".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"],
+  "extensoes_galeria": [
+    ".mp4",
+    ".m4v",
+    ".3gp",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+    ".heic",
+    ".heif"
+  ],
   "intervalo_envio_s": 1.1,
   "mtime_passo_min": 1,
   "varredura_metodos": [
-    {"nome": "broadcast", "comando": "am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://{caminho}"},
-    {"nome": "scan_file", "comando": "content call --uri content://media --method scan_file --arg {caminho}"},
-    {"nome": "scan_volume", "comando": "content call --uri content://media --method scan_volume --arg external_primary"}
+    {
+      "nome": "broadcast",
+      "comando": "am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://{caminho}"
+    },
+    {
+      "nome": "scan_file",
+      "comando": "content call --uri content://media --method scan_file --arg {caminho}"
+    },
+    {
+      "nome": "scan_volume",
+      "comando": "content call --uri content://media --method scan_volume --arg external_primary"
+    }
   ],
   "varredura_espera_s": 5,
   "mediastore_uri": "content://media/external/file",
-  "mediastore_projecao": ["_id", "_data", "date_added", "date_modified"],
-  "mediastore_projecao_extra": ["datetaken"],
+  "mediastore_projecao": [
+    "_id",
+    "_data",
+    "date_added",
+    "date_modified"
+  ],
+  "mediastore_projecao_extra": [
+    "datetaken"
+  ],
   "conferencia_galeria_s": 30,
   "conferencia_intervalo_s": 0.5,
-  "ordem_exigir": ["date_added", "date_modified"],
-  "ordem_avisar": ["datetaken"],
+  "ordem_exigir": [
+    "date_added",
+    "date_modified"
+  ],
+  "ordem_avisar": [
+    "datetaken"
+  ],
   "seletores": {
     "_comentario": "Cada chave: lista de alternativas tentadas em ordem (campos do uiautomator2: text, textContains, textMatches, description, descriptionContains, resourceId, className, instance...; ou {\"xpath\": ...}). {\"coordenada_relativa\": [x, y]} (fração da tela) só como último recurso e sempre registrado no log como plano B; nunca em seu_story, concluir_publicacao ou descartar. {\"tecla\": \"enter\"} aperta uma tecla. {album} é trocado pelo nome do álbum. Chutes iniciais: corrigir pelo XML do diagnóstico.",
     "feed": [
-      {"resourceId": "com.instagram.android:id/feed_tab"},
-      {"description": "Página inicial"},
-      {"description": "Início"}
+      {
+        "resourceId": "com.instagram.android:id/feed_tab"
+      },
+      {
+        "description": "Página inicial"
+      },
+      {
+        "description": "Início"
+      }
     ],
     "dispensar_aviso": [
-      {"text": "Agora não"},
-      {"text": "Entendi"},
-      {"resourceId": "com.android.permissioncontroller:id/permission_allow_button"},
-      {"resourceId": "com.android.packageinstaller:id/permission_allow_button"}
+      {
+        "text": "Agora não"
+      },
+      {
+        "text": "Entendi"
+      },
+      {
+        "resourceId": "com.android.permissioncontroller:id/permission_allow_button"
+      },
+      {
+        "resourceId": "com.android.packageinstaller:id/permission_allow_button"
+      }
     ],
     "criar": [
-      {"resourceId": "com.instagram.android:id/creation_tab"},
-      {"description": "Criar"},
-      {"description": "Nova publicação"},
-      {"descriptionContains": "Criar"}
+      {
+        "resourceId": "com.instagram.android:id/reel_empty_badge"
+      },
+      {
+        "description": "Adicionar ao story"
+      },
+      {
+        "resourceId": "com.instagram.android:id/creation_tab"
+      },
+      {
+        "description": "Criar"
+      },
+      {
+        "description": "Nova publicação"
+      },
+      {
+        "descriptionContains": "Criar"
+      }
     ],
     "abrir_story": [
-      {"text": "STORY"},
-      {"text": "Story"},
-      {"description": "Story"},
-      {"resourceId": "com.instagram.android:id/cam_dest_story"}
+      {
+        "text": "STORY"
+      },
+      {
+        "text": "Story"
+      },
+      {
+        "description": "Story"
+      },
+      {
+        "resourceId": "com.instagram.android:id/cam_dest_story"
+      }
     ],
     "abrir_galeria": [
-      {"resourceId": "com.instagram.android:id/gallery_preview_button"},
-      {"description": "Galeria"},
-      {"descriptionContains": "aleria"},
-      {"coordenada_relativa": [0.08, 0.93]}
+      {
+        "resourceId": "com.instagram.android:id/gallery_preview_button"
+      },
+      {
+        "description": "Galeria"
+      },
+      {
+        "descriptionContains": "aleria"
+      },
+      {
+        "coordenada_relativa": [
+          0.08,
+          0.93
+        ]
+      }
     ],
     "album_menu": [
-      {"text": "Recentes"},
-      {"textContains": "Recentes"},
-      {"resourceId": "com.instagram.android:id/gallery_folder_menu"}
+      {
+        "text": "Recentes"
+      },
+      {
+        "textContains": "Recentes"
+      },
+      {
+        "resourceId": "com.instagram.android:id/gallery_folder_menu"
+      }
     ],
     "album_item": [
-      {"text": "{album}"},
-      {"textContains": "{album}"}
+      {
+        "text": "{album}"
+      },
+      {
+        "textContains": "{album}"
+      }
     ],
     "selecionar_varios": [
-      {"text": "Selecionar"},
-      {"text": "SELECIONAR"},
-      {"description": "Selecionar"},
-      {"descriptionContains": "Selecionar vários"},
-      {"resourceId": "com.instagram.android:id/multi_select_button"}
+      {
+        "text": "Selecionar"
+      },
+      {
+        "text": "SELECIONAR"
+      },
+      {
+        "description": "Selecionar"
+      },
+      {
+        "descriptionContains": "Selecionar vários"
+      },
+      {
+        "resourceId": "com.instagram.android:id/multi_select_button"
+      }
     ],
     "miniaturas_galeria": [
-      {"resourceId": "com.instagram.android:id/gallery_grid_item_thumbnail"},
-      {"resourceId": "com.instagram.android:id/media_thumbnail"},
-      {"descriptionMatches": "(?i)^(foto|v[ií]deo|imagem|miniatura).*"}
+      {
+        "resourceId": "com.instagram.android:id/gallery_grid_item_thumbnail"
+      },
+      {
+        "resourceId": "com.instagram.android:id/media_thumbnail"
+      },
+      {
+        "descriptionMatches": "(?i)^(foto|v[ií]deo|imagem|miniatura).*"
+      }
     ],
     "badge_selecao": [
-      {"resourceId": "com.instagram.android:id/gallery_grid_item_selection_circle"},
-      {"textMatches": "^[0-9]{1,2}$"}
+      {
+        "resourceId": "com.instagram.android:id/gallery_grid_item_selection_circle"
+      },
+      {
+        "textMatches": "^[0-9]{1,2}$"
+      }
     ],
     "contador_selecao": [
-      {"textMatches": "(?i)^[0-9]+ selecionad.*"},
-      {"textMatches": "(?i).*\\([0-9]+\\)$"}
+      {
+        "textMatches": "(?i)^[0-9]+ selecionad.*"
+      },
+      {
+        "textMatches": "(?i).*\\([0-9]+\\)$"
+      }
     ],
     "avancar": [
-      {"text": "Avançar"},
-      {"description": "Avançar"},
-      {"resourceId": "com.instagram.android:id/next_button_textview"},
-      {"descriptionContains": "Avançar"}
+      {
+        "text": "Avançar"
+      },
+      {
+        "description": "Avançar"
+      },
+      {
+        "resourceId": "com.instagram.android:id/next_button_textview"
+      },
+      {
+        "descriptionContains": "Avançar"
+      }
     ],
     "editor": [
-      {"description": "Figurinhas"},
-      {"descriptionContains": "igurinha"},
-      {"description": "Adesivos"},
-      {"resourceId": "com.instagram.android:id/asset_button"}
+      {
+        "description": "Figurinhas"
+      },
+      {
+        "descriptionContains": "igurinha"
+      },
+      {
+        "description": "Adesivos"
+      },
+      {
+        "resourceId": "com.instagram.android:id/asset_button"
+      }
     ],
     "miniaturas_editor": [
-      {"resourceId": "com.instagram.android:id/multi_capture_thumbnail"},
-      {"resourceId": "com.instagram.android:id/thumbnail_image"},
-      {"descriptionMatches": "(?i)^(m[ií]dia|item|foto|v[ií]deo) [0-9]+.*"}
+      {
+        "resourceId": "com.instagram.android:id/multi_capture_thumbnail"
+      },
+      {
+        "resourceId": "com.instagram.android:id/thumbnail_image"
+      },
+      {
+        "descriptionMatches": "(?i)^(m[ií]dia|item|foto|v[ií]deo) [0-9]+.*"
+      }
     ],
     "musica": [
-      {"description": "Música"},
-      {"description": "Adicionar música"},
-      {"descriptionContains": "úsica"}
+      {
+        "description": "Música"
+      },
+      {
+        "description": "Adicionar música"
+      },
+      {
+        "descriptionContains": "úsica"
+      }
     ],
     "figurinhas": [
-      {"description": "Figurinhas"},
-      {"description": "Adesivos"},
-      {"descriptionContains": "igurinha"},
-      {"descriptionContains": "desivo"},
-      {"resourceId": "com.instagram.android:id/asset_button"}
+      {
+        "description": "Figurinhas"
+      },
+      {
+        "description": "Adesivos"
+      },
+      {
+        "descriptionContains": "igurinha"
+      },
+      {
+        "descriptionContains": "desivo"
+      },
+      {
+        "resourceId": "com.instagram.android:id/asset_button"
+      }
     ],
     "figurinha_musica": [
-      {"text": "MÚSICA"},
-      {"text": "Música"},
-      {"descriptionContains": "úsica"}
+      {
+        "text": "MÚSICA"
+      },
+      {
+        "text": "Música"
+      },
+      {
+        "descriptionContains": "úsica"
+      }
     ],
     "buscar_musica": [
-      {"text": "Pesquisar música"},
-      {"textContains": "Pesquisar"},
-      {"className": "android.widget.EditText"}
+      {
+        "text": "Pesquisar música"
+      },
+      {
+        "textContains": "Pesquisar"
+      },
+      {
+        "className": "android.widget.EditText"
+      }
     ],
     "escolher_musica": [
-      {"className": "android.widget.TextView"}
+      {
+        "className": "android.widget.TextView"
+      }
     ],
     "concluir_musica": [
-      {"text": "Concluído"},
-      {"description": "Concluído"},
-      {"text": "Concluir"},
-      {"resourceId": "com.instagram.android:id/done_button"}
+      {
+        "text": "Concluído"
+      },
+      {
+        "description": "Concluído"
+      },
+      {
+        "text": "Concluir"
+      },
+      {
+        "resourceId": "com.instagram.android:id/done_button"
+      }
     ],
     "buscar_figurinha": [
-      {"text": "Pesquisar"},
-      {"textContains": "Pesquisar"},
-      {"className": "android.widget.EditText"}
+      {
+        "text": "Pesquisar"
+      },
+      {
+        "textContains": "Pesquisar"
+      },
+      {
+        "className": "android.widget.EditText"
+      }
     ],
     "figurinha_link": [
-      {"text": "LINK"},
-      {"text": "Link"},
-      {"description": "Link"},
-      {"descriptionContains": "Link"}
+      {
+        "text": "LINK"
+      },
+      {
+        "text": "Link"
+      },
+      {
+        "description": "Link"
+      },
+      {
+        "descriptionContains": "Link"
+      }
     ],
     "campo_url": [
-      {"resourceId": "com.instagram.android:id/link_sticker_url_edit_text"},
-      {"className": "android.widget.EditText", "instance": 0}
+      {
+        "resourceId": "com.instagram.android:id/link_sticker_url_edit_text"
+      },
+      {
+        "className": "android.widget.EditText",
+        "instance": 0
+      }
     ],
     "personalizar_texto": [
-      {"text": "Personalizar texto da figurinha"},
-      {"textContains": "Personalizar texto"},
-      {"descriptionContains": "Personalizar"}
+      {
+        "text": "Personalizar texto da figurinha"
+      },
+      {
+        "textContains": "Personalizar texto"
+      },
+      {
+        "descriptionContains": "Personalizar"
+      }
     ],
     "campo_texto_figurinha": [
-      {"resourceId": "com.instagram.android:id/link_sticker_text_edit_text"},
-      {"className": "android.widget.EditText", "instance": 1}
+      {
+        "resourceId": "com.instagram.android:id/link_sticker_text_edit_text"
+      },
+      {
+        "className": "android.widget.EditText",
+        "instance": 1
+      }
     ],
     "confirmar_teclado": [
-      {"tecla": "enter"}
+      {
+        "tecla": "enter"
+      }
     ],
     "concluir_figurinha": [
-      {"text": "Concluído"},
-      {"description": "Concluído"},
-      {"text": "Concluir"},
-      {"resourceId": "com.instagram.android:id/done_button"}
+      {
+        "text": "Concluído"
+      },
+      {
+        "description": "Concluído"
+      },
+      {
+        "text": "Concluir"
+      },
+      {
+        "resourceId": "com.instagram.android:id/done_button"
+      }
     ],
     "figurinha_na_tela": [
-      {"descriptionContains": "igurinha de link"},
-      {"textContains": "wa.me"}
+      {
+        "descriptionContains": "igurinha de link"
+      },
+      {
+        "textContains": "wa.me"
+      }
     ],
     "seu_story": [
-      {"text": "Seu story"},
-      {"description": "Seu story"},
-      {"descriptionContains": "Seu story"}
+      {
+        "text": "Seu story"
+      },
+      {
+        "description": "Seu story"
+      },
+      {
+        "descriptionContains": "Seu story"
+      }
     ],
     "compartilhar_facebook_toggle": [
-      {"className": "android.widget.Switch", "descriptionContains": "Facebook"},
-      {"className": "android.widget.CheckBox", "descriptionContains": "Facebook"},
-      {"textContains": "Facebook"},
-      {"descriptionContains": "Facebook"}
+      {
+        "className": "android.widget.Switch",
+        "descriptionContains": "Facebook"
+      },
+      {
+        "className": "android.widget.CheckBox",
+        "descriptionContains": "Facebook"
+      },
+      {
+        "textContains": "Facebook"
+      },
+      {
+        "descriptionContains": "Facebook"
+      }
     ],
     "interruptores": [
-      {"className": "android.widget.Switch"},
-      {"className": "android.widget.CheckBox"},
-      {"className": "android.widget.ToggleButton"},
-      {"checkable": true}
+      {
+        "className": "android.widget.Switch"
+      },
+      {
+        "className": "android.widget.CheckBox"
+      },
+      {
+        "className": "android.widget.ToggleButton"
+      },
+      {
+        "checkable": true
+      }
     ],
     "concluir_publicacao": [
-      {"text": "Compartilhar"},
-      {"text": "Concluir"},
-      {"description": "Compartilhar"}
+      {
+        "text": "Compartilhar"
+      },
+      {
+        "text": "Concluir"
+      },
+      {
+        "description": "Compartilhar"
+      }
     ],
     "descartar": [
-      {"text": "Descartar"},
-      {"text": "DESCARTAR"},
-      {"textContains": "Descartar"}
+      {
+        "text": "Descartar"
+      },
+      {
+        "text": "DESCARTAR"
+      },
+      {
+        "textContains": "Descartar"
+      }
     ]
-  }
+  },
+  "_seletores_conferidos": "25/09/2026, Instagram 448.0.0.52.84 (Android 9, tela 900×1600 em pé): feed_tab 'Página inicial'; sem aba 'Criar' — story pelo reel_empty_badge 'Adicionar ao story'. Os demais passos ainda são chutes até o testar.bat bluestacks."
 }

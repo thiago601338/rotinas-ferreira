@@ -52,6 +52,8 @@ O gerador já incorpora esses relatos: grava a mesma linha do tempo em todos os 
 - Carimbos `tm_*` na unidade que o gabarito/índice usa (s, ms ou µs); sem referência, µs.
 
 ## O que falta confirmar com o gabarito real "0925"
+**Atualização de 25/09/2026:** o gabarito real chegou (`gabaritos/capcut-9.5/0925/`) e confirmou os itens 1 e 3 abaixo — ver "Formato confirmado no PC" em `capcut-rascunho-e-exportacao.md`. Continuam abertos: protótipo de áudio local (item 2), calibração do texto (item 4) e o teste de abrir no app.
+
 Enquanto ele não chega, os testes usam `tests/dados/gabarito_provisorio/` (saída do pyCapCut 0.0.3 com caminhos falsos). Onde o gerador procura o gabarito, nesta ordem: `gabaritos/capcut-9.5/0925/` no repositório (é lá que o gabarito conferido deve ficar), a cópia mais nova do diagnóstico (`execucoes/*/capcut_0925/`) e o projeto "0925" do PC (só leitura). Para ver o que o gabarito tem: `python -m rotinas video-rascunho --inspecionar <pasta>`.
 1. Quais arquivos existem e estão em JSON aberto (`draft_info.json`, `draft_content.json`, `template-2.tmp` puro ou em envelope, `Timelines/`), qual é o principal (`draft_json_file` no `root_meta_info.json`) e quais são os marcadores (`app_version`, `new_version`, `version`).
 2. Protótipos: o "0925" só tem um clipe **da Biblioteca** e um "Texto padrão". Falta vídeo **local** e **áudio**. Hoje o áudio usa o protótipo de reserva (pyCapCut, 6.7) e o vídeo usa o clipe da Biblioteca com os campos de origem limpos por suposição.

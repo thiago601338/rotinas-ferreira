@@ -247,6 +247,17 @@ class Postador:
         return el
 
     # -- navegação
+    def _entrar_no_story(self) -> None:
+        """Feed → câmera de story. No Instagram 448 o "Adicionar ao story" do "Seu story" já abre a câmera de story;
+        em versões com a aba "Criar", ainda é preciso escolher "Story". A aba só é tocada se a galeria não apareceu."""
+        with self._passo("criar"):
+            self._tocar("criar")
+        if self.tela.achar("abrir_galeria", self._t("espera_curta_s", 2), plano_b=False) is not None:
+            log.info("Letra %s: a câmera de story abriu direto (sem escolher 'Story')", self.letra)
+            return
+        with self._passo("abrir_story"):
+            self._tocar("abrir_story")
+
     def _ir_para_feed(self, espera_inicial: float | None = None) -> None:
         for tentativa in range(int(self.cfg.get("max_voltar_saida", 8))):
             if tentativa == 0:
@@ -598,10 +609,7 @@ class Postador:
                 res["avisos"] += [f"Letra {self.letra}: {a}" for a in (r["envio"] or {}).get("avisos") or []]
         with self._passo("abrir_instagram"):
             self._abrir_instagram()
-        with self._passo("criar"):
-            self._tocar("criar")
-        with self._passo("abrir_story"):
-            self._tocar("abrir_story")
+        self._entrar_no_story()
         with self._passo("abrir_galeria"):
             self._abrir_galeria()
         with self._passo("escolher_album"):
@@ -891,8 +899,8 @@ def _teste_real(ctx: Contexto) -> dict:
         post._tocar("selecionar_varios")
         extras["miniaturas_galeria"] = len(tela.grade("miniaturas_galeria"))
 
-    etapas = [("abrir_instagram", post._abrir_instagram, True), ("criar", lambda: post._tocar("criar"), True),
-              ("abrir_story", lambda: post._tocar("abrir_story"), True), ("abrir_galeria", post._abrir_galeria, True),
+    etapas = [("abrir_instagram", post._abrir_instagram, True), ("entrar_no_story", post._entrar_no_story, True),
+              ("abrir_galeria", post._abrir_galeria, True),
               ("selecionar_varios", selecionar, True), ("album_menu", lambda: post._tocar("album_menu"), False)]
     passos = []
     for nome, acao, obrigatoria in etapas:
