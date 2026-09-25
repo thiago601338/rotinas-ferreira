@@ -487,5 +487,8 @@
     ]
   },
   "_seletores_conferidos": "25/09/2026, Instagram 448.0.0.52.84 (Android 9, tela 900×1600 em pé), testar.bat bluestacks: feed_tab 'Página inicial'; sem aba 'Criar' — 'Adicionar ao story' (reel_empty_badge) abre direto a galeria (gallery_title_text 'Adicionar ao story'); 'Selecionar' = gallery_menu_multi_select_button (vira 'Cancelar' quando ligado); 'Recentes ▾' = gallery_folder_menu_tv, menu com Recentes/Fotos/Vídeos/Todos os álbuns/Dos apps da Meta; miniaturas = gallery_grid_item_thumbnail com descrição 'Não selecionado Miniatura de foto/vídeo…' (a célula 'Abrir câmera' não tem esse id); o círculo gallery_grid_item_selection_circle existe em todas. Do editor em diante ainda são chutes.",
-  "descricao_nao_selecionado": "Não selecionado"
+  "descricao_nao_selecionado": "Não selecionado",
+  "descricao_numero_selecao": "(?i)selecionada\\s+(\\d+)",
+  "espera_selecao_s": 4,
+  "tentativas_selecao": 3
 }

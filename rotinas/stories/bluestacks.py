@@ -368,13 +368,63 @@ class Postador:
         m = re.search(r"\d+", texto or "")
         if m:
             return int(m.group()), f"contador '{texto}'"
+        grade = self.tela.grade("miniaturas_galeria")
+        numeros = [x for x in (self._numero_selecao(e) for e in grade) if x]
+        if numeros:
+            if numeros == list(range(1, len(numeros) + 1)):
+                return len(numeros), "número na descrição das miniaturas"
+            raise ErroPasso(f"os números da seleção (descrição das miniaturas) não conferem ({numeros}); não publico")
         prefixo = str(self.cfg.get("descricao_nao_selecionado") or "").strip().lower()
         if prefixo:
-            grade = self.tela.grade("miniaturas_galeria")
             if grade and all((e.descricao or "").strip() for e in grade):
                 marcadas = [e for e in grade if not (e.descricao or "").strip().lower().startswith(prefixo)]
                 return len(marcadas), "descrição das miniaturas (não confere a ordem)"
         raise ErroPasso("não consegui conferir quantas mídias ficaram selecionadas (sem números nas miniaturas e sem contador)")
+
+    def _numero_selecao(self, el) -> int | None:
+        """Ordem da mídia na seleção pela descrição da miniatura: 0 = não selecionada, None = não dá para saber."""
+        desc = (getattr(el, "descricao", "") or "").strip()
+        prefixo = str(self.cfg.get("descricao_nao_selecionado") or "").strip().lower()
+        if prefixo and desc.lower().startswith(prefixo):
+            return 0
+        m = re.search(str(self.cfg.get("descricao_numero_selecao") or r"(?i)selecionada\s+(\d+)"), desc)
+        return int(m.group(1)) if m else None
+
+    def _miniatura(self, i: int, n: int):
+        grade = self.tela.grade("miniaturas_galeria")
+        if len(grade) < n:
+            raise ErroPasso(f"a galeria mostra {len(grade)} miniatura(s) e a letra tem {n}")
+        return grade[i]
+
+    def _selecionar_uma(self, i: int, n: int) -> None:
+        """Toca a i-ésima miniatura e espera ela virar "selecionada {i+1}". Só toca de novo se ela ainda estiver
+        "Não selecionado" (um toque a mais desmarcaria). Sem descrição legível, toca uma vez (a contagem final confere)."""
+        tentativas = int(self.cfg.get("tentativas_selecao", 3))
+        for tentativa in range(1, tentativas + 1):
+            num = self._numero_selecao(self._miniatura(i, n))
+            if num == i + 1:
+                return
+            if num not in (None, 0):
+                raise ErroPasso(f"a mídia {i + 1} da letra ficou com o número {num} na seleção; não publico")
+            if num is None and tentativa > 1:
+                return
+            self._miniatura(i, n).tocar()
+            self._pausa()
+            if num is None:
+                return
+            limite = agora() + self._t("espera_selecao_s", 4)
+            while agora() < limite:
+                num = self._numero_selecao(self._miniatura(i, n))
+                if num == i + 1:
+                    if tentativa > 1:
+                        log.info("Letra %s: a mídia %d só pegou no toque %d", self.letra, i + 1, tentativa)
+                    return
+                if num not in (None, 0):
+                    raise ErroPasso(f"a mídia {i + 1} da letra ficou com o número {num} na seleção; não publico")
+                dormir(self._t("intervalo_busca_s", 0.4))
+            log.info("Letra %s: a mídia %d ainda não aparece selecionada; tocando de novo", self.letra, i + 1)
+        raise ErroPasso(f"a mídia {i + 1} da letra não ficou selecionada depois de {tentativas} toques "
+                        "(miniatura ainda carregando?); não publico letra pela metade")
 
     def _selecionar(self, n: int) -> None:
         with self._passo("selecionar_varios"):
@@ -383,12 +433,8 @@ class Postador:
             else:
                 self._tocar("selecionar_varios")
         with self._passo("tocar_midias"):
-            grade = self.tela.grade("miniaturas_galeria")
-            if len(grade) < n:
-                raise ErroPasso(f"a galeria mostra {len(grade)} miniatura(s) e a letra tem {n}")
-            for el in grade[:n]:
-                el.tocar()
-                self._pausa()
+            for i in range(n):
+                self._selecionar_uma(i, n)
         with self._passo("conferir_selecao"):
             qtd, como = self._contar_selecao()
             if qtd != n:

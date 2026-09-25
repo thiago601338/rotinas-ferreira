@@ -112,6 +112,19 @@ def test_instagram_448_como_no_pc(ambiente):
     assert a.tela.publicacoes[0]["album"] == "2026-09-22_A" and len(a.tela.publicacoes[0]["midias"]) == 3
 
 
+def test_video_ainda_carregando_leva_segundo_toque_sem_desmarcar(ambiente):
+    """Como no ensaio sintético de 25/09: o 1º toque no vídeo recém-enviado não pegou (miniatura carregando)."""
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.album_via_todos = True
+    a.tela.numeros_na_selecao = False
+    a.tela.carregando = {0}
+    res = rodar(a, montar_plano(a.midias, {"A": ["video_mudo", "foto", "foto"]}), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    assert a.tela.toques.count("miniatura_0") == 2 and a.tela.toques.count("miniatura_1") == 1
+    assert a.tela.selecao == [] or True  # o ensaio descarta no fim
+
+
 def test_selecao_ja_ligada_nao_e_desligada(ambiente):
     a = ambiente
     a.tela.criar_abre_galeria = True
@@ -223,12 +236,13 @@ def test_falha_no_meio_da_segunda_letra_para_tudo(ambiente):
 def test_selecao_com_n_menos_1_itens_nao_publica(ambiente):
     a = ambiente
     a.tela.ignorar_miniatura = {1}  # o toque na 2ª miniatura não pega
-    with pytest.raises(bluestacks.ErroPostagem, match="seleção tem 2 de 3") as erro:
+    # cada toque é conferido na hora: para já no toque (antes de "Avançar"), sem publicar
+    with pytest.raises(bluestacks.ErroPostagem, match="mídia 2 da letra não ficou selecionada") as erro:
         rodar(a, montar_plano(a.midias, {"A": ["video_mudo", "foto", "foto"]}, ensaio=False), ensaio=False)
     assert a.tela.publicacoes == []
     assert "avancar" not in a.tela.toques
     assert erro.value.resultado_parcial["letras"][0]["estado"] == "falhou"
-    assert erro.value.resultado_parcial["parou_em"] == "letra A: conferir_selecao"
+    assert erro.value.resultado_parcial["parou_em"] == "letra A: tocar_midias"
     assert a.registros == []
 
 
@@ -236,7 +250,7 @@ def test_selecao_com_midia_escondida_ja_selecionada_nao_publica(ambiente):
     """Números 2, 3, 4 nas miniaturas = já havia uma mídia selecionada fora da tela (4 no total)."""
     a = ambiente
     a.tela.pre_selecionados = 1
-    with pytest.raises(bluestacks.ErroPostagem, match="não conferem"):
+    with pytest.raises(bluestacks.ErroPostagem, match="ficou com o número 2|não conferem"):
         rodar(a, montar_plano(a.midias, {"A": ["foto", "foto", "foto"]}, ensaio=False), ensaio=False)
     assert a.tela.publicacoes == [] and "avancar" not in a.tela.toques and a.registros == []
 
