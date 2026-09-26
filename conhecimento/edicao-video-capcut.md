@@ -280,6 +280,7 @@ Procedimentos-base: **quadro-chave** = selecionar clipe → Vídeo > Básico →
 - **Preço na tela:** formato da loja **"R$229,99"** (cifrão colado) + parcelas pela regra da Ferreira: até R$149,99 em 2x; até R$319,98 em 3x; acima disso em 5x, sem juros. À vista (3% de desconto) só quando a cliente pergunta. Preço sempre igual ao do cadastro.
 - **Texto para fala:** selecionar um texto → aba "Conversão de texto em fala" → voz em português → gerar (cria faixa de áudio sincronizada). Voz real da vendedora costuma convencer mais; TTS serve para rascunho e chamadas curtas.
 - **Tamanho de fonte** no CapCut é escala relativa: calibrar com um PNG-régua 1080×1920 (textos de 44/66/99/148 px + faixas de zona segura) numa faixa de cima com opacidade 50%, desligado antes de exportar.
+- **Calibrado com o usuário (26/09/2026, CapCut 9.5, 9:16):** título de 96 px da receita = `size` ≈ 20 no rascunho (fator 4,75 px por unidade, `texto_px_por_unidade` em `config/capcut.json`). O "Tamanho" do painel do CapCut multiplica pela escala da caixa: o usuário chegou a Tamanho 45 com a caixa em 0,45 (= 20,2 efetivo). O padrão do CapCut ("Texto padrão") é 15.
 - Salvar os estilos da marca em "Salvar como predefinição" (Texto > Seus > Predefinições).
 
 ## 6. Cor (fidelidade da peça é regra de venda)

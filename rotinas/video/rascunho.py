@@ -730,10 +730,12 @@ class _Construtor:
                 fim = max(fim, s["target_timerange"]["start"] + s["target_timerange"]["duration"])
         self.doc["duration"] = fim
         for tipo in TIPOS:
-            if self.protos[tipo].origem == "reserva" and any(f["type"] == tipo and f["segments"] for f in self.doc["tracks"]):
+            confirmado = tipo == "audio" and self.c.get("audio_reserva_confirmado")
+            if (self.protos[tipo].origem == "reserva" and not confirmado
+                    and any(f["type"] == tipo and f["segments"] for f in self.doc["tracks"])):
                 self.avisos.append(f"O gabarito não tem faixa de {tipo}: usei o protótipo de reserva (pyCapCut, "
                                    "não confirmado na 9.5). Conferir esse item no CapCut.")
-        if faixas["text"]:
+        if faixas["text"] and not self.c.get("texto_calibrado"):
             self.avisos.append(f"Tamanho dos textos aproximado (fator provisório {self.c['texto_px_por_unidade']} px por "
                                "unidade de 'size'): conferir no CapCut e calibrar com a régua.")
         if len(faixas["video"]) > 1:

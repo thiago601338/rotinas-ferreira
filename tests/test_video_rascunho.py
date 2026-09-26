@@ -197,7 +197,7 @@ def test_conteudo_e_estilo_do_texto(amb):
     assert conteudo["text"] == "Vestido 👗 verde"
     estilo = conteudo["styles"][0]
     assert len(conteudo["styles"]) == 1 and estilo["range"] == [0, 16]
-    assert estilo["size"] == pytest.approx(96 / 3.0)
+    assert estilo["size"] == pytest.approx(96 / 4.75, abs=0.01)  # calibrado com o usuário em 26/09 (45 × 0,45)
     assert estilo["bold"] is True
     assert estilo["fill"]["content"]["solid"]["color"] == [1.0, 1.0, 1.0]
     assert estilo["strokes"][0]["content"]["solid"]["color"] == [0.0, 0.0, 0.0]
@@ -519,8 +519,21 @@ def test_gabarito_sem_audio_usa_reserva(amb, tmp_path):
     r = amb.gerar(gabarito=gab)
     doc = _doc(r.pasta)
     assert len(_segs(doc, "audio")) == 1 and doc["materials"]["audios"][0]["type"] == "extract_music"
-    assert any("protótipo de reserva" in a for a in r.avisos)
-    assert "protótipo de reserva" in r.relatorio_texto
+    # 26/09: a faixa de reserva ficou no projeto depois de o CapCut abrir (capcut-copiar): sem aviso
+    assert not any("protótipo de reserva" in a for a in r.avisos)
+
+
+def test_reserva_de_audio_nao_confirmada_avisa(amb, tmp_path, cfg):
+    cfg.alterar("capcut", audio_reserva_confirmado=False)
+    gab = tmp_path / "gab" / "0925"
+    shutil.copytree(GABARITO, gab)
+    for nome in ("draft_info.json", "draft_content.json", "template-2.tmp"):
+        doc = json.loads((gab / nome).read_text(encoding="utf-8"))
+        doc["tracks"] = [f for f in doc["tracks"] if f["type"] != "audio"]
+        doc["materials"]["audios"] = []
+        (gab / nome).write_text(json.dumps(doc), encoding="utf-8")
+    r = amb.gerar(gabarito=gab)
+    assert any("protótipo de reserva" in a for a in r.avisos) and "protótipo de reserva" in r.relatorio_texto
 
 
 def test_envelope_no_template_2(amb, tmp_path):

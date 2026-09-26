@@ -48,6 +48,10 @@ Complementa `edicao-video-capcut.md`. Origem: mapeamento feito no PC do usuário
   herdou do gabarito `material_id` = id do clipe na Biblioteca e `source` = 1, e o CapCut religou pelo id. Correção:
   em mídia local a partir de protótipo da Biblioteca, `material_id` vai para `limpar_campos_origem` e `source`/
   `source_platform` vão a 0 (`zerar_campos_origem` em `config/capcut.json`); teste com o gabarito real do PC.
+- **Tamanho do texto calibrado (26/09/2026 02:56, `capcut-copiar` depois do ajuste do usuário):** o usuário deixou o
+  título com `size` 45 e a caixa em escala 0,45 → 20,2 efetivo para os 96 px da receita → `texto_px_por_unidade` =
+  4,75 (era 3,0 provisório). O aviso "fator provisório" sai do relatório (`texto_calibrado`), e o da faixa de áudio de
+  reserva também (`audio_reserva_confirmado`: a faixa ficou no projeto depois de o CapCut regravar).
 
 ## Exportação (modal "Exportar-<nome do projeto>", Ctrl+E)
 - Campos: Nome · Exportar para (padrão `C:/Users/V15/AppData/Local/CapCut…`) · ☑ Vídeo: Resolução (480P · 720P · **1080P** · 2K · 4K · 8K), Taxa de bits (Abaixar · **Recomendado** · Superior · Personalizado), Codec (**H.264** · HEVC · HEVC Alpha · HEVC 422 · AV1 · RLE), Formato (mov · **mp4**), Taxa de quadros (24 · 25 · 29.97 · **30** · 50 · 59.94 · 60), Espaço de cores Rec.709 SDR (fixo) · ☑ "Sincronize os vídeos exportados com o espaço" · ☐ Áudio (MP3) · ☐ GIF · ☐ Legendas 💎 (SRT) · Verificar direitos autorais (desligado) · rodapé com o tamanho estimado e os botões **[Exportar]** e **[Cancelar]**.
