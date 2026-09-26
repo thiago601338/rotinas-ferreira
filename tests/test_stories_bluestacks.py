@@ -163,14 +163,15 @@ def test_pasta_da_letra_fora_da_vista_rola_a_lista_dentro_do_menu(ambiente):
     assert all(24 <= (x0 + x1) / 2 <= 434 for x0, _, x1, _ in a.tela.rolados)  # arrasto dentro do menu
 
 
-def test_pasta_que_nunca_aparece_rola_no_maximo_4_vezes_e_salva_print(ambiente):
+def test_pasta_que_nunca_aparece_rola_no_maximo_max_rolagens_e_salva_print(ambiente):
     a = ambiente
     a.tela.criar_abre_galeria = True
     a.tela.album_via_todos = True
     a.tela.album_rolagens = 99
     res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True, diagnostico=True)
     assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"] and res["letras"][0].get("recuo_recentes")
-    assert a.tela.toques.count("rolar") == 4
+    maximo = int(bluestacks._cfg().get("max_rolagens_album", 4))  # 12 desde 26/09 (letra E de 22/09)
+    assert maximo == 12 and a.tela.toques.count("rolar") == maximo
     assert (a.ctx.pasta_saida / "album_A_nao_achado.png").is_file()
 
 
