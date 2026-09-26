@@ -323,6 +323,7 @@ class TelaFalsa:
         self.popup_apos_digitar = 0  # quantas vezes o balão aparece logo depois de digitar (mesmo com o campo limpo)
         self.musica_sem_ajuste = False  # a seta da barra da música volta direto ao editor (sem "Concluído")
         self.direct_ao_digitar = False  # a notificação é tocada logo depois de digitar a busca (antes do Enter)
+        self.figurinha_nao_entra = False  # "Concluir" da figurinha volta ao editor sem pôr a figurinha
         self.criar_tela_preta = False  # o toque em "criar" leva a uma tela preta (nem feed, nem galeria)
         self.deitado = 0  # quantas conferências de orientação dão "deitado" (tela na horizontal) antes de girar
         self.salvos_no_direct = 0  # prints/XML tirados com o Direct na tela (tem que ficar 0)
@@ -495,6 +496,8 @@ class TelaFalsa:
                     self.estado = "editor"
                 else:
                     self.estado = "ajuste_musica"
+            elif chave == "concluir_figurinha" and self.figurinha_nao_entra:
+                self.estado = "editor"
             elif chave == "concluir_figurinha":
                 self.midias[self.atual]["figurinha"] = {"url": self.campo_url, "texto": self.campo_texto,
                                                         "teclado_confirmado": self.teclado}
@@ -608,6 +611,9 @@ class TelaFalsa:
                                     acao=lambda: self.toques.append("editor_extra")))
             for i in range(len(self.midias)):
                 els.append(Elemento(limites=(100 + i * 120, 1800, 200 + i * 120, 1900), acao=self._ir_midia(i)))
+        elif chave == "figurinha_na_tela":  # como no 448: item genérico, sem o texto nem o link
+            els.append(Elemento(descricao="Figurinhas. Toque e mantenha pressionado para reposicionar.",
+                                limites=(304, 756, 595, 844)))
         elif chave == "itens_lista_album":
             for i in range(5):
                 els.append(Elemento(texto=f"item {i}", limites=(24, 250 + i * 112, 434, 362 + i * 112)))

@@ -102,3 +102,11 @@ def test_adicionar_link(telas, relogio):
     assert tela.achar("personalizar_texto", 0, plano_b=False).limites == (32, 378, 868, 419)
     assert tela.achar("concluir_figurinha", 0, plano_b=False).limites == (704, 41, 900, 156)
     assert tela.achar("campo_texto_figurinha", 0, plano_b=False) is None  # só aparece depois de personalizar
+
+
+def test_figurinha_de_link_no_editor_e_um_item_generico(telas, relogio):
+    """Ensaio de 26/09 01:11: a figurinha "COMPRAR" estava na tela, mas o XML não traz o texto nem o link: só um item
+    "Figurinhas. Toque e mantenha pressionado…". A conferência conta esses itens antes e depois."""
+    com = telas("editor_com_figurinha")
+    assert len(com.grade("figurinha_na_tela")) == 1
+    assert len(telas("editor").grade("figurinha_na_tela")) == 0  # mesma tela sem figurinha (e com a música)

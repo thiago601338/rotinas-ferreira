@@ -241,6 +241,15 @@ def test_mensagem_conta_os_toques_de_verdade(ambiente):
     assert a.tela.toques.count("criar") == 1
 
 
+def test_figurinha_que_nao_entra_na_tela_para_sem_publicar(ambiente):
+    """A conferência conta as figurinhas antes e depois (no 448 o XML não traz o texto nem o link)."""
+    a = ambiente
+    a.tela.figurinha_nao_entra = True
+    with pytest.raises(bluestacks.ErroPostagem, match="figurinha de link não apareceu"):
+        rodar(a, montar_plano(a.midias, {"A": ["foto", "foto"]}, ensaio=False), ensaio=False)
+    assert a.tela.publicacoes == []
+
+
 def test_versao_com_aba_criar_ainda_escolhe_story(ambiente):
     a = ambiente
     res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)

@@ -463,6 +463,9 @@
     ],
     "figurinha_na_tela": [
       {
+        "descriptionStartsWith": "Figurinhas. Toque e mantenha"
+      },
+      {
         "descriptionContains": "igurinha de link"
       },
       {

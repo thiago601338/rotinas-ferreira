@@ -625,8 +625,11 @@ class Postador:
             self._conferir_fora_do_direct()
             dormir(self._t("intervalo_busca_s", 0.4))
 
-    def _conferir_figurinha(self, fig: dict) -> None:
-        if self.tela.existe("figurinha_na_tela"):
+    def _conferir_figurinha(self, fig: dict, antes: int) -> None:
+        """No 448 a figurinha na tela é um item genérico ("Figurinhas. Toque e mantenha pressionado…", sem o texto nem
+        o link no XML; ensaio de 26/09 01:11): confere que apareceu uma figurinha a mais do que antes de pôr a de link."""
+        depois = len(self.tela.grade("figurinha_na_tela"))
+        if depois > antes:
             return
         xml = (self.tela.xml() or "").lower()
         if any(a.lower() in xml for a in (fig.get("texto"), "wa.me") if a):
@@ -637,6 +640,7 @@ class Postador:
 
     def _figurinha(self, m: dict, r: dict) -> None:
         fig = m["figurinha"]
+        antes = len(self.tela.grade("figurinha_na_tela"))
         self._tocar("figurinhas")
         if self.tela.achar("figurinha_link", self._t("espera_curta_s", 2), plano_b=False) is None and self.tela.existe("buscar_figurinha"):
             self.tela.digitar("buscar_figurinha", "link")
@@ -654,7 +658,7 @@ class Postador:
                                 "'confirmar_teclado' em config/bluestacks.json pelo XML do diagnóstico")
         self._tocar("concluir_figurinha")
         self._esperar_editor("a figurinha")
-        self._conferir_figurinha(fig)
+        self._conferir_figurinha(fig, antes)
         r["figurinha"] = {"midia": m.get("nome"), "url": fig["url"], "texto": texto}
 
     def _montar_midias(self, L: dict, r: dict, res: dict) -> None:
