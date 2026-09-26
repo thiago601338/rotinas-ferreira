@@ -79,7 +79,7 @@ Regras completas: `...\sistema\conhecimento\stories.md` (obrigatórias).
 - **Não repetir:** modelo já postado não entra de novo (o script diz quando e onde saiu). Só repetir se o usuário mandar
   (`"permitir_repeticao": ["B"]`).
 - Uma letra por modelo; `A - 1` é o vídeo, depois as fotos. Nunca sobrescrever nem apagar mídia do usuário.
-- Vídeo sem áudio recebe música do Instagram: o script busca "fashion" e sorteia uma das faixas na tela (regra do usuário, `musica_sem_som` em `config\stories.json`). A IA não escolhe música: não mandar `musica` na identificação (é recusada).
+- Vídeo sem áudio recebe música do Instagram: o script busca "fashion" e sorteia uma das faixas na tela (regra do usuário, `musica_sem_som` em `config\stories.json`). A IA não escolhe música: não mandar `musica` na identificação (é recusada). O Instagram estende sozinho a música do vídeo para a foto seguinte: o usuário aceita (26/09), não é erro.
 - Figurinha de link **só na última mídia de cada letra**: `wa.me/5582988748649?text=<mensagem com o nome da peça>`,
   **sem `https://`** (com https a figurinha sai sem link). Texto: "Comprar", "Comprar agora" ou "Comprar pelo Whatsapp".
 - **Vestido de festa não leva link** (categorias `Vestidos de Festa` / `VESTIDO DE FESTA` do cadastro).
