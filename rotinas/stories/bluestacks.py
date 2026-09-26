@@ -1116,6 +1116,35 @@ def _teste_real(ctx: Contexto) -> dict:
             "resumo": "\n".join(linhas)}
 
 
+def teste_tela(ctx: Contexto, argv: list[str]) -> dict:
+    """``testar.bat tela``: salva a tela ATUAL do BlueStacks (XML + print) sem tocar em nada. Para mostrar uma tela
+    que o fluxo ainda não alcança (ex.: a de compartilhar depois do "Avançar", aberta à mão). Tela do Direct não é
+    salva; notificação do Android é esperada/coberta."""
+    argparse.ArgumentParser(prog="testar.bat tela", description=teste_tela.__doc__).parse_args(argv)
+    trava = _travar_emulador(None)
+    try:
+        cfg = _cfg()
+        con = android.conectar(cfg)
+        info = con.info(cfg.get("pacote_instagram", "com.instagram.android"))
+        tela = android.abrir_tela(con, cfg)
+        post = Postador(tela, ctx, ensaio=True, diagnostico=True, cfg=cfg)
+        post.letra = "tela"
+        tela.esperar_sem_notificacao()
+        salvos = post._salvar_tela("tela_atual")
+    finally:
+        trava.liberar()
+    if salvos:  # tela fora do fluxo conhecido pode listar pessoas (ex.: "Enviar para"): só termos da interface ficam
+        from .. import privacidade
+
+        permitidos = config.carregar("diagnostico")["execucao"]["privacidade"]["textos_permitidos_tela"]
+        anon = privacidade.anonimizar_tela(ctx.pasta_saida / "tela_atual.xml", permitidos)
+        log.info("Tela anonimizada: %d texto(s) apagado(s), %d área(s) coberta(s)", anon["apagados"], anon["cobertos"])
+    privada = not salvos
+    resumo = (f"BlueStacks {info.get('serial')}, Instagram {info.get('instagram')}, tela {list(tela.tamanho())}: "
+              + ("NÃO salvei (tela do Direct: conversa de cliente)." if privada else f"salvei {', '.join(salvos)}."))
+    return {"ok": not privada, "dispositivo": info, "arquivos": salvos, "resumo": resumo}
+
+
 def plano_sintetico(pasta: Path) -> dict:
     """Letra de teste "T" (1 vídeo mudo + 2 fotos geradas na hora, em ``pasta``; nunca na pasta do usuário)
     com música no vídeo e figurinha de link na última foto — para afinar os passos do editor em ENSAIO.

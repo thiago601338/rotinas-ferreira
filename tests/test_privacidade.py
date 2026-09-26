@@ -125,3 +125,41 @@ def test_sanear_na_duvida_tira_a_tela_do_git(cfg, tmp_path, monkeypatch):
     monkeypatch.setattr(privacidade, "conferir_par", quebra)
     execucao.sanear(pasta, raiz)
     assert not (pasta / "t.xml").exists() and not (pasta / "t.png").exists()
+
+
+# ---------------------------------------------------------------- testar.bat tela (tela fora do fluxo conhecido)
+
+PERMITIDOS = ["Compartilhar", "Seu story", "Amigos próximos", "Enviar"]
+
+
+def test_tela_livre_apaga_nomes_e_cobre_so_eles(tmp_path):
+    """A tela de compartilhar pode listar pessoas do Direct: só os termos da interface ficam."""
+    x = tmp_path / "tela_atual.xml"
+    x.write_text(tela(
+        no("com.instagram.android:id/share_button", "Compartilhar", "", limites="[600,1480][880,1580]"),
+        no("com.instagram.android:id/your_story_row", "Seu story", "", limites="[40,300][500,360]"),
+        no("com.instagram.android:id/fb_toggle", "", "Compartilhar no Facebook", limites="[40,400][860,460]"),
+        no("com.instagram.android:id/recipient_name", "cliente_x", "", limites="[140,700][600,740]"),
+        no("com.instagram.android:id/recipient_avatar", "", "Foto do perfil de cliente_x", limites="[40,690][120,770]"),
+        no("com.instagram.android:id/send_row", "Enviar para fulana", "", limites="[40,800][860,850]"),
+    ), encoding="utf-8")
+    p = png(tmp_path / "tela_atual.png")
+    r = privacidade.anonimizar_tela(x, PERMITIDOS)
+    xml = x.read_text(encoding="utf-8")
+    assert "cliente_x" not in xml and "fulana" not in xml
+    assert 'text="Compartilhar"' in xml and 'text="Seu story"' in xml and "Compartilhar no Facebook" in xml
+    assert "recipient_name" in xml and "share_button" in xml  # os ids ficam: são o que os seletores usam
+    assert r == {"apagados": 3, "cobertos": 3}
+    with Image.open(p) as img:
+        assert img.getpixel((300, 720)) == (0, 0, 0) and img.getpixel((80, 730)) == (0, 0, 0)
+        assert img.getpixel((300, 330)) == (200, 200, 200)  # "Seu story" continua visível
+
+
+def test_tela_livre_nao_cobre_o_conteiner_da_tela_inteira(tmp_path):
+    x = tmp_path / "t.xml"
+    x.write_text(tela(no("", "", "Story de cliente_x", limites="[0,0][900,1600]")), encoding="utf-8")
+    p = png(tmp_path / "t.png")
+    privacidade.anonimizar_tela(x, PERMITIDOS)
+    assert "cliente_x" not in x.read_text(encoding="utf-8")
+    with Image.open(p) as img:
+        assert img.getpixel((450, 800)) == (200, 200, 200)

@@ -111,3 +111,56 @@ def conferir_par(xml_path: Path, cfg: dict) -> dict:
         cobrir_print(png, faixa, largura, (int(margem[0]), int(margem[1])))
         coberto = True
     return {"privada": None, "apagados": apagados, "coberto": coberto}
+
+
+def _texto_permitido(valor: str, permitidos: list[str]) -> bool:
+    """Só o termo exato da interface (sem nome de pessoa junto: "Enviar para fulana" some). Exceção: com "Facebook",
+    basta conter (a opção de compartilhar no Facebook, que o script precisa achar e desligar)."""
+    v = " ".join(valor.lower().split())
+    return any(v == p.lower() for p in permitidos) or ("facebook" in v and len(v) <= 80 and "@" not in v)
+
+
+def anonimizar_tela(xml_path: Path, permitidos: list[str]) -> dict:
+    """Para telas fora do fluxo conhecido (``testar.bat tela``), que podem listar pessoas (ex.: "Enviar para" na
+    tela de compartilhar): apaga todo texto/descrição que não seja um termo da interface em ``permitidos`` e cobre de
+    preto, no print, a área de cada nó apagado. ``resource-id`` e classe ficam (são o que os seletores usam)."""
+    xml_path = Path(xml_path)
+    xml = xml_path.read_text(encoding="utf-8", errors="surrogateescape")
+    caixas: list[tuple[int, int, int, int]] = []
+    largura = altura = None
+
+    def trocar(m: re.Match) -> str:
+        nonlocal largura, altura
+        tag = m.group(0)
+        lim = _limites(tag)
+        if largura is None and lim and lim[0] == 0 and lim[1] == 0:
+            largura, altura = lim[2], lim[3]
+        novo = tag
+        for nome in ("text", "content-desc"):
+            valor = _attr(novo, nome)
+            if valor and valor != MARCA and not _texto_permitido(valor, permitidos):
+                novo = _trocar_attr(novo, nome, MARCA)
+        if novo != tag and lim:
+            caixas.append(lim)
+        return novo
+
+    limpo = RE_NO.sub(trocar, xml)
+    xml_path.write_text(limpo, encoding="utf-8", errors="surrogateescape")
+    png = xml_path.with_suffix(".png")
+    cobertos = 0
+    if caixas and png.is_file():
+        from PIL import Image, ImageDraw
+
+        with Image.open(png) as img:
+            img.load()
+            img = img.convert("RGB")
+        escala = img.width / largura if largura else 1.0
+        area_tela = (largura or img.width) * (altura or img.height)
+        desenho = ImageDraw.Draw(img)
+        for x0, y0, x1, y1 in caixas:
+            if (x1 - x0) * (y1 - y0) > 0.4 * area_tela:
+                continue  # contêiner da tela inteira: cobrir apagaria o print todo
+            desenho.rectangle([int(x0 * escala), int(y0 * escala), int(x1 * escala), int(y1 * escala)], fill=(0, 0, 0))
+            cobertos += 1
+        img.save(png, "PNG")
+    return {"apagados": len(caixas), "cobertos": cobertos}

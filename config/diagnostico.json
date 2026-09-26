@@ -33,7 +33,9 @@
     "marcadores_tela_privada": ["direct_thread", "row_thread_composer", "thread_fragment_container", "direct_inbox", "inbox_refreshable_thread_list"],
     "pacote_notificacoes": "com.android.systemui",
     "ids_mantidos": ["com.android.systemui:id/clock"],
-    "margem_print_px": [56, 24]
+    "margem_print_px": [56, 24],
+    "_textos_permitidos_tela": "testar.bat tela (tela fora do fluxo conhecido, pode listar pessoas): só textos IGUAIS a estes termos ficam no XML e no print (e os que contêm 'Facebook'); todo outro texto/descrição vira [oculto] e a área é coberta de preto. resource-id e classe ficam.",
+    "textos_permitidos_tela": ["Compartilhar", "Seu story", "Amigos próximos", "Melhores amigos", "Concluir", "Concluído", "Avançar", "Cancelar", "Voltar", "Fechar", "Agora não", "Publicar", "Story", "Stories", "Descartar", "Opções", "Mais opções", "Copiar link", "Salvar", "Editar", "Configurações", "Destaque", "Público", "Enviar", "Pesquisar", "Página inicial", "Reels", "Perfil", "Texto", "Figurinhas", "Músicas", "Efeitos", "Compartilhar story", "Compartilhar para", "Seu story e Facebook"]
   },
   "timeout_pytest_s": 1800,
     "timeout_git_s": 180,

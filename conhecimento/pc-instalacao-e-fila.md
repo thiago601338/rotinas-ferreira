@@ -53,6 +53,9 @@ ainda não foi confirmado no PC real está marcado "(a confirmar)".
   notificação flutuante (nós `android:id/...`) é coberta de preto no print. Na dúvida (erro ao conferir), a tela não
   vai para o git. Print sem `.xml` do mesmo nome não é conferido: o postador espera a notificação sumir antes de
   qualquer print.
+- `testar.bat tela` (26/09/2026): salva a tela atual do BlueStacks sem tocar em nada, para telas que o fluxo ainda
+  não alcança. Como pode mostrar pessoas, é anonimizada por lista de termos permitidos (`textos_permitidos_tela`):
+  igualdade exata, nunca prefixo ("Enviar para fulana" some); ids e classes ficam.
 - Commits do PC saem como "PC Ferreira Boutique". Push precisa do login do GitHub no Git do PC (Git Credential
   Manager abre o navegador na primeira vez); sem login, `testar.bat enviar` tenta de novo depois.
 

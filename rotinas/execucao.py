@@ -38,6 +38,7 @@ ALVOS: dict[str, str] = {
     "pytest": "rotinas.execucao:alvo_pytest",
     "bluestacks": "rotinas.stories.bluestacks:teste_real",
     "stories-ensaio": "rotinas.stories.bluestacks:teste_ensaio",
+    "tela": "rotinas.stories.bluestacks:teste_tela",
     "capcut-rascunho": "rotinas.video.rascunho:teste_real",
     "conferir": "rotinas.video.conferencia:teste_real",
 }
@@ -48,6 +49,7 @@ DESCRICOES: dict[str, str] = {
     "pytest": "roda os testes automáticos aqui no PC",
     "bluestacks": "teste real no BlueStacks (stories, A5)",
     "stories-ensaio": "stories em modo ensaio (--data D, --plano arquivo ou --sintetico): monta tudo e para antes de publicar",
+    "tela": "salva a tela atual do BlueStacks (XML + print) sem tocar em nada",
     "capcut-rascunho": "gera um rascunho de teste no CapCut (B3)",
     "conferir": "confere um vídeo exportado (B4)",
     ENVIAR: "tenta de novo enviar pelo git as execuções que ficaram só no PC",

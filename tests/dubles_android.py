@@ -690,6 +690,9 @@ class TelaFalsa:
     def tamanho(self):
         return (1920, 1080) if self.deitado > 0 else (1080, 1920)
 
+    def esperar_sem_notificacao(self, y=None):
+        return True
+
     def em_pe(self):
         if self.deitado > 0:
             self.deitado -= 1  # o BlueStacks gira sozinho depois de algumas conferências (99 = nunca)

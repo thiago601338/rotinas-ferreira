@@ -848,6 +848,25 @@ def sem_emulador(ambiente, monkeypatch):
     return a
 
 
+def test_testar_tela_salva_a_tela_atual_sem_tocar_em_nada(sem_emulador):
+    """``testar.bat tela``: para ver uma tela que o fluxo ainda não alcança (a de compartilhar, aberta à mão)."""
+    a = sem_emulador
+    a.tela.estado = "compartilhar"
+    ctx = Contexto(a.ctx.pasta_saida / "tela")
+    res = bluestacks.teste_tela(ctx, [])
+    assert res["ok"] and set(res["arquivos"]) == {"tela_atual.xml", "tela_atual.png"}
+    assert (ctx.pasta_saida / "tela_atual.xml").is_file() and a.tela.toques == []
+
+
+def test_testar_tela_nao_salva_conversa_do_direct(sem_emulador):
+    a = sem_emulador
+    a.tela.estado = "direct"
+    ctx = Contexto(a.ctx.pasta_saida / "tela")
+    res = bluestacks.teste_tela(ctx, [])
+    assert not res["ok"] and res["arquivos"] == [] and "Direct" in res["resumo"]
+    assert a.tela.salvos_no_direct == 0 and not list(ctx.pasta_saida.glob("tela_atual*"))
+
+
 def test_tarefa_com_plano_em_ensaio_nao_publica_mesmo_com_pedido_real(sem_emulador):
     a = sem_emulador
     ctx = Contexto(a.ctx.pasta_saida / "pedido", ensaio=False, id_pedido="p1")
