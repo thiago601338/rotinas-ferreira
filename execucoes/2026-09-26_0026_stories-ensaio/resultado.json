@@ -1,0 +1,72 @@
+{
+  "alvo": "stories-ensaio",
+  "argv": [
+    "--sintetico"
+  ],
+  "pasta": "execucoes/2026-09-26_0026_stories-ensaio",
+  "inicio": "2026-09-26T00:26:35-03:00",
+  "ok": false,
+  "erro": "Parei na letra T (passo 'musica_1'): depois de escolher a música o editor não voltou Publicadas antes: nenhuma. Não iniciadas: nenhuma.",
+  "tipo_erro": "ErroPostagem",
+  "detalhe": "Traceback (most recent call last):\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 836, in rodar\n    self._letra(plano, L, r, res)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 793, in _letra\n    self._montar_midias(L, r, res)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 650, in _montar_midias\n    self._musica(m, r, res)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 589, in _musica\n    self._usar_musica()\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 607, in _usar_musica\n    raise ErroPasso(\"depois de escolher a música o editor não voltou\")\nrotinas.stories.bluestacks.ErroPasso: depois de escolher a música o editor não voltou\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\execucao.py\", line 450, in testar\n    retorno = resolver_alvo(alvo)(ctx, extra)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 1153, in teste_ensaio\n    res = executar(plano, ctx, ensaio=True, diagnostico=True)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 897, in executar\n    return _postar(plano, ctx, res, cfg, ensaio=ensaio, diagnostico=diagnostico, tela=tela, enviar=enviar,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 956, in _postar\n    res = postador.rodar(plano, pular)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 848, in rodar\n    raise ErroPostagem(mensagem_parada(res, r), res) from e\nrotinas.stories.bluestacks.ErroPostagem: Parei na letra T (passo 'musica_1'): depois de escolher a música o editor não voltou Publicadas antes: nenhuma. Não iniciadas: nenhuma.\n",
+  "resultado_parcial": {
+    "ensaio": true,
+    "id": "teste-sintetico",
+    "data": "2000-01-01",
+    "letras": [
+      {
+        "letra": "T",
+        "estado": "falhou",
+        "midias": [
+          "T - 1",
+          "T - 2",
+          "T - 3"
+        ],
+        "prints": [
+          "falha_T_musica_1.png"
+        ],
+        "erro": "depois de escolher a música o editor não voltou",
+        "envio": {
+          "pasta": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T",
+          "album": "2000-01-01_T",
+          "arquivos": [
+            {
+              "nome": "T - 1",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_1.mp4",
+              "mtime": "202609260026.39",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 2",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_2.jpg",
+              "mtime": "202609260025.39",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 3",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_3.jpg",
+              "mtime": "202609260024.39",
+              "varredura": "broadcast"
+            }
+          ],
+          "varredura": [
+            "broadcast"
+          ],
+          "ordem_data_da_midia": {
+            "datetaken": true
+          },
+          "avisos": []
+        },
+        "album": "2000-01-01_T",
+        "xml_falha": "falha_T_musica_1.xml"
+      }
+    ],
+    "publicadas": [],
+    "parou_em": "letra T: musica_1",
+    "avisos": [
+      "Depois da falha não confirmei a volta ao feed; conferir o BlueStacks."
+    ]
+  },
+  "fim": "2026-09-26T00:27:45-03:00",
+  "duracao_s": 69.9
+}
