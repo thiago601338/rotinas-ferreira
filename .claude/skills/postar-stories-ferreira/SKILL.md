@@ -27,6 +27,10 @@ Regras completas: `...\sistema\conhecimento\stories.md` (obrigatórias).
 3. Prints, XML e log ficam na pasta indicada em `pasta` do resultado.
 
 ## Passo a passo (o que é script e o que você decide)
+**0. Antes de tudo (regra do usuário, reforçada em 26/09): o que já foi postado?** Rodar no navegador logado no
+   Instagram o JS de conferência sem `slice` (todos os itens no ar) e comparar com as letras. O `postados.csv` só tem o
+   que o script postou: letra postada à mão e ainda no ar fica **fora** da `identificacao`. Contar os itens no ar:
+   o Instagram aceita **100 stories em 24 h** — mandar só o que cabe e o resto quando os antigos expirarem.
 **1. Preparar a pasta** — `tipo: "stories.preparar"`, `args: {"data": "2026-09-22", "simular": true}`.
    - Script: agrupa as mídias novas em letras (subpasta = letra; soltas por data de captura), gera folhas de contato.
    - **Você decide:** olhando SÓ as folhas `Rotinas Ferreira\stories\<data>\folhas\<L>.jpg`, se cada letra é um modelo
@@ -117,6 +121,7 @@ Você precisa: nada.   (ou: repor Preto / aprovar o ensaio / fechar o postados.c
 | montar: "B - 3 sem identificação" | Pôr a mídia em `midias` (cores) ou em `excluir` (motivo). |
 | `ErroRegra` sobre vestido de festa | `link_em_vestido_de_festa` voltou a `null` na config: não decidir; perguntar ao usuário (a resposta vai para `config/stories.json` no repositório; vale no pedido seguinte depois do `atualizar.bat`). |
 | montar: "Sem manifesto.json" | Gravar o `stories.preparar` real (sem `simular`, com os mesmos `grupos`) e depois o montar. Nada foi alterado. |
+| postar: "o editor do story não apareceu depois de Avançar" | Nada publicado. Em 26/09 era a tela nova do 448 com "Separado / Layout / Colagem sequencial" + "Editar"/"Continuar" (agora tratada: `botoes_formato` em `config/bluestacks.json`). Se voltar a parar, ver o print `falha_<L>_avancar.png` e ajustar seletores `formato_*`/`botoes_formato` **no repositório**; depois `atualizar.bat` e novo montar. |
 | Pedido em `pendente` há mais de 1 min | Vigia parado → `atualizar.bat`. |
 | "Não consegui conectar ao BlueStacks pelo ADB" / sem dispositivo | Pedir para abrir o BlueStacks e ligar o ADB (caminho acima); depois novo montar. |
 | "Não encontrei o adb (nem o HD-Adb.exe do BlueStacks)" | Pedir dois cliques em `sistema\instalar.bat`; depois novo montar. |

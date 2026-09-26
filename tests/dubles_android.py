@@ -324,6 +324,10 @@ class TelaFalsa:
         self.musica_sem_ajuste = False  # a seta da barra da música volta direto ao editor (sem "Concluído")
         self.direct_ao_digitar = False  # a notificação é tocada logo depois de digitar a busca (antes do Enter)
         self.compartilhar_448 = False  # Instagram 448: editor com "Avançar" → tela "Compartilhar" (Seu story/Amigos)
+        # Instagram 448 (26/09 04:21): com várias mídias, "Avançar" da galeria abre antes a escolha de formato
+        # ("Separado" | "Layout" | "Colagem sequencial" + "Editar"/"Continuar"). None = sem essa tela.
+        self.escolha_formato = False
+        self.formato_abre_editor = "formato_editar"  # o botão da escolha que leva ao editor; o outro leva a outra tela
         self.destino_story, self.destino_amigos = True, False  # botões de marcar da tela "Compartilhar"
         self.destino_travado = False  # tocar nas linhas da tela "Compartilhar" não muda a marcação
         self.figurinha_nao_entra = False  # "Concluir" da figurinha volta ao editor sem pôr a figurinha
@@ -397,6 +401,10 @@ class TelaFalsa:
                 v |= {"faixas_musica"}
             if self.musica_escolhida:
                 v.add("usar_musica")  # barra de baixo com a faixa tocando e a seta
+        elif e == "formato":
+            v = {"formato_varias", "formato_separado", "formato_editar", "formato_continuar"}
+        elif e == "outra_formato":
+            v = {"tela_compartilhar"}  # ex.: "Continuar" levando direto à tela de compartilhar (nada publica)
         elif e == "compartilhar448":
             v = {"tela_compartilhar", "opcao_seu_story", "opcao_amigos_proximos", "radio_destino", "concluir_publicacao"}
         elif e == "ajuste_musica":
@@ -477,7 +485,11 @@ class TelaFalsa:
             elif chave == "avancar":
                 self.midias = [{"indice": i, "musica": None, "figurinha": None} for i in self.selecao]
                 self.atual = 0
-                self.estado = "editor"
+                self.estado = "formato" if self.escolha_formato and len(self.selecao) > 1 else "editor"
+            elif chave == "formato_separado":
+                pass  # já vem marcado; tocar de novo mantém
+            elif chave in ("formato_editar", "formato_continuar"):
+                self.estado = "editor" if chave == self.formato_abre_editor else "outra_formato"
             elif chave in ("musica", "figurinha_musica"):
                 # o Instagram pode reabrir a busca com o último texto (busca_lembrada)
                 self.busca, self.busca_enviada, self.musica_escolhida = self.busca_lembrada, bool(self.busca_lembrada), None
@@ -705,6 +717,7 @@ class TelaFalsa:
             "editor": "dialogo", "dialogo": "editor", "musica": "editor", "figurinhas": "editor", "link": "editor",
             "compartilhar": "editor", "aviso_fb": "editor", "visualizador_story": "feed", "sugestao_teclado": "musica",
             "ajuste_musica": "musica", "direct": "feed", "compartilhar448": "editor",
+            "formato": "galeria", "outra_formato": "formato",
         }.get(self.estado, self.estado)
 
     def tamanho(self):

@@ -1062,3 +1062,50 @@ def test_ensaio_sintetico_monta_letra_de_teste_sem_publicar(sem_emulador, cfg):
     video = next(s for s in info if s["codec_name"] == "h264")
     assert video["profile"] == "Main" and video["has_b_frames"] == 0 and video["pix_fmt"] == "yuv420p"
     assert any(s["codec_name"] == "aac" for s in info)
+
+
+# ---------------------------------------------------------------- escolha de formato (448, 26/09 04:21)
+
+def test_escolha_de_formato_separado_e_editar_abre_o_editor(ambiente):
+    """Letra B (5 fotos) parou em 'avancar': o 448 mostrou "Separado | Layout | Colagem sequencial" com
+    "Editar"/"Continuar" antes do editor. Agora: garante "Separado", toca "Editar" e segue normalmente."""
+    a = ambiente
+    a.tela.compartilhar_448 = True
+    a.tela.escolha_formato = True
+    res = rodar(a, montar_plano(a.midias, {"B": ["foto"] * 5}, ensaio=False), ensaio=False)
+    assert res["publicadas"] == ["B"]
+    t = a.tela.toques
+    assert t.index("avancar") < t.index("formato_separado") < t.index("formato_editar") < t.index("figurinhas")
+    assert "formato_continuar" not in t
+    assert a.tela.publicacoes[0]["midias"][-1]["figurinha"]["url"] == URL
+
+
+def test_escolha_de_formato_que_so_abre_o_editor_pelo_continuar(ambiente):
+    """Se "Editar" levar a outra tela, volta para a escolha e tenta "Continuar" (nada é publicado no caminho)."""
+    a = ambiente
+    a.tela.compartilhar_448 = True
+    a.tela.escolha_formato = True
+    a.tela.formato_abre_editor = "formato_continuar"
+    res = rodar(a, montar_plano(a.midias, {"B": ["foto"] * 3}), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+    t = a.tela.toques
+    assert t.index("formato_editar") < t.index("voltar") < t.index("formato_continuar")
+    assert "concluir_publicacao" not in t and a.tela.publicacoes == []
+
+
+def test_escolha_de_formato_sem_saida_para_sem_publicar(ambiente):
+    a = ambiente
+    a.tela.compartilhar_448 = True
+    a.tela.escolha_formato = True
+    a.tela.formato_abre_editor = "nenhum"
+    with pytest.raises(bluestacks.ErroPostagem, match="escolha de formato"):
+        rodar(a, montar_plano(a.midias, {"B": ["foto"] * 2}, ensaio=False), ensaio=False)
+    assert a.tela.publicacoes == [] and "concluir_publicacao" not in a.tela.toques
+
+
+def test_uma_midia_nao_passa_pela_escolha_de_formato(ambiente):
+    a = ambiente
+    a.tela.compartilhar_448 = True
+    a.tela.escolha_formato = True
+    res = rodar(a, montar_plano(a.midias, {"I": ["foto"]}, ensaio=False), ensaio=False)
+    assert res["publicadas"] == ["I"] and "formato_separado" not in a.tela.toques

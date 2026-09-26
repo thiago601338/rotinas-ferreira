@@ -503,6 +503,52 @@ class Postador:
             log.info("Seleção conferida: %d mídia(s) (%s)", qtd, como)
 
     # -- editor
+    def _editor_ou_formato(self, espera: float) -> str | None:
+        """Espera o editor ou a escolha de formato do 448 → ``"editor"`` | ``"formato"`` | ``None`` (nenhum dos dois)."""
+        limite = agora() + espera
+        while True:
+            if self.tela.existe("editor"):
+                return "editor"
+            if self.tela.existe("formato_varias"):
+                return "formato"
+            if agora() >= limite:
+                return None
+            dormir(self._t("intervalo_busca_s", 0.4))
+
+    def _voltar_para_formato(self) -> bool:
+        """Depois de um botão da escolha de formato que não abriu o editor: volta até a escolha (sem publicar nada)."""
+        for _ in range(int(self.cfg.get("max_voltar_formato", 3))):
+            if self.tela.existe("formato_varias"):
+                return True
+            self.tela.voltar()
+            self._pausa()
+        return self.tela.existe("formato_varias")
+
+    def _passar_escolha_de_formato(self) -> None:
+        """Instagram 448 (26/09/2026 04:21, letra B com 5 fotos): depois de "Avançar" com várias mídias veio uma tela
+        nova antes do editor — "Separado" (marcado) | "Layout" | "Colagem sequencial", com os botões "Editar" e
+        "Continuar". Story da loja = mídias separadas: garante "Separado" e tenta os botões de ``botoes_formato``
+        (config) na ordem, até aparecer o editor de sempre. Nenhum desses botões publica; se um levar a outra tela,
+        volta para a escolha e tenta o próximo. Sem a tela (versões/contas sem ela), não faz nada."""
+        if self._editor_ou_formato(self._t("espera_editor_s", 20)) != "formato":
+            return  # já é o editor (ou nada apareceu: _esperar_editor dá o erro)
+        botoes = list(self.cfg.get("botoes_formato") or ["formato_editar", "formato_continuar"])
+        log.info("Letra %s: escolha de formato (Separado/Layout/Colagem sequencial) antes do editor", self.letra)
+        for chave in botoes:
+            self._tocar("formato_separado")
+            self._tocar(chave)
+            if self._editor_ou_formato(self._t("espera_editor_s", 20)) == "editor":
+                log.info("Letra %s: 'Separado' + '%s' abriu o editor", self.letra, chave)
+                return
+            log.warning("Letra %s: '%s' da escolha de formato não abriu o editor; voltando", self.letra, chave)
+            if self.diagnostico:
+                self._salvar_tela(f"formato_{self.letra}_{chave}")
+            if not self._voltar_para_formato():
+                raise ErroPasso(f"depois de '{chave}' na escolha de formato (Separado/Layout/Colagem) não voltei "
+                                "a ela nem achei o editor")
+        raise ErroPasso("a escolha de formato (Separado/Layout/Colagem) não abriu o editor por nenhum botão "
+                        f"({', '.join(botoes)})")
+
     def _esperar_editor(self, depois_de: str) -> None:
         if self.tela.achar("editor", self._t("espera_editor_s", 20), plano_b=False) is None:
             raise ErroPasso(f"o editor do story não apareceu depois de {depois_de}")
@@ -876,6 +922,7 @@ class Postador:
         self._selecionar(n)
         with self._passo("avancar"):
             self._tocar("avancar")
+            self._passar_escolha_de_formato()
             self._esperar_editor("Avançar")
         self._montar_midias(L, r, res)
         if self.ensaio:

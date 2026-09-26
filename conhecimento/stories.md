@@ -39,6 +39,7 @@ Esquema lido em 25/09/2026 (projeto Supabase `nailfzcujyxydqldktgg`, schema `pub
 
 ## Regra fixa 2 — não repetir
 Antes de postar, sempre verificar se o modelo já não foi postado antes (letras já existentes nas pastas de data e stories recentes).
+- **Reforço do usuário (26/09/2026): é a primeira coisa, antes de tudo.** O `postados.csv` só tem o que o script postou; o que foi postado à mão (ex.: letras A, C e T da pasta 2026-09-22, no ar desde 25/09 13:41–14:41) só aparece nos stories no ar. Antes do montar, rodar o JS de conferência sem filtro (todos os itens do dia) e deixar fora da `identificacao` as letras que já estão no ar.
 
 ## Formato das mídias
 - `.mov` não aparece na galeria do Instagram no emulador. Converter para `.mp4` antes.
@@ -49,6 +50,7 @@ Antes de postar, sempre verificar se o modelo já não foi postado antes (letras
 2. Vídeo sem áudio recebe trilha pela música do Instagram: **buscar "fashion" e escolher ao acaso qualquer uma das faixas** que aparecem (regra do usuário de 25/09/2026, `musica_sem_som` em `config/stories.json`). Substituiu a lista fixa antiga ("I know what you want" – Madison Beer/Calley, Áudio original de petermarkoski/neetunomusic/enfermeira_vitoria0, Clocks – leveviolao), que a busca da conta no BlueStacks não encontrava (só traz faixas "sem royalties").
 3. Figurinha de link **só na última mídia de cada letra**.
 4. Publicar em "Seu story" → Concluir. Não compartilhar no Facebook.
+5. **Limite do Instagram: 100 stories em 24 h** (contam os que ainda estão no ar). Antes de um lote grande, contar os itens no ar e mandar só o que cabe (margem de 1–2); o resto vai quando os antigos expirarem (24 h depois de cada um).
 
 ## Figurinha de link (botão de comprar)
 - Destino: WhatsApp da loja, (82) 98874-8649, com a mensagem de compra já escrita.
@@ -130,6 +132,8 @@ Scripts em `rotinas/stories/`; formato dos pedidos em `fila/README.md`. O que a 
 - **Afinar o editor sem a rodada completa:** `testar.bat stories-ensaio --sintetico` monta uma letra de teste (1 vídeo sem som + 2 fotos geradas em `Rotinas Ferreira\stories\_teste\`, álbum `2000-01-01_T`) com música e figurinha, em ensaio + diagnóstico; nunca publica.
 - Ordem do ciclo real: `testar.bat bluestacks` (vai até a galeria, sem publicar) → ajustar seletores → `testar.bat stories-ensaio --data <data>` → aprovação do usuário → postagem real.
 - **Seletor que falhou numa letra:** `testar.bat bluestacks` só percorre feed → Criar → Story → galeria → Selecionar → menu de álbuns. Falha em abrir_instagram, criar, abrir_story, abrir_galeria ou selecionar_varios → `testar.bat bluestacks`; falha depois disso (música, figurinha, seu_story, facebook…) → `testar.bat stories-ensaio --data <data>` (XML + print de cada passo, sem publicar). O ajuste de `config/bluestacks.json` é feito no repositório, nunca à mão em `sistema\` no PC (arquivo versionado mudado à mão trava o `git pull` do `atualizar.bat`).
+
+- **Postagem real de 26/09/2026 04:20 (letra B, 5 fotos .webp) parou em `avancar`, nada publicado:** depois do "Avançar" da galeria, o 448 abriu uma tela nova antes do editor — prévia em carrossel, três ícones com descrição **"Separado"** (marcado), **"Layout"** e **"Colagem sequencial"**, e os botões **"Editar"** (texto com um ícone antes) e **"Continuar"** (`igds_media_button` + `ig_text`, sem id próprio). Não tinha aparecido com 1 vídeo + 2 fotos (25/09 19:08) nem com 2 vídeos (letra F, 26/09 01:40). Agora `_passar_escolha_de_formato`: garante "Separado" e tenta `botoes_formato` na ordem ("Editar", depois "Continuar") até o editor aparecer; botão que leva a outra tela → volta (até `max_voltar_formato`) e tenta o próximo; nenhum dos dois publica. Tela conferida em `tests/test_seletores_448.py` (`escolha_formato.xml`). **Qual botão abre o editor ainda não foi visto:** conferir no próximo ensaio/real (com diagnóstico salva `formato_<letra>_<botão>` quando um botão não abre o editor).
 
 ## Proteções acrescentadas na auditoria de 25/09/2026
 - **Letra incerta** (falhou depois de tocar em "Seu story") entra no JS de conferência; rodar o JS antes de repetir.

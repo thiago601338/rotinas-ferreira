@@ -138,3 +138,15 @@ def test_editor_de_uma_midia_publica_por_seu_story(telas, relogio):
     assert tela.achar("avancar_editor", 0, plano_b=False) is None
     assert tela.achar("seu_story", 0, plano_b=False).limites == (24, 1494, 394, 1582)
     assert tela.existe("editor") and len(tela.grade("figurinha_na_tela")) == 1
+
+
+def test_escolha_de_formato_do_448(telas, relogio):
+    """26/09/2026 04:21 (letra B, 5 fotos): depois de "Avançar" da galeria, antes do editor. "Separado" vem marcado."""
+    tela = telas("escolha_formato")
+    assert tela.existe("formato_varias") and not tela.existe("editor")
+    assert tela.achar("formato_separado", 0, plano_b=False).limites == (434, 1318, 466, 1350)
+    editar = tela.achar("formato_editar", 0, plano_b=False)
+    continuar = tela.achar("formato_continuar", 0, plano_b=False)
+    assert editar.texto.endswith("Editar") and editar.limites == (72, 1488, 398, 1526)
+    assert continuar.texto == "Continuar" and continuar.limites == (502, 1488, 828, 1522)
+    assert not tela.existe("avancar") and not tela.existe("seu_story") and not tela.existe("concluir_publicacao")
