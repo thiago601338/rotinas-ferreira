@@ -183,13 +183,17 @@ class _ObjFalso:
         for k, v in self.sel.items():
             if k == "instance":
                 continue
-            valor = {"text": e["text"], "textContains": e["text"], "textMatches": e["text"],
+            valor = {"text": e["text"], "textContains": e["text"], "textMatches": e["text"], "textStartsWith": e["text"],
                      "description": e["contentDescription"], "descriptionContains": e["contentDescription"],
-                     "descriptionMatches": e["contentDescription"], "className": e["className"],
+                     "descriptionMatches": e["contentDescription"],
+                     "descriptionStartsWith": e["contentDescription"], "className": e["className"],
                      "resourceId": e["resourceName"], "resourceIdMatches": e["resourceName"],
                      "packageName": e.get("packageName", "com.instagram.android"), "checkable": e["checkable"]}.get(k)
             if k.endswith("Contains"):
                 if v not in (valor or ""):
+                    return False
+            elif k.endswith("StartsWith"):
+                if not (valor or "").startswith(v):
                     return False
             elif k.endswith("Matches"):
                 if not re.fullmatch(v, valor or ""):
@@ -219,6 +223,20 @@ class _ObjFalso:
     def set_text(self, texto):
         self._todos()[0]["text"] = texto or ""
         self.d.digitados.append((self.sel, texto))
+
+
+def u2_do_xml(caminho) -> "U2Falso":
+    """Dispositivo falso com os nós de um XML real do uiautomator (telas capturadas no PC, ``tests/dados/telas``)."""
+    import xml.etree.ElementTree as ET
+
+    elementos = []
+    for n in ET.parse(caminho).iter("node"):
+        m = re.fullmatch(r"\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]", n.get("bounds", ""))
+        if m:
+            elementos.append(elemento_u2(n.get("text", ""), n.get("content-desc", ""), n.get("class", ""),
+                                         n.get("resource-id", ""), tuple(int(v) for v in m.groups()),
+                                         n.get("checked") == "true", n.get("checkable") == "true", n.get("package", "")))
+    return U2Falso(elementos)
 
 
 class U2Falso:

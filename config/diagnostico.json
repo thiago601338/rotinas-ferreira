@@ -30,7 +30,7 @@
     "extensoes_video": [".mp4", ".mov", ".m4v", ".3gp", ".avi", ".mkv", ".webm", ".wmv", ".ts", ".mts"],
     "_privacidade": "Telas salvas (xml + png) antes do git (repositório público). Tela com um destes resource-id (Direct) fica só no PC; nós do pacote de notificações têm texto/descrição apagados e a faixa da notificação flutuante é coberta no print (margem acima/abaixo em px).",
   "privacidade": {
-    "marcadores_tela_privada": [":id/direct_thread", ":id/row_thread_composer", ":id/thread_fragment_container", ":id/direct_inbox", ":id/inbox_refreshable_thread_list"],
+    "marcadores_tela_privada": ["direct_thread", "row_thread_composer", "thread_fragment_container", "direct_inbox", "inbox_refreshable_thread_list"],
     "pacote_notificacoes": "com.android.systemui",
     "ids_mantidos": ["com.android.systemui:id/clock"],
     "margem_print_px": [56, 24]

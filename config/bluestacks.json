@@ -228,6 +228,9 @@
     ],
     "editor": [
       {
+        "resourceId": "asset_button"
+      },
+      {
         "description": "Figurinhas"
       },
       {
@@ -253,6 +256,9 @@
     ],
     "musica": [
       {
+        "resourceId": "music_button"
+      },
+      {
         "resourceId": "com.instagram.android:id/music_button"
       },
       {
@@ -266,6 +272,9 @@
       }
     ],
     "figurinhas": [
+      {
+        "resourceId": "asset_button"
+      },
       {
         "description": "Figurinhas"
       },
@@ -303,18 +312,15 @@
     ],
     "usar_musica": [
       {
+        "resourceId": "audio_bar_select_tap_target"
+      },
+      {
         "resourceId": "com.instagram.android:id/audio_bar_select_tap_target"
       }
     ],
     "tela_privada": [
       {
-        "resourceId": "com.instagram.android:id/direct_thread_header"
-      },
-      {
-        "resourceId": "com.instagram.android:id/row_thread_composer_edittext"
-      },
-      {
-        "resourceId": "com.instagram.android:id/thread_fragment_container"
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?(direct_thread_header|row_thread_composer_edittext|thread_fragment_container)$"
       }
     ],
     "notificacao_flutuante": [
@@ -341,7 +347,7 @@
     ],
     "faixas_musica": [
       {
-        "resourceIdMatches": "^com\\.instagram\\.android:id/audio_browser_track_.*"
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?audio_browser_track_.*"
       }
     ],
     "concluir_musica": [
@@ -529,7 +535,7 @@
       }
     ]
   },
-  "_seletores_conferidos": "25/09/2026, Instagram 448.0.0.52.84 (Android 9, tela 900×1600 em pé), testar.bat bluestacks: feed_tab 'Página inicial'; sem aba 'Criar' — 'Adicionar ao story' (reel_empty_badge) abre direto a galeria (gallery_title_text 'Adicionar ao story'); 'Selecionar' = gallery_menu_multi_select_button (vira 'Cancelar' quando ligado); 'Recentes ▾' = gallery_folder_menu_tv, menu com Recentes/Fotos/Vídeos/Todos os álbuns/Dos apps da Meta; miniaturas = gallery_grid_item_thumbnail com descrição 'Não selecionado Miniatura de foto/vídeo…' (a célula 'Abrir câmera' não tem esse id); o círculo gallery_grid_item_selection_circle existe em todas. Ensaio de 25/09 19:08: seleção marcada = descrição 'Número da mídia selecionada N'; editor com music_button ('Músicas'), asset_button ('Figurinhas'), media_thumbnail_tray_button ('Avançar'); busca de música = row_search_edit_text, faixas com descrição 'Selecionar faixa <título> de <autor>,…'. Do escolher a música em diante ainda são chutes.",
+  "_seletores_conferidos": "25/09/2026, Instagram 448.0.0.52.84 (Android 9, tela 900×1600 em pé), testar.bat bluestacks: feed_tab 'Página inicial'; sem aba 'Criar' — 'Adicionar ao story' (reel_empty_badge) abre direto a galeria (gallery_title_text 'Adicionar ao story'); 'Selecionar' = gallery_menu_multi_select_button (vira 'Cancelar' quando ligado); 'Recentes ▾' = gallery_folder_menu_tv, menu com Recentes/Fotos/Vídeos/Todos os álbuns/Dos apps da Meta; miniaturas = gallery_grid_item_thumbnail com descrição 'Não selecionado Miniatura de foto/vídeo…' (a célula 'Abrir câmera' não tem esse id); o círculo gallery_grid_item_selection_circle existe em todas. Ensaio de 25/09 19:08: seleção marcada = descrição 'Número da mídia selecionada N'; editor com music_button ('Músicas'), asset_button ('Figurinhas'), media_thumbnail_tray_button ('Avançar'); busca de música = row_search_edit_text, faixas com descrição 'Selecionar faixa <título> de <autor>,…'. Telas Compose (editor, música) têm resource-id SEM o prefixo com.instagram.android:id/ (music_button, asset_button, audio_browser_track_*, audio_bar_select_tap_target); conferidos contra os XMLs reais em tests/test_seletores_448.py. Da figurinha de link em diante ainda são chutes.",
   "descricao_nao_selecionado": "Não selecionado",
   "descricao_numero_selecao": "(?i)selecionada\\s+(\\d+)",
   "espera_selecao_s": 4,

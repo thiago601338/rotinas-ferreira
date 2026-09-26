@@ -5,7 +5,7 @@ from PIL import Image
 from rotinas import execucao, privacidade
 
 CFG = {
-    "marcadores_tela_privada": [":id/direct_thread", ":id/row_thread_composer"],
+    "marcadores_tela_privada": ["direct_thread", "row_thread_composer"],
     "pacote_notificacoes": "com.android.systemui",
     "ids_mantidos": ["com.android.systemui:id/clock"],
     "margem_print_px": [56, 24],
@@ -85,7 +85,10 @@ def test_tela_do_direct_e_marcada_como_privada(tmp_path):
     x = tmp_path / "falha.xml"
     x.write_text(tela(no("com.instagram.android:id/direct_thread_header"), no("", "Mensagem da cliente")),
                  encoding="utf-8")
-    assert privacidade.conferir_par(x, CFG)["privada"] == ":id/direct_thread"
+    assert privacidade.conferir_par(x, CFG)["privada"] == "direct_thread"
+    y = tmp_path / "compose.xml"  # telas novas do Instagram (Compose) têm resource-id sem o prefixo do pacote
+    y.write_text(tela(no("row_thread_composer_edittext", "Mensagem...")), encoding="utf-8")
+    assert privacidade.conferir_par(y, CFG)["privada"] == "row_thread_composer"
 
 
 def test_sanear_deixa_o_direct_so_no_pc_e_limpa_a_notificacao(cfg, tmp_path):
