@@ -55,6 +55,8 @@ def test_editor_acha_musica_e_figurinhas_pelo_id(telas, relogio):
     assert tela.achar("musica", 0, plano_b=False).limites == (784, 228, 880, 324)  # o botão, não o ícone
     assert tela.achar("figurinhas", 0, plano_b=False).limites == (784, 124, 880, 220)
     assert tela.existe("editor") and not tela.existe("seu_story")
+    miniaturas = tela.grade("miniaturas_editor")  # para trocar de mídia (figurinha na última)
+    assert [m.descricao for m in miniaturas] == ["Vídeo selecionado", "Foto selecionada", "Foto selecionada"]
 
 
 def test_galeria_com_selecao_e_feed(telas, relogio):
@@ -74,3 +76,11 @@ def test_menu_de_albuns_tem_todos_os_albuns_e_itens_para_rolar(telas, relogio):
 def test_notificacao_flutuante_e_achada(telas, relogio):
     tela = telas("notificacao_flutuante")
     assert tela.faixa_notificacao() == (104, 289)
+
+
+def test_editor_da_musica_tem_o_concluir(telas, relogio):
+    """Ensaio de 26/09 00:26: depois da seta, a tela de ajuste da música ("Somente música", trecho, ✓ no canto)."""
+    tela = telas("editor_da_musica")
+    ok = tela.achar("concluir_musica", 0, plano_b=False)
+    assert ok is not None and ok.limites == (796, 8, 892, 104) and ok.descricao == "Concluir"
+    assert not tela.existe("editor")  # ainda não voltou ao editor do story

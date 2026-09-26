@@ -352,6 +352,12 @@
     ],
     "concluir_musica": [
       {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?music_editor_done_button$"
+      },
+      {
+        "description": "Concluir"
+      },
+      {
         "text": "Concluído"
       },
       {
