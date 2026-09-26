@@ -1,0 +1,97 @@
+{
+  "pasta": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\gabaritos\\capcut-9.5\\0925",
+  "arquivos": {
+    "draft_info.json": "ausente",
+    "draft_content.json": "json",
+    "template-2.tmp": "json",
+    "draft_meta_info.json": "json"
+  },
+  "timelines": true,
+  "principal": "draft_content.json",
+  "versao": "9.5.0",
+  "new_version": "187.0.0",
+  "version": 360000,
+  "canvas": {
+    "ratio": "original",
+    "width": 1920,
+    "height": 1080,
+    "background": null
+  },
+  "fps": 30.0,
+  "avisos": [],
+  "chaves_topo": [
+    "canvas_config",
+    "color_space",
+    "config",
+    "cover",
+    "create_time",
+    "draft_type",
+    "duration",
+    "extra_info",
+    "fps",
+    "free_render_index_mode_on",
+    "function_assistant_info",
+    "group_container",
+    "id",
+    "is_drop_frame_timecode",
+    "keyframe_graph_list",
+    "keyframes",
+    "last_modified_platform",
+    "lyrics_effects",
+    "materials",
+    "mixed_track_mode_on",
+    "mutable_config",
+    "name",
+    "new_version",
+    "path",
+    "platform",
+    "relationships",
+    "render_index_track_mode_on",
+    "retouch_cover",
+    "smart_ads_info",
+    "source",
+    "static_cover_image_path",
+    "time_marks",
+    "tracks",
+    "uneven_animation_template_info",
+    "update_time",
+    "version"
+  ],
+  "espelhos_iguais": true,
+  "envelopes": {},
+  "prototipos": {
+    "video": {
+      "material": "video",
+      "categoria": "Tela verde",
+      "refs": [
+        "speeds",
+        "placeholder_infos",
+        "canvases",
+        "sound_channel_mappings",
+        "material_colors",
+        "vocal_separations"
+      ],
+      "tem_local_material_id": true
+    },
+    "text": {
+      "material": "text",
+      "categoria": null,
+      "refs": [
+        "material_animations"
+      ],
+      "tem_local_material_id": false
+    }
+  },
+  "faltam": [
+    "audio"
+  ],
+  "draft_materials": {
+    "0": 2,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "6": 0,
+    "7": 1,
+    "8": 0
+  }
+}
