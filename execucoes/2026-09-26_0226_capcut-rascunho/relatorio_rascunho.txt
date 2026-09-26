@@ -1,0 +1,26 @@
+Rascunho do CapCut: Teste Rotinas 20260926-022653
+Gerado em 26/09/2026 02:26
+Projeto: teste-rascunho · receita teste · destino reels
+Pasta: C:\Users\V15\AppData\Local\CapCut\User Data\Projects\com.lveditor.draft\Teste Rotinas 20260926-022653
+Gabarito: C:\Users\V15\Documents\Rotinas Ferreira\sistema\gabaritos\capcut-9.5\0925 (CapCut 9.5.0; linha do tempo em draft_content.json, template-2.tmp)
+Duração: 4,00 s · 1080×1920 · 30.0 fps
+Backup: C:\Users\V15\Documents\Rotinas Ferreira\backups\capcut\2026-09-26_022656
+Índice do CapCut: registrado em root_meta_info.json
+
+O que entrou:
+- Vídeo 1: 0,00–2,00 s ← teste_20260926-022653.mp4 a partir de 1,00 s · vel 1,00 · vol 0,00 dB · gancho
+- Vídeo 2: 2,00–4,00 s ← teste_20260926-022653.mp4 a partir de 3,00 s · vel 1,00 · vol -6,00 dB · look
+- Texto 1: 0,00–2,00 s "TESTE ROTINAS" (gancho, 96 px, x 540 y 520)
+- Legendas: 1 bloco(s) na faixa 'legendas'
+- Áudio 1: 0,00–4,00 s ← teste_20260926-022653_musica.m4a · vol -18,00 dB · musica
+
+Fica para o acabamento manual:
+- nada além do checklist
+- Checklist antes de exportar: conhecimento/edicao-video-capcut.md §9 (cor fiel, volume, zonas seguras).
+
+Avisos:
+- O protótipo de video do gabarito veio da Biblioteca do CapCut: limpei os campos de origem (conferir).
+- O gabarito não tem faixa de audio: usei o protótipo de reserva (pyCapCut, não confirmado na 9.5). Conferir esse item no CapCut.
+- Tamanho dos textos aproximado (fator provisório 3.0 px por unidade de 'size'): conferir no CapCut e calibrar com a régua.
+
+Próximo passo: abrir o CapCut, abrir o projeto "Teste Rotinas 20260926-022653" e conferir se abriu sem "mídia perdida"; depois o acabamento acima e a exportação (python -m rotinas video-exportar).
