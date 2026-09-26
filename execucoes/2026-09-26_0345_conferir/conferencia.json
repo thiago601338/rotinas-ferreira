@@ -1,0 +1,92 @@
+{
+  "arquivo": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\videos\\exportado\\Teste Rotinas 20260926-030215.mp4",
+  "destino": "reels",
+  "som_esperado": "com_som",
+  "aprovado": false,
+  "itens": [
+    {
+      "item": "duração",
+      "esperado": "≥ 3 s, ≤ 180 s",
+      "obtido": "4,0 s",
+      "ok": true
+    },
+    {
+      "item": "resolução",
+      "esperado": "1080×1920",
+      "obtido": "1080×1920",
+      "ok": true
+    },
+    {
+      "item": "taxa de quadros",
+      "esperado": "30 fps",
+      "obtido": "30 fps",
+      "ok": true
+    },
+    {
+      "item": "codec",
+      "esperado": "H.264",
+      "obtido": "H.264",
+      "ok": true
+    },
+    {
+      "item": "formato",
+      "esperado": ".mp4",
+      "obtido": ".mp4",
+      "ok": true
+    },
+    {
+      "item": "taxa de bits",
+      "esperado": "12.000–20.000 kbps (aceito 9.000–25.000)",
+      "obtido": "14.636 kbps",
+      "ok": true
+    },
+    {
+      "item": "áudio",
+      "esperado": "presente, com som",
+      "obtido": "AAC 44,1 kHz estéreo",
+      "ok": true
+    },
+    {
+      "item": "volume",
+      "esperado": "−14 LUFS ± 2",
+      "obtido": "−23,7 LUFS",
+      "ok": false,
+      "fazer": "Subir o volume dos clipes com som (voz e música) ~10 dB e exportar de novo: o CapCut exporta a mistura como está na linha do tempo. Se usou \"Normalizar volume\" no clipe, ela mira o alvo do app (−23 LUFS, ~9 dB abaixo de −14)."
+    },
+    {
+      "item": "pico real",
+      "esperado": "≤ −1,0 dBTP",
+      "obtido": "−20,0 dBTP",
+      "ok": true
+    },
+    {
+      "item": "tamanho",
+      "esperado": "sem limite",
+      "obtido": "7,3 MB",
+      "ok": true
+    },
+    {
+      "item": "HDR",
+      "esperado": "SDR (Rec. 709)",
+      "obtido": "SDR",
+      "ok": true
+    }
+  ],
+  "medidas": {
+    "duracao_s": 4.017,
+    "largura": 1080,
+    "altura": 1920,
+    "fps": 30.0,
+    "fps_variavel": false,
+    "codec_video": "h264",
+    "bitrate_kbps": 14636.5,
+    "tem_audio": true,
+    "codec_audio": "aac",
+    "taxa_amostragem": 44100,
+    "lufs": -23.7,
+    "lra": 1.6,
+    "pico_real_dbtp": -20.0,
+    "tamanho_mb": 7.35,
+    "hdr": false
+  }
+}

@@ -1,0 +1,7 @@
+2026-09-26 03:45:28 INFO    rotinas.execucao: Teste 'conferir' começou. Pasta: C:\Users\V15\Documents\Rotinas Ferreira\sistema\execucoes\2026-09-26_0345_conferir
+2026-09-26 03:45:29 INFO    rotinas.video.conferencia: Conferência de Teste Rotinas 20260926-030215.mp4 (reels): reprovado (volume)
+2026-09-26 03:45:29 INFO    rotinas.video.conferencia: Conferência de Teste Rotinas 20260926-030215.mp4 (reels): REPROVADO, 1 de 11 itens com problema.
+Não passou:
+- volume: −23,7 LUFS (esperado −14 LUFS ± 2). Fazer: Subir o volume dos clipes com som (voz e música) ~10 dB e exportar de novo: o CapCut exporta a mistura como está na linha do tempo. Se usou "Normalizar volume" no clipe, ela mira o alvo do app (−23 LUFS, ~9 dB abaixo de −14).
+Passou: duração 4,0 s; resolução 1080×1920; taxa de quadros 30 fps; codec H.264; formato .mp4; taxa de bits 14.636 kbps; áudio AAC 44,1 kHz estéreo; pico real −20,0 dBTP; tamanho 7,3 MB; HDR SDR.
+2026-09-26 03:45:29 INFO    rotinas.execucao: Teste 'conferir' terminou bem em 1.0 s
