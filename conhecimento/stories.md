@@ -24,6 +24,7 @@ order by v.color, v.size;
 ```
 
 - Cor com estoque 0 não vai para o story. Cortar na hora, montar a letra só com as cores que têm estoque e **avisar depois** quais ficaram de fora, para ele decidir se reposta. Só volta se houver reposição.
+- **Foto com várias cores (carrossel) e alguma sem estoque (regra do usuário de 26/09/2026):** "o correto é antes de tudo pedir pro ChatGPT recriar a imagem tirando aquela cor". **Automático pela API da OpenAI** (escolha do usuário; chave `OPENAI_API_KEY` só no `.env`). Fluxo: o `stories.montar` para ("Recriar antes de montar", nada gravado) com os args prontos → `stories.recriar` (API `images/edits`, modelo e texto do pedido em `config/stories.json` → `recriar_imagem`) salva a imagem nova em `stories\<data>\recriadas\` (a original fica intacta) + folha ORIGINAL | RECRIADA → a IA confere a folha → `stories.montar` com `"recriadas": [nomes]` usa a imagem nova só com as cores que têm estoque (corte registrado como "cor tirada da imagem (recriada)"). Só foto: vídeo com parte das cores sem estoque continua cortado (aviso). Foto só com cor sem estoque: cortada como antes.
 - Modelo sem nenhuma peça não entra.
 
 Esquema lido em 25/09/2026 (projeto Supabase `nailfzcujyxydqldktgg`, schema `public`):

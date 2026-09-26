@@ -43,6 +43,16 @@
     "Comprar pelo Whatsapp"
   ],
   "_musica_sem_som": "Regra do usuário (25/09/2026): vídeo sem áudio leva música do Instagram buscando 'fashion' e escolhendo AO ACASO qualquer uma das faixas que aparecem. Substituiu a lista fixa de áudios (que a busca da conta no BlueStacks não encontrava).",
+  "_recriar_imagem": "Regra do usuário (26/09/2026): foto (carrossel) com várias cores em que alguma está sem estoque é RECRIADA sem essa cor, antes de tudo, pela API de imagens da OpenAI (automático, escolha do usuário). Chave OPENAI_API_KEY só no .env. A original fica intacta; a recriada vai para stories\\<data>\\recriadas. {tirar} e {ficam} são trocados pelas cores. Modelo: trocar aqui se a OpenAI lançar outro.",
+  "recriar_imagem": {
+    "url": "https://api.openai.com/v1/images/edits",
+    "modelo": "gpt-image-1",
+    "size": "auto",
+    "quality": "high",
+    "timeout_s": 240,
+    "qualidade_jpeg": 95,
+    "prompt": "Recrie esta imagem de produto de uma loja de moda feminina SEM a peça na(s) cor(es): {tirar}. Mantenha exatamente iguais as peças nas cores {ficam} (modelo, tecido, caimento, detalhes e cor), o fundo, a luz, o enquadramento e os textos da imagem. Não acrescente peças, cores, pessoas nem textos novos. Reorganize as peças que ficam para ocupar o espaço de forma natural, como na foto original."
+  },
   "musica_sem_som": {
     "busca": "fashion",
     "escolha": "aleatoria"

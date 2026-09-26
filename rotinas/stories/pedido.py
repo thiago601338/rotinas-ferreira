@@ -16,7 +16,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .. import config, fila, registro
-from . import estoque, link, postados, relatorio
+from . import estoque, link, postados, recriar, relatorio
 
 log = registro.obter("stories.pedido")
 
@@ -26,6 +26,7 @@ ORDENS = ("letras", "categorias")
 MOTIVO_POSTADO = "já postado"
 MOTIVO_MODELO = "modelo sem nenhuma peça"
 MOTIVO_REPETIDO = "modelo repetido no pedido"
+MOTIVO_RECRIADA = "cor tirada da imagem (recriada)"
 
 
 class ErroPedido(RuntimeError):
@@ -221,8 +222,14 @@ def _avisos_estoque(letra: str, avisos: list[str]) -> list[str]:
 
 
 def _avaliar(letra: str, ident: dict, info_man: dict, cliente, data: str, postadas_hoje: set[str],
-             permitir: set[str], cortes: list[dict], avisos: list[str]) -> dict | None:
-    """Uma letra: já postada hoje → estoque → repetição. Devolve a letra do plano (sem música/figurinha) ou None."""
+             permitir: set[str], cortes: list[dict], avisos: list[str], recriadas: set[str] | None = None,
+             pendentes: list[dict] | None = None) -> dict | None:
+    """Uma letra: já postada hoje → estoque → repetição. Devolve a letra do plano (sem música/figurinha) ou None.
+
+    Foto com várias cores em que só parte está sem estoque (regra do usuário de 26/09/2026): não é cortada; vai para
+    ``pendentes`` (recriar sem essas cores) ou, se a recriação foi aprovada (``recriadas``), entra com a imagem nova."""
+    recriadas = recriadas or set()
+    pendentes = pendentes if pendentes is not None else []
     if letra in postadas_hoje:
         if letra not in permitir:
             linhas = [l for l in postados.ler() if l.get("data") == data and l.get("letra") == letra]
@@ -238,10 +245,30 @@ def _avaliar(letra: str, ident: dict, info_man: dict, cliente, data: str, postad
     if produto.total <= 0:
         cortes.append(_corte(letra, None, MOTIVO_MODELO, produto.sku or None, peca, produto.sku))
         return None
+    cores_por_midia = aval.get("cores_por_midia") or {}
+    tipos = {m["nome"]: m.get("tipo") for m in info_man.get("midias") or []}
+    usar_recriada: dict[str, dict] = {}
     for c in aval.get("cortadas") or []:
-        detalhe = c.get("detalhe") or ", ".join(c.get("cores") or [])
-        cortes.append(_corte(letra, _nome_midia(c["nome"]), c.get("motivo") or "cortada", detalhe, peca, produto.sku, cores=list(c.get("cores") or [])))
-    aprovadas = {_nome_midia(n) for n in aval.get("aprovadas") or []}
+        nome = _nome_midia(c["nome"])
+        zeradas = list(c.get("cores") or [])
+        ficam = [x for x in cores_por_midia.get(nome) or [] if x not in zeradas]
+        if c.get("motivo") == estoque.MOTIVO_COR and ficam:
+            if tipos.get(nome) == "foto":
+                reg = recriar.aprovada(data, nome, zeradas) if nome in recriadas else None
+                if reg:
+                    usar_recriada[nome] = {**reg, "ficam": ficam}
+                    cortes.append(_corte(letra, nome, MOTIVO_RECRIADA, ", ".join(zeradas), peca, produto.sku, cores=zeradas))
+                    avisos.append(f"Letra {letra}: {nome} entra com a imagem recriada sem {', '.join(zeradas)} "
+                                  f"({reg.get('arquivo')})")
+                    continue
+                pendentes.append({"letra": letra, "nome": nome, "tirar": zeradas, "ficam": ficam,
+                                  "aprovada_mas_invalida": nome in recriadas})
+                continue
+            avisos.append(f"Letra {letra}: {nome} é vídeo e mostra {', '.join(ficam + zeradas)}: vídeo não dá para "
+                          f"recriar sem {', '.join(zeradas)}, então saiu")
+        detalhe = c.get("detalhe") or ", ".join(zeradas)
+        cortes.append(_corte(letra, nome, c.get("motivo") or "cortada", detalhe, peca, produto.sku, cores=zeradas))
+    aprovadas = {_nome_midia(n) for n in aval.get("aprovadas") or []} | set(usar_recriada)
     midias_man = [m for m in info_man.get("midias") or [] if m["nome"] in aprovadas]
     if not midias_man:
         avisos.append(f"Letra {letra} ({peca}) fora: {aval.get('motivo') or 'nenhuma mídia com estoque'}")
@@ -255,9 +282,14 @@ def _avaliar(letra: str, ident: dict, info_man: dict, cliente, data: str, postad
             return None
         avisos.append(f"Letra {letra}: repetição permitida pelo usuário ({textos})")
 
-    cores_por_midia = aval.get("cores_por_midia") or {}
     midias = []
     for m in midias_man:
+        rec = usar_recriada.get(m["nome"])
+        if rec:  # imagem recriada sem as cores sem estoque (arquivo novo; a original fica intacta)
+            midias.append({"nome": m["nome"], "arquivo": rec["arquivo"], "caminho": rec["caminho"], "tipo": "foto",
+                           "hash": rec["hash"], "cores": list(rec["ficam"]), "precisa_musica": False, "musica": None,
+                           "figurinha": None, "recriada_de": m.get("arquivo")})
+            continue
         midias.append({
             "nome": m["nome"],
             "arquivo": m.get("arquivo"),
@@ -270,6 +302,26 @@ def _avaliar(letra: str, ident: dict, info_man: dict, cliente, data: str, postad
             "figurinha": None,
         })
     return {"letra": letra, "sku": produto.sku, "peca": peca, "categoria": produto.categoria, "midias": midias}
+
+
+def _pedir_recriacao(data: str, pendentes: list[dict]) -> None:
+    """Regra do usuário (26/09/2026): foto com várias cores em que alguma está sem estoque é recriada sem essa cor
+    ANTES de tudo. Para aqui (nada gravado) com o pedido ``stories.recriar`` pronto."""
+    linhas = []
+    for p in pendentes:
+        extra = (" (a recriação marcada como aprovada não tira todas essas cores ou o arquivo mudou: recriar de novo)"
+                 if p.get("aprovada_mas_invalida") else "")
+        linhas.append(f"{p['nome']} (letra {p['letra']}): mostra {', '.join(p['ficam'] + p['tirar'])}; sem estoque: "
+                      f"{', '.join(p['tirar'])}{extra}")
+    args = {"data": data, "midias": [{"nome": p["nome"], "tirar": p["tirar"], "ficam": p["ficam"]} for p in pendentes]}
+    raise ErroPedido(
+        "Recriar antes de montar (regra do usuário: foto com várias cores e alguma sem estoque é recriada sem essa "
+        "cor). Nada foi gravado na fila.\n- " + "\n- ".join(linhas)
+        + "\n\nMande o pedido stories.recriar com estes args:\n" + json.dumps(args, ensure_ascii=False)
+        + "\nDepois confira cada folha (original | recriada) e mande de novo este stories.montar com "
+        "\"recriadas\": [nomes aprovados]. A que não ficou boa: recriar de novo ou pôr em \"excluir\" com o motivo.",
+        linhas,
+    )
 
 
 def _sem_modelo_repetido(letras: list[dict], permitir: set[str], cortes: list[dict]) -> list[dict]:
@@ -366,10 +418,12 @@ def montar(
     cliente=None,
     id_plano: str | None = None,
     diagnostico: bool = False,
+    recriadas=(),
 ) -> dict:
     """Monta o plano de postagem e (se ``postar``) grava o pedido ``stories.postar`` na fila.
 
     ``diagnostico`` vai para o ``stories.postar`` gerado (XML da tela + print a cada passo).
+    ``recriadas``: nomes das fotos recriadas pelo ``stories.recriar`` que a IA conferiu e aprovou.
 
     Devolve ``{"plano", "relatorio", "pedido_postagem", "arquivo_plano"}``.
     """
@@ -391,9 +445,12 @@ def montar(
 
     letras: list[dict] = []
     erros: list[str] = []
+    recriadas = {_nome_midia(n) for n in recriadas or []}
+    pendentes: list[dict] = []
     for letra, item in ident.items():
         try:
-            l = _avaliar(letra, item, letras_man[letra], cliente, data, postadas_hoje, permitir, cortes, avisos)
+            l = _avaliar(letra, item, letras_man[letra], cliente, data, postadas_hoje, permitir, cortes, avisos,
+                         recriadas, pendentes)
         except estoque.ErroEstoque as e:
             erros.append(f"Letra {letra}: {e}")
             continue
@@ -401,6 +458,8 @@ def montar(
             letras.append(l)
     if erros:
         raise ErroPedido("Estoque/identificação com problema (nada foi gravado na fila):\n\n" + "\n\n".join(erros), erros)
+    if pendentes:
+        _pedir_recriacao(data, pendentes)
 
     letras = ordenar(_sem_modelo_repetido(letras, permitir, cortes), ordem, avisos)
     _musica_e_figurinha(letras)
@@ -453,7 +512,7 @@ def _ler_identificacao(valor) -> dict:
 
 def tarefa(args: dict, ctx) -> dict:
     """Pedido ``stories.montar``: ``{"data", "identificacao": {...} | "arquivo.json", "ensaio"?, "postar"?, "ordem"?,
-    "permitir_repeticao"?, "diagnostico"?}``. Ensaio é o padrão: só publica com ``"ensaio": false`` e o pedido sem
+    "permitir_repeticao"?, "diagnostico"?, "recriadas"?}``. Ensaio é o padrão: só publica com ``"ensaio": false`` e o pedido sem
     ``--ensaio``. ``diagnostico`` (no pedido ou nos args) vale para o ``stories.postar`` gerado."""
     if not args.get("data") or args.get("identificacao") is None:
         raise ErroPedido('Informe "data" e "identificacao".')
@@ -467,6 +526,7 @@ def tarefa(args: dict, ctx) -> dict:
         permitir_repeticao=args.get("permitir_repeticao") or (),
         id_plano=ctx.id_pedido,
         diagnostico=bool(ctx.diagnostico) or bool(args.get("diagnostico", False)),
+        recriadas=args.get("recriadas") or (),
     )
     ctx.arquivo("plano.json").write_text(json.dumps(res["plano"], ensure_ascii=False, indent=2), encoding="utf-8")
     ctx.arquivo("relatorio.txt").write_text(res["relatorio"] + "\n", encoding="utf-8")

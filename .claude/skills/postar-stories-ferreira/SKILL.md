@@ -44,6 +44,15 @@ Regras completas: `...\sistema\conhecimento\stories.md` (obrigatórias).
      festa" acha "Vestido Longo Festa"; "festa vestido" não). Maiúsculas tanto faz; acento conta ("alça" ≠ "alca").
      `sku` é exato, como no cadastro (`FB-0410`; `fb-0410` não acha). `encontrados: 0` não é erro: tente outro termo.
    - Modelo zerado (`total: 0`) ou cor zerada: **ponha mesmo assim** no montar; o script corta e registra no relatório.
+   - Foto (carrossel) que mostra **várias cores** e alguma está sem estoque: identifique **todas** as cores dela. O montar
+     para com "Recriar antes de montar" (regra do usuário: recriar a imagem sem a cor, antes de tudo) — ver passo 2b.
+**2b. Recriar foto sem a cor sem estoque** — só quando o montar pedir. `tipo: "stories.recriar"`, `args` = o JSON que
+   veio na mensagem (`{"data", "midias": [{"nome": "A - 2", "tirar": ["Preto"], "ficam": ["Verde"]}]}`).
+   - Script: manda a foto para a API de imagens da OpenAI e salva a recriada (arquivo novo; a original fica) em
+     `Rotinas Ferreira\stories\<data>\recriadas\`, com uma folha `… - folha.jpg` (ORIGINAL | RECRIADA).
+   - **Você decide**, olhando SÓ a folha: a(s) cor(es) de `tirar` sumiram, as de `ficam` continuam iguais (peça, modelo,
+     fundo, textos), sem nada inventado. Boa → no montar, `"recriadas": ["A - 2"]`. Ruim → recriar de novo (uma vez) ou
+     pôr em `excluir` com o motivo e avisar o usuário. Vídeo não se recria: sai cortado (aviso).
 **3. Montar em ensaio** — `tipo: "stories.montar"`, `"ensaio": true`, `args`:
    ```json
    {"data": "2026-09-22", "postar": true, "ensaio": true,
@@ -53,6 +62,7 @@ Regras completas: `...\sistema\conhecimento\stories.md` (obrigatórias).
     }}
    ```
    - Toda mídia da letra entra em `midias` (≥ 1 cor) ou em `excluir` (com motivo). Compilação de modelos: `"ordem": "categorias"`.
+   - Fotos recriadas e aprovadas (passo 2b): `"recriadas": ["A - 2"]` nos args (mesma identificação, com todas as cores).
    - Mande **todas** as letras novas num pedido só: letra fora de `identificacao` fica de fora e o `stories.postar` já vai
      para a fila sem ela.
    - Script: corta cor sem estoque e modelo zerado, bloqueia já postado, monta o link, escolhe a música dos vídeos sem som
@@ -118,6 +128,9 @@ Você precisa: nada.   (ou: repor Preto / aprovar o ensaio / fechar o postados.c
 | "a tela saiu do story e foi para uma conversa do Direct … parei sem digitar nada" | Nada foi publicado nem digitado; a tela da conversa não foi salva. Uma notificação de mensagem foi tocada (pelo script ou por alguém no BlueStacks): pedir ao usuário para não mexer no BlueStacks durante a postagem e repetir o pedido. |
 | "uma notificação do Android ficou por cima do ponto do toque e não sumiu; não toquei" | Nada foi publicado. Repetir o pedido (a notificação some sozinha em alguns segundos). |
 | "o Instagram abriu deitado (tela na horizontal…)" | Nada foi publicado. Pedir ao usuário para deixar o BlueStacks na vertical e repetir o pedido. |
+| montar: "Recriar antes de montar (…)" | Normal (regra do usuário): passo 2b com os args que vieram na mensagem; nada foi gravado. |
+| recriar: "Falta OPENAI_API_KEY no .env" / "A OpenAI recusou a chave" | Pedir ao usuário para pôr a chave da OpenAI no `.env` (nunca no chat): `notepad "C:\Users\V15\Documents\Rotinas Ferreira\sistema\.env"`, linha `OPENAI_API_KEY=…`. |
+| recriar: "A OpenAI recusou o pedido (HTTP …)" | Ler a mensagem (ex.: conteúdo recusado, sem crédito). Tentar uma vez; se repetir, pôr a foto em `excluir` e avisar o usuário. |
 | Letra `incerta` | Pode ter subido: rodar o `js_conferencia` **antes** de repetir (ela já está nele); CONFERE = subiu. Repetir só o que não subiu. |
 | "Não consigo gravar em postados.csv; nada foi publicado" | Nada subiu. Pedir para fechar o `postados.csv` no Excel e gravar outro montar. |
 | "A letra X FOI PUBLICADA, mas não consegui registrar em postados.csv" | X **subiu**: não repostar. O registro fica em `registros\postados_pendentes\` e já conta como postado. O postar parou antes da próxima letra: pedir para fechar o Excel e mandar só as letras não iniciadas. |

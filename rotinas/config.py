@@ -131,7 +131,7 @@ def segredo(nome: str) -> str | None:
 def valores_secretos() -> list[str]:
     """Valores que nunca podem aparecer em log, relatório ou execução enviada ao git."""
     nomes = set(ler_env().keys())
-    nomes |= {n for n in os.environ if n.startswith(("SUPABASE_", "ROTINAS_SEGREDO_"))}
+    nomes |= {n for n in os.environ if n.startswith(("SUPABASE_", "ROTINAS_SEGREDO_", "OPENAI_"))}
     valores = []
     for n in nomes:
         v = os.environ.get(n) or ler_env().get(n)

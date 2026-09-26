@@ -21,6 +21,7 @@ COMANDOS: dict[str, tuple[str, str]] = {
     "stories-preparar": ("rotinas.stories.pasta:cli", "A1: nomeia, converte e gera folhas de contato da pasta do dia"),
     "stories-estoque": ("rotinas.stories.estoque:cli", "A2: consulta estoque (só leitura)"),
     "stories-postados": ("rotinas.stories.postados:cli", "A3: consulta o registro de já postados"),
+    "stories-recriar": ("rotinas.stories.recriar:cli", "recria foto de várias cores sem a cor sem estoque (API da OpenAI)"),
     "stories-montar": ("rotinas.stories.pedido:cli", "A2–A4: corta sem estoque e já postados, monta links e grava o pedido"),
     "stories-postar": ("rotinas.stories.bluestacks:cli", "A5: posta pelo BlueStacks (--ensaio, --diagnostico)"),
     "stories-relatorio": ("rotinas.stories.relatorio:cli", "A6: relatório de um pedido e JS de conferência"),

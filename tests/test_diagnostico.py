@@ -201,7 +201,8 @@ def test_diagnostico_completo(pc, cfg, tmp_path):
             assert cfg.segredo.encode() not in conteudo, arq
             assert b"exemplo.supabase.co" not in conteudo, arq
     assert dados["env"]["variaveis"] == {"SUPABASE_KEY": "preenchida", "SUPABASE_URL": "preenchida",
-                                         "SUPABASE_EMAIL": "preenchida", "SUPABASE_SENHA": "preenchida"}
+                                         "SUPABASE_EMAIL": "preenchida", "SUPABASE_SENHA": "preenchida",
+                                         "OPENAI_API_KEY": "ausente"}  # opcional: só para recriar foto
     for arq in saida.rglob("*"):
         if arq.is_file():
             assert cfg.senha.encode() not in arq.read_bytes(), arq
@@ -334,7 +335,7 @@ def test_supabase_sem_env(cfg, monkeypatch, tmp_path):
     assert diagnostico.supabase()["configurado"] is False
     e = diagnostico.env()
     assert {k: e["variaveis"][k] for k in ("SUPABASE_KEY", "SUPABASE_URL")} == {"SUPABASE_KEY": "vazia", "SUPABASE_URL": "vazia"}
-    assert set(e["variaveis"]) == {"SUPABASE_URL", "SUPABASE_KEY", "SUPABASE_EMAIL", "SUPABASE_SENHA"}
+    assert set(e["variaveis"]) == {"SUPABASE_URL", "SUPABASE_KEY", "SUPABASE_EMAIL", "SUPABASE_SENHA", "OPENAI_API_KEY"}
 
 
 def test_supabase_chave_recusada(cfg, supabase_falso):

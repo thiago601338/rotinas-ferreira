@@ -13,6 +13,7 @@ TAREFAS: dict[str, str] = {
     "diagnostico": "rotinas.diagnostico:tarefa",
     "stories.preparar": "rotinas.stories.pasta:tarefa",
     "stories.estoque": "rotinas.stories.estoque:tarefa",
+    "stories.recriar": "rotinas.stories.recriar:tarefa",
     "stories.montar": "rotinas.stories.pedido:tarefa",
     "stories.postar": "rotinas.stories.bluestacks:tarefa",
     "video.preparar": "rotinas.video.bruto:tarefa",
