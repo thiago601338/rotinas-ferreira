@@ -323,6 +323,8 @@ class TelaFalsa:
         self.popup_apos_digitar = 0  # quantas vezes o balão aparece logo depois de digitar (mesmo com o campo limpo)
         self.musica_sem_ajuste = False  # a seta da barra da música volta direto ao editor (sem "Concluído")
         self.direct_ao_digitar = False  # a notificação é tocada logo depois de digitar a busca (antes do Enter)
+        self.criar_tela_preta = False  # o toque em "criar" leva a uma tela preta (nem feed, nem galeria)
+        self.deitado = 0  # quantas conferências de orientação dão "deitado" (tela na horizontal) antes de girar
         self.salvos_no_direct = 0  # prints/XML tirados com o Direct na tela (tem que ficar 0)
         self.toque_abre_direct = None  # chave cujo toque cai numa notificação de mensagem e abre o Direct
         self.busca_lembrada = None  # texto que já está no campo quando a busca de música abre
@@ -425,7 +427,9 @@ class TelaFalsa:
                 self.toque_abre_direct = None
                 self.estado = "direct"  # o toque caiu na notificação de mensagem
                 return
-            if chave == "criar" and self.criar_ignorado > 0:
+            if chave == "criar" and self.criar_tela_preta:
+                self.estado = "preta"
+            elif chave == "criar" and self.criar_ignorado > 0:
                 self.criar_ignorado -= 1
             elif chave == "criar":
                 self.estado = "criacao"
@@ -678,7 +682,13 @@ class TelaFalsa:
         }.get(self.estado, self.estado)
 
     def tamanho(self):
-        return 1080, 1920
+        return (1920, 1080) if self.deitado > 0 else (1080, 1920)
+
+    def em_pe(self):
+        if self.deitado > 0:
+            self.deitado -= 1  # o BlueStacks gira sozinho depois de algumas conferências (99 = nunca)
+            return False
+        return True
 
     def abrir_app(self, pacote, parar=False):
         self.apps.append((pacote, parar))

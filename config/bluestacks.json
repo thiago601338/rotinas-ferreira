@@ -372,16 +372,19 @@
     ],
     "buscar_figurinha": [
       {
+        "resourceId": "com.instagram.android:id/row_search_edit_text"
+      },
+      {
         "text": "Pesquisar"
-      },
-      {
-        "textContains": "Pesquisar"
-      },
-      {
-        "className": "android.widget.EditText"
       }
     ],
     "figurinha_link": [
+      {
+        "description": "Figurinha de link"
+      },
+      {
+        "descriptionContains": "igurinha de link"
+      },
       {
         "text": "LINK"
       },
@@ -390,9 +393,6 @@
       },
       {
         "description": "Link"
-      },
-      {
-        "descriptionContains": "Link"
       }
     ],
     "campo_url": [
@@ -430,6 +430,9 @@
       }
     ],
     "concluir_figurinha": [
+      {
+        "description": "Concluir"
+      },
       {
         "text": "Concluído"
       },
@@ -553,6 +556,8 @@
   "max_rolagens_album": 4,
   "_notificacao": "Notificação flutuante do Android (seletor notificacao_flutuante): antes de tocar num ponto embaixo dela e antes de cada print, espera até espera_notificacao_s ela sumir; se não sumir, não toca (tocar nela abre a conversa do cliente) e cobre a faixa no print. Tela do Direct (tela_privada) para a postagem e não é salva.",
   "espera_notificacao_s": 15,
+  "_em_pe": "Depois de abrir o Instagram, espera até espera_em_pe_s a tela ficar na vertical (26/09 00:33 abriu deitado, 1600×900, e 'Adicionar ao story' deu tela preta); se não girar, para.",
+  "espera_em_pe_s": 10,
   "_musica": "Música do vídeo sem som: busca de config/stories.json (musica_sem_som, 'fashion') e sorteio entre as musica_aleatoria_entre primeiras faixas (as que cabem na tela acima do teclado).",
   "musica_aleatoria_entre": 6,
   "tentativas_criar": 3,

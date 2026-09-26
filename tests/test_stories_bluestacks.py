@@ -214,6 +214,33 @@ def test_adicionar_ao_story_que_nunca_abre_para_com_mensagem_clara(ambiente):
     assert a.tela.publicacoes == []
 
 
+def test_instagram_deitado_para_com_mensagem_clara_sem_tocar(ambiente):
+    """Ensaio de 26/09 00:33: o Instagram abriu na horizontal e "Adicionar ao story" levou a uma tela preta."""
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.deitado = 99
+    with pytest.raises(bluestacks.ErroPostagem, match="abriu deitado"):
+        rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)
+    assert "criar" not in a.tela.toques and a.tela.publicacoes == []
+
+
+def test_instagram_que_gira_sozinho_segue(ambiente):
+    a = ambiente
+    a.tela.criar_abre_galeria = True
+    a.tela.deitado = 3
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)
+    assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
+
+
+def test_mensagem_conta_os_toques_de_verdade(ambiente):
+    """00:33: desistiu depois de 1 toque (a tela ficou preta) e a mensagem dizia "toquei 3 vez(es)"."""
+    a = ambiente
+    a.tela.criar_tela_preta = True
+    with pytest.raises(bluestacks.ErroPostagem, match="toquei 1 vez"):
+        rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)
+    assert a.tela.toques.count("criar") == 1
+
+
 def test_versao_com_aba_criar_ainda_escolhe_story(ambiente):
     a = ambiente
     res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)

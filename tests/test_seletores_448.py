@@ -84,3 +84,11 @@ def test_editor_da_musica_tem_o_concluir(telas, relogio):
     ok = tela.achar("concluir_musica", 0, plano_b=False)
     assert ok is not None and ok.limites == (796, 8, 892, 104) and ok.descricao == "Concluir"
     assert not tela.existe("editor")  # ainda não voltou ao editor do story
+
+
+def test_figurinhas_buscando_link(telas, relogio):
+    """Ensaio de 26/09 00:34: a busca "link" mostrou "Figurinha de link" (l minúsculo), que o seletor não pegava."""
+    tela = telas("figurinhas_busca_link")
+    link = tela.achar("figurinha_link", 0, plano_b=False)
+    assert link is not None and link.limites == (30, 245, 205, 420)
+    assert tela.achar("buscar_figurinha", 0, plano_b=False).texto == "link"

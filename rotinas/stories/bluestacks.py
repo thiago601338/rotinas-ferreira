@@ -258,9 +258,11 @@ class Postador:
         em versões com a aba "Criar", ainda é preciso escolher "Story" (conferido primeiro, para não cair no modo
         publicação). Se o toque não abriu nada (feed ainda carregando, como no ensaio de 25/09 18:51), toca de novo."""
         tentativas = max(1, int(self.cfg.get("tentativas_criar", 3)))
+        toques = 0
         for tentativa in range(1, tentativas + 1):
             with self._passo("criar"):
                 self._tocar("criar")
+                toques += 1
             aberta = self._esperar_uma(CHAVES_STORY_ABERTO, self._t("espera_abrir_story_s", 8))
             if aberta == "abrir_story":
                 with self._passo("abrir_story"):
@@ -275,7 +277,7 @@ class Postador:
                             "carregando?); tocando de novo (%d de %d)", self.letra, tentativa + 1, tentativas)
                 continue
             break
-        raise ErroPasso(f"toquei {tentativas} vez(es) em 'Adicionar ao story' e a galeria/câmera do story não abriu")
+        raise ErroPasso(f"toquei {toques} vez(es) em 'Adicionar ao story' e a galeria/câmera do story não abriu")
 
     def _ir_para_feed(self, espera_inicial: float | None = None) -> None:
         for tentativa in range(int(self.cfg.get("max_voltar_saida", 8))):
@@ -299,6 +301,21 @@ class Postador:
         self.tela.abrir_app(self.pacote, parar=self.primeira_abertura)
         self.primeira_abertura = False
         self._ir_para_feed(self._t("espera_abrir_app_s", 30))  # Instagram demora a abrir: não apertar voltar antes
+        self._conferir_em_pe()
+
+    def _conferir_em_pe(self) -> None:
+        """Ensaio de 26/09 00:33: o Instagram abriu deitado (1600×900, layout de tablet) e "Adicionar ao story" levou a
+        uma tela preta. Os toques e prints contam com a tela em pé: espera girar e, se não girar, para."""
+        em_pe = getattr(self.tela, "em_pe", None)
+        if em_pe is None:
+            return
+        limite = agora() + self._t("espera_em_pe_s", 10)
+        while not em_pe():
+            if agora() >= limite:
+                w, h = self.tela.tamanho()
+                raise ErroPasso(f"o Instagram abriu deitado (tela na horizontal, {w}×{h}); deixe o BlueStacks na "
+                                "vertical e rode de novo")
+            dormir(self._t("intervalo_busca_s", 0.4))
 
     def _abrir_galeria(self) -> None:
         if self.tela.achar("selecionar_varios", self._t("espera_curta_s", 2), plano_b=False) is None:

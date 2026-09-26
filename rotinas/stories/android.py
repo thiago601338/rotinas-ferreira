@@ -724,6 +724,12 @@ class Tela:
             self._tamanho = (int(w), int(h))
         return self._tamanho
 
+    def em_pe(self) -> bool:
+        """Tela na vertical (altura >= largura). Relê o tamanho: o BlueStacks pode girar entre uma letra e outra."""
+        self._tamanho = None
+        w, h = self.tamanho()
+        return h >= w
+
     def abrir_app(self, pacote: str, parar: bool = False) -> None:
         self.d.app_start(pacote, stop=parar)
 
