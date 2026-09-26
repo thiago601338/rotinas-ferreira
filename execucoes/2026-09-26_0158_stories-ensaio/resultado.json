@@ -1,0 +1,133 @@
+{
+  "alvo": "stories-ensaio",
+  "argv": [
+    "--sintetico"
+  ],
+  "pasta": "execucoes/2026-09-26_0158_stories-ensaio",
+  "inicio": "2026-09-26T01:58:41-03:00",
+  "resultado": {
+    "ensaio": true,
+    "id": "teste-sintetico",
+    "data": "2000-01-01",
+    "letras": [
+      {
+        "letra": "T",
+        "estado": "ensaio_ok",
+        "midias": [
+          "T - 1",
+          "T - 2",
+          "T - 3"
+        ],
+        "prints": [
+          "ensaio_T_1.png",
+          "ensaio_T_2.png",
+          "ensaio_T_3.png",
+          "ensaio_T_compartilhar.png"
+        ],
+        "erro": null,
+        "envio": {
+          "pasta": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T",
+          "album": "2000-01-01_T",
+          "arquivos": [
+            {
+              "nome": "T - 1",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_1.mp4",
+              "mtime": "202609260158.45",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 2",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_2.jpg",
+              "mtime": "202609260157.45",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 3",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_3.jpg",
+              "mtime": "202609260156.45",
+              "varredura": "broadcast"
+            }
+          ],
+          "varredura": [
+            "broadcast"
+          ],
+          "ordem_data_da_midia": {
+            "datetaken": true
+          },
+          "avisos": []
+        },
+        "album": "2000-01-01_T",
+        "musicas": [
+          {
+            "midia": "T - 1",
+            "busca": "fashion",
+            "musica": "Westside de Tony Dark Eyes",
+            "entre": 6
+          }
+        ],
+        "figurinha": {
+          "midia": "T - 3",
+          "url": "wa.me/5582988748649?text=Quero+comprar+a+Pe%C3%A7a+de+Teste",
+          "texto": "Comprar"
+        },
+        "destino": "Seu story",
+        "facebook": "não apareceu"
+      },
+      {
+        "letra": "U",
+        "estado": "ensaio_ok",
+        "midias": [
+          "U - 1"
+        ],
+        "prints": [
+          "ensaio_U_1.png"
+        ],
+        "erro": null,
+        "envio": {
+          "pasta": "/sdcard/Pictures/RotinasFerreira/2000-01-01_U",
+          "album": "2000-01-01_U",
+          "arquivos": [
+            {
+              "nome": "U - 1",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_U/2000-01-01_U_1.jpg",
+              "mtime": "202609260159.43",
+              "varredura": "broadcast"
+            }
+          ],
+          "varredura": [
+            "broadcast"
+          ],
+          "ordem_data_da_midia": {
+            "datetaken": true
+          },
+          "avisos": []
+        },
+        "album": "2000-01-01_U",
+        "figurinha": {
+          "midia": "U - 1",
+          "url": "wa.me/5582988748649?text=Quero+comprar+a+Pe%C3%A7a+de+Teste",
+          "texto": "Comprar agora"
+        }
+      }
+    ],
+    "publicadas": [],
+    "parou_em": null,
+    "avisos": [],
+    "dispositivo": {
+      "serial": "127.0.0.1:5555",
+      "adb": "C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe",
+      "android": "9",
+      "sdk": "28",
+      "modelo": "SM-S908E",
+      "tela": "Physical size: 1600x900",
+      "densidade": "Physical density: 240\nOverride density: 320",
+      "instagram": "448.0.0.52.84"
+    },
+    "plano": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\stories\\_teste\\2026-09-26_0158",
+    "ok": true,
+    "resumo": "ENSAIO: nada foi publicado.\n- T: montada em ensaio (3 mídia(s)); prints: ensaio_T_1.png, ensaio_T_2.png, ensaio_T_3.png, ensaio_T_compartilhar.png\n- U: montada em ensaio (1 mídia(s)); prints: ensaio_U_1.png"
+  },
+  "ok": true,
+  "fim": "2026-09-26T02:00:17-03:00",
+  "duracao_s": 96.4
+}
