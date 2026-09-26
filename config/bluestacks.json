@@ -20,10 +20,10 @@
   "intervalo_busca_s": 0.4,
   "tentativas_digitar": 3,
   "max_voltar_saida": 8,
-  "_formato": "Instagram 448, 26/09/2026 04:21: com várias fotos, 'Avançar' da galeria abriu antes do editor a escolha de formato ('Separado' marcado | 'Layout' | 'Colagem sequencial') com os botões 'Editar' e 'Continuar'. O fluxo garante 'Separado' e tenta os botões de botoes_formato na ordem até o editor aparecer; botão que leva a outra tela → volta (até max_voltar_formato vezes) e tenta o próximo. Nenhum dos dois publica.",
+  "_formato": "Instagram 448, 26/09/2026 04:21: com várias fotos, 'Avançar' da galeria abriu antes do editor a escolha de formato ('Separado' marcado | 'Layout' | 'Colagem sequencial') com os botões 'Editar' e 'Continuar'. O fluxo garante 'Separado' e tenta os botões de botoes_formato na ordem até o editor aparecer (26/09 10:31: 'Editar' NÃO abriu o editor e 3× Voltar saiu do Instagram; agora 'Continuar' primeiro); botão que leva a outra tela → volta (até max_voltar_formato vezes) e tenta o próximo. Nenhum dos dois publica.",
   "botoes_formato": [
-    "formato_editar",
-    "formato_continuar"
+    "formato_continuar",
+    "formato_editar"
   ],
   "max_voltar_formato": 3,
   "exigir_figurinha_no_xml": true,

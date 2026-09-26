@@ -1066,30 +1066,31 @@ def test_ensaio_sintetico_monta_letra_de_teste_sem_publicar(sem_emulador, cfg):
 
 # ---------------------------------------------------------------- escolha de formato (448, 26/09 04:21)
 
-def test_escolha_de_formato_separado_e_editar_abre_o_editor(ambiente):
+def test_escolha_de_formato_separado_e_continuar_abre_o_editor(ambiente):
     """Letra B (5 fotos) parou em 'avancar': o 448 mostrou "Separado | Layout | Colagem sequencial" com
-    "Editar"/"Continuar" antes do editor. Agora: garante "Separado", toca "Editar" e segue normalmente."""
-    a = ambiente
-    a.tela.compartilhar_448 = True
-    a.tela.escolha_formato = True
-    res = rodar(a, montar_plano(a.midias, {"B": ["foto"] * 5}, ensaio=False), ensaio=False)
-    assert res["publicadas"] == ["B"]
-    t = a.tela.toques
-    assert t.index("avancar") < t.index("formato_separado") < t.index("formato_editar") < t.index("figurinhas")
-    assert "formato_continuar" not in t
-    assert a.tela.publicacoes[0]["midias"][-1]["figurinha"]["url"] == URL
-
-
-def test_escolha_de_formato_que_so_abre_o_editor_pelo_continuar(ambiente):
-    """Se "Editar" levar a outra tela, volta para a escolha e tenta "Continuar" (nada é publicado no caminho)."""
+    "Editar"/"Continuar" antes do editor. Garante "Separado", toca "Continuar" (1º de botoes_formato) e segue."""
     a = ambiente
     a.tela.compartilhar_448 = True
     a.tela.escolha_formato = True
     a.tela.formato_abre_editor = "formato_continuar"
+    res = rodar(a, montar_plano(a.midias, {"B": ["foto"] * 5}, ensaio=False), ensaio=False)
+    assert res["publicadas"] == ["B"]
+    t = a.tela.toques
+    assert t.index("avancar") < t.index("formato_separado") < t.index("formato_continuar") < t.index("figurinhas")
+    assert "formato_editar" not in t
+    assert a.tela.publicacoes[0]["midias"][-1]["figurinha"]["url"] == URL
+
+
+def test_escolha_de_formato_que_so_abre_o_editor_pelo_editar(ambiente):
+    """Se "Continuar" levar a outra tela, volta para a escolha e tenta "Editar" (nada é publicado no caminho)."""
+    a = ambiente
+    a.tela.compartilhar_448 = True
+    a.tela.escolha_formato = True
+    a.tela.formato_abre_editor = "formato_editar"
     res = rodar(a, montar_plano(a.midias, {"B": ["foto"] * 3}), ensaio=True)
     assert [x["estado"] for x in res["letras"]] == ["ensaio_ok"]
     t = a.tela.toques
-    assert t.index("formato_editar") < t.index("voltar") < t.index("formato_continuar")
+    assert t.index("formato_continuar") < t.index("voltar") < t.index("formato_editar")
     assert "concluir_publicacao" not in t and a.tela.publicacoes == []
 
 
