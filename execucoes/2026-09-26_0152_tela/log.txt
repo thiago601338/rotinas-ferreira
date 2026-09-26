@@ -1,0 +1,5 @@
+2026-09-26 01:52:58 INFO    rotinas.execucao: Teste 'tela' começou. Pasta: C:\Users\V15\Documents\Rotinas Ferreira\sistema\execucoes\2026-09-26_0152_tela
+2026-09-26 01:52:59 INFO    rotinas.stories.android: adb usado nesta execução: C:\Program Files\BlueStacks_nxt\HD-Adb.exe
+2026-09-26 01:52:59 INFO    rotinas.stories.android: Conectado ao BlueStacks em 127.0.0.1:5555
+2026-09-26 01:53:01 INFO    rotinas.stories.bluestacks: Tela anonimizada: 4 texto(s) apagado(s), 4 área(s) coberta(s)
+2026-09-26 01:53:01 INFO    rotinas.execucao: Teste 'tela' terminou bem em 2.4 s

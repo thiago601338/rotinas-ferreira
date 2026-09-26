@@ -1,0 +1,27 @@
+{
+  "alvo": "tela",
+  "argv": [],
+  "pasta": "execucoes/2026-09-26_0152_tela",
+  "inicio": "2026-09-26T01:52:58-03:00",
+  "resultado": {
+    "ok": true,
+    "dispositivo": {
+      "serial": "127.0.0.1:5555",
+      "adb": "C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe",
+      "android": "9",
+      "sdk": "28",
+      "modelo": "SM-S908E",
+      "tela": "Physical size: 1600x900",
+      "densidade": "Physical density: 240\nOverride density: 320",
+      "instagram": "448.0.0.52.84"
+    },
+    "arquivos": [
+      "tela_atual.xml",
+      "tela_atual.png"
+    ],
+    "resumo": "BlueStacks 127.0.0.1:5555, Instagram 448.0.0.52.84, tela [900, 1600]: salvei tela_atual.xml, tela_atual.png."
+  },
+  "ok": true,
+  "fim": "2026-09-26T01:53:01-03:00",
+  "duracao_s": 2.4
+}
