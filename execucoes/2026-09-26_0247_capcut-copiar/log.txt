@@ -1,0 +1,2 @@
+2026-09-26 02:47:14 INFO    rotinas.execucao: Teste 'capcut-copiar' começou. Pasta: C:\Users\V15\Documents\Rotinas Ferreira\sistema\execucoes\2026-09-26_0247_capcut-copiar
+2026-09-26 02:47:16 INFO    rotinas.execucao: Teste 'capcut-copiar' terminou bem em 2.3 s
