@@ -13,7 +13,7 @@ passe o mesmo nome como argumento do `instalar.bat`.)
 
 O instalador instala Git, Python 3.12, ffmpeg e adb (winget), clona o sistema em
 `C:\Users\V15\Documents\Rotinas Ferreira\sistema\`, cria a `.venv`, abre o `.env` para preencher
-(`SUPABASE_KEY` = chave pública do projeto; `SUPABASE_EMAIL`/`SUPABASE_SENHA` = usuário das rotinas no Supabase Auth, porque o estoque só abre para usuário logado; o script só lê), registra o **vigia** para iniciar no logon e termina com uma tabela
+(`SUPABASE_KEY` = chave pública do projeto; `SUPABASE_EMAIL`/`SUPABASE_SENHA` = usuário das rotinas no Supabase Auth, porque o estoque só abre para usuário logado; o script só lê; `OPENAI_API_KEY` opcional, só para recriar foto de carrossel sem a cor que acabou), registra o **vigia** para iniciar no logon e termina com uma tabela
 ✓/✗. Pode rodar de novo quando quiser (pula o que já existe).
 
 | Arquivo (em `sistema\`) | Para quê |
@@ -26,8 +26,8 @@ O instalador instala Git, Python 3.12, ffmpeg e adb (winget), clona o sistema em
 - **Fila de pedidos:** a IA grava `Rotinas Ferreira\fila\pendente\<id>.json`; o vigia executa e devolve
   `fila\feito\<id>.json` (ou `erro`) com log e prints. Formato: [`fila/README.md`](fila/README.md).
 - **Stories:** preparar a pasta do dia → a IA identifica peça e cor pelas folhas de contato → o script corta sem estoque
-  e já postado, monta o link `wa.me/...` (sem `https://`) → ensaio no BlueStacks → aprovação → postagem → conferência
-  pelo JS. Skill: [`.claude/skills/postar-stories-ferreira`](.claude/skills/postar-stories-ferreira/SKILL.md).
+  e já postado (foto de várias cores com uma sem estoque: recriada sem essa cor pela API da OpenAI e aprovada pela IA),
+  monta o link `wa.me/...` (sem `https://`) → ensaio no BlueStacks → aprovação → postagem → conferência pelo JS. Skill: [`.claude/skills/postar-stories-ferreira`](.claude/skills/postar-stories-ferreira/SKILL.md).
 - **Vídeo:** preparar o bruto (tomadas, silêncios, transcrição, batidas) → a IA escolhe receita, tomadas e textos →
   plano validado → rascunho no CapCut → acabamento e exportação → conferência automática do `.mp4`.
   Skill: [`.claude/skills/editar-video-ferreira`](.claude/skills/editar-video-ferreira/SKILL.md).
@@ -35,13 +35,14 @@ O instalador instala Git, Python 3.12, ffmpeg e adb (winget), clona o sistema em
 
 ## Pelo terminal do PC (opcional)
 Na pasta `sistema`: `.venv\Scripts\python.exe -m rotinas` lista os comandos (`stories-preparar`, `stories-estoque`,
-`stories-montar`, `stories-postar`, `stories-relatorio`, `video-preparar`, `video-receitas`, `video-planejar`,
+`stories-postados`, `stories-recriar`, `stories-montar`, `stories-postar`, `stories-relatorio`, `video-preparar`, `video-receitas`, `video-planejar`,
 `video-rascunho`, `video-exportar`, `video-conferir`, `fila`, `vigia`, `verificar`). Cada um tem `--help`.
 
 ## Onde está cada coisa
 - `rotinas/` código · `config/*.json` pastas, regras e presets · `receitas/` R1–R12 · `tests/` pytest (mídia sintética)
 - `conhecimento/` regras e aprendizados (ler antes de mudar qualquer rotina) · `BRIEFING.md` o que construir
-- `execucoes/` resultados dos testes no PC (repositório público: não pôr nada sensível)
+- `execucoes/` resultados dos testes no PC. O repositório é público: o `testar.bat` tira conversa do Direct (fica só
+  em `saida_local` no PC), oculta texto de notificação e cobre a faixa da notificação nos prints
 
 ## Desenvolver
 `pip install -r requirements-dev.txt` e `python -m pytest` (precisa de ffmpeg no PATH). Regras do código em
