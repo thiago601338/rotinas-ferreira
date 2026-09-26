@@ -265,6 +265,7 @@ def test_planejar_r2_legenda_retimada_e_preco(cfg, bruto_r2):
     assert 15 <= p["duracao_s"] <= 25
     preco = next(v for v in p["video"] if v["papel"] == "preco")
     assert preco["fala"] is True and preco["mudo"] is False and preco["volume_db"] == 0.0
+    assert any("sem ajuste de ganho" in a for a in p["avisos"])  # bruto.json antigo, sem medição de volume
     # começa logo antes da 1ª palavra e termina logo depois da última usada ("tchau" fica de fora)
     assert preco["fonte_ini_s"] == pytest.approx(13.42, abs=0.01)
     assert preco["fonte_fim_s"] < 18.6
@@ -288,6 +289,25 @@ def test_planejar_r2_legenda_retimada_e_preco(cfg, bruto_r2):
     assert all(v["mudo"] for v in p["video"] if not v["fala"])
     assert not [a for a in p["audio"] if a["papel"] in ("musica", "guia")]
     assert {e["tecnica"] for e in p["efeitos"]} >= {55, 54, 53}
+
+
+@pytest.mark.parametrize("volume, esperado, aviso_pico", [
+    ({"lufs": -26.3, "pico_real_dbtp": -15.0}, 12.0, False),  # sobe até −14 LUFS (passo 0,5 para baixo)
+    ({"lufs": -26.0, "pico_real_dbtp": -8.0}, 7.0, True),     # o pico manda: −8 + 7 = −1 dBTP
+    ({"lufs": -9.0, "pico_real_dbtp": -2.0}, -5.0, False),    # voz alta desce
+    ({"lufs": -60.0, "pico_real_dbtp": -50.0}, 20.0, False),  # teto do ganho
+])
+def test_voz_sobe_ate_menos_14_lufs_sem_passar_o_pico(cfg, bruto_r2, volume, esperado, aviso_pico):
+    """26/09/2026: o CapCut exporta a mistura como está; a voz do celular a 0 dB reprovava (−23,7 LUFS no teste)."""
+    bruto_r2["arquivos"][0]["volume"] = volume
+    gravar(cfg, bruto_r2)
+    p = plano.planejar(PROJETO, "r02", copy.deepcopy(ESCOLHAS_R2))
+    assert p["violacoes"] == []
+    falas = [v for v in p["video"] if v["fala"]]
+    assert falas and all(v["volume_db"] == esperado for v in falas)
+    assert all(v["mudo"] for v in p["video"] if not v["fala"])  # clipe sem fala continua mudo
+    assert any("picos altos" in a for a in p["avisos"]) is aviso_pico
+    assert not any("sem ajuste de ganho" in a for a in p["avisos"])
 
 
 def test_r2_legenda_desligada_e_preco_pelo_sku(cfg, bruto_r2):

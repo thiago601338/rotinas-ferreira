@@ -68,6 +68,8 @@
   "plano_legendas": {"tamanho_px": [56, 72], "y": [950, 1250], "cps_max": 17},
   "plano_ritmo": {"troca_max_s": 3.0, "fala_troca_max_s": 6.0, "cta_max_s": 2.0, "regancho_acima_de_s": 15, "regancho_max_s": 8.0, "payoff_max_fracao": 0.9, "flashes_max_por_s": 3, "tolerancia_batida_quadros": 1, "passo_ajuste_s": 0.1, "tolerancia_tomada_s": 0.05},
   "plano_musica": {"abaixo_da_voz_db": [12, 18], "volume_mudo_db": -60.0, "ducking_rampa_s": 0.4, "ducking_juntar_s": 0.5},
+  "_plano_volume": "26/09/2026: o CapCut exporta a mistura exatamente como está na linha do tempo (não normaliza). O plano soma ao volume_voz_db da receita o ganho que leva a voz do arquivo (LUFS medido no bruto.json) a alvo_lufs, sem o pico real passar de pico_max_dbtp; ganho limitado a ganho_min_db–ganho_max_db, arredondado para baixo no passo_db.",
+  "plano_volume": {"alvo_lufs": -14.0, "pico_max_dbtp": -1.0, "ganho_min_db": -20.0, "ganho_max_db": 20.0, "passo_db": 0.5},
   "plano_recorte": {"punch_in_escala": 1.15, "punch_in_parte_min_s": 0.4, "jump_cut_silencio_min_s": 0.3, "jump_cut_margem_s": 0.08, "jump_cut_parte_min_s": 0.3, "jump_cut_escala": 1.1, "jump_cut_alternar_a_cada": 2, "strobe_intervalo_s": 0.4, "strobe_max": 4, "flash_quadros": 2, "tremor_quadros": 6},
   "plano_efeitos_sonoros": {"subpasta": "sons", "volume_db": -12.0, "intervalo_min_s": 2.0, "extensoes": [".mp3", ".wav", ".m4a"], "adiantar_s": {"whoosh": 0.15, "pop": 0.067, "clique": 0.033, "obturador": 0.033, "cortina": 0.2}, "duracao_s": {"whoosh": 0.5, "pop": 0.3, "clique": 0.2, "obturador": 0.4, "cortina": 0.8}},
   "parcelas_loja": [{"ate": 149.99, "vezes": 2}, {"ate": 319.98, "vezes": 3}, {"ate": null, "vezes": 5}],

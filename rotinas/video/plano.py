@@ -278,7 +278,7 @@ def _fonte(bruto: dict, valor, arquivos: dict[str, dict]) -> dict:
     info = a.get("info") or {}
     return {"tomada": tid, "arquivo": t["arquivo"], "caminho": a.get("caminho_edicao") or a.get("caminho") or t["arquivo"],
             "ini": float(t["ini_s"]), "fim": float(t["fim_s"]), "fps": info.get("fps"), "tipo": "video",
-            "silencios": a.get("silencios") or [], "fala_arquivo": bool(a.get("fala"))}
+            "silencios": a.get("silencios") or [], "fala_arquivo": bool(a.get("fala")), "volume": a.get("volume")}
 
 
 def _foto(valor, p: dict[str, Path]) -> dict:
@@ -741,6 +741,33 @@ def _musica_escolhida(escolhas: dict, receita: dict, bruto: dict, p: dict[str, P
     return m
 
 
+def ganho_voz(fonte: dict, avisos: list[str]) -> float:
+    """Ganho (dB) que leva a voz do arquivo a ≈ −14 LUFS sem o pico real passar do teto (``plano_volume``).
+
+    26/09/2026 (B4 no PC): o CapCut exporta a mistura exatamente como está na linha do tempo, sem normalizar; sem
+    este ganho a voz sai no volume do celular e a conferência reprova. A medição vem do ``bruto.json``."""
+    c = _r("plano_volume")
+    med = fonte.get("volume") or {}
+    lufs, pico = med.get("lufs"), med.get("pico_real_dbtp")
+    if not isinstance(lufs, (int, float)):
+        aviso = (f"{fonte['arquivo']}: o bruto.json não tem a medição de volume (preparado antes de 26/09/2026?): a voz "
+                 "entra sem ajuste de ganho. Preparar de novo para ela sair perto de −14 LUFS.")
+        if aviso not in avisos:
+            avisos.append(aviso)
+        return 0.0
+    teto = float(c["pico_max_dbtp"])
+    ganho = float(c["alvo_lufs"]) - float(lufs)
+    if isinstance(pico, (int, float)) and pico + ganho > teto:
+        ganho = teto - float(pico)
+        aviso = (f"{fonte['arquivo']}: a voz tem picos altos; para o pico não passar de {_n(teto)} dBTP ela sobe só "
+                 f"{_n(ganho)} dB (≈ {_n(lufs + ganho)} LUFS). Se a conferência reprovar o volume: compressor no clipe.")
+        if aviso not in avisos:
+            avisos.append(aviso)
+    ganho = min(max(ganho, float(c["ganho_min_db"])), float(c["ganho_max_db"]))
+    passo = float(c.get("passo_db") or 0.1)
+    return round(math.floor(ganho / passo + 1e-9) * passo, 2)  # para baixo: nunca passa do teto do pico
+
+
 def _itens_video(blocos: list[dict], receita: dict, canvas: dict, bq: list[int], permitidas: set[int],
                  efeitos: list[dict], avisos: list[str]) -> list[dict]:
     """Clipes da linha do tempo (quadros inteiros). Composição ganha ``x``/``y`` absolutos (centro do clipe, px)."""
@@ -759,7 +786,7 @@ def _itens_video(blocos: list[dict], receita: dict, canvas: dict, bq: list[int],
         trechos = _trechos_fonte(b, fps)
         f0 = b["fontes"][0]
         if b["fala"]:
-            vol, mudo = float(m["volume_voz_db"]), False
+            vol, mudo = float(m["volume_voz_db"]) + ganho_voz(f0, avisos), False
         elif m.get("volume_clipe_sem_fala_db") is None or b["foto"]:
             vol, mudo = float(rm["volume_mudo_db"]), True
         else:

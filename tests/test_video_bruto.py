@@ -181,6 +181,9 @@ def test_preparar_grava_tudo_sem_tocar_no_bruto(cfg, fala_falsa, batidas_falsas)
 
     assert fala_falsa == ["IMG_0001.MOV"]  # só o arquivo com fala
     assert r["arquivos"][0]["fala"] is True and r["arquivos"][1]["fala"] is False
+    # volume medido para o plano levar a voz a −14 LUFS (o CapCut exporta a mistura como está)
+    vol = r["arquivos"][0]["volume"]
+    assert -60 < vol["lufs"] < -5 and -60 < vol["pico_real_dbtp"] <= 0 and r["arquivos"][1]["volume"] is None
     assert len(r["arquivos"][0]["silencios"]) >= 2
     assert r["transcricao"]["arquivo_srt"] == "legendas.srt"
     assert all(p["arquivo"] == "IMG_0001.MOV" for p in r["transcricao"]["palavras"])

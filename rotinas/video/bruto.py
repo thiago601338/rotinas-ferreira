@@ -553,7 +553,7 @@ def _analisar(item: dict, trabalho: Path, normalizar_vfr: bool) -> dict:
     base = {"arquivo": item["arquivo"], "caminho": str(caminho), "caminho_edicao": str(caminho)}
     if item.get("tipo") is None:
         return {**base, "info": None, "avisos": avisos, "audio": None, "tomadas": [], "silencios": [],
-                "fala": False, "erro": item.get("erro")}
+                "fala": False, "volume": None, "erro": item.get("erro")}
     info = {k: v for k, v in item.items() if k not in ("arquivo", "audio", "avisos")}
     edicao = caminho
     if normalizar_vfr and info.get("tipo") == "video" and info.get("fps_variavel"):
@@ -575,9 +575,25 @@ def _analisar(item: dict, trabalho: Path, normalizar_vfr: bool) -> dict:
     except ferramentas.ErroComando as e:
         avisos.append(f"detecção de silêncios falhou ({e}).")
         silencios = []
+    volume = _medir_volume(caminho, avisos) if item.get("audio") == "com_audio" else None
     log.info("%s: %d tomada(s), %d silêncio(s), áudio %s", caminho.name, len(tomadas), len(silencios), item.get("audio"))
     return {**base, "caminho_edicao": str(edicao), "info": info, "avisos": avisos, "audio": item.get("audio"),
-            "tomadas": tomadas, "silencios": silencios, "fala": item.get("audio") == "com_audio"}
+            "tomadas": tomadas, "silencios": silencios, "fala": item.get("audio") == "com_audio", "volume": volume}
+
+
+def _medir_volume(caminho: Path, avisos: list[str]) -> dict | None:
+    """LUFS integrado e pico real do arquivo: o plano usa para levar a voz a ≈ −14 LUFS (o CapCut exporta a mistura
+    exatamente como está na linha do tempo, medido em 26/09/2026)."""
+    try:
+        s = midia.loudness(caminho)
+    except ferramentas.ErroComando as e:
+        avisos.append(f"medição de volume falhou ({e}); a voz entra no plano sem ajuste de ganho.")
+        return None
+
+    def finito(v):
+        return round(float(v), 2) if isinstance(v, (int, float)) and math.isfinite(v) else None
+
+    return {"lufs": finito(s.get("lufs")), "pico_real_dbtp": finito(s.get("pico_real_dbtp"))}
 
 
 def preparar(projeto: str, musica: str | None = None, transcrever: bool = True, normalizar_vfr: bool = False) -> dict:

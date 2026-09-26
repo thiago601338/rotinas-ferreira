@@ -103,8 +103,9 @@ Ler `fila\feito\<id>.json` ou `fila\erro\<id>.json` a cada ~10 s (só aparece qu
 - Música: exportar sem música do CapCut e pôr no Instagram (ou faixa licenciada). Item da biblioteca do CapCut só com
   marca "comercial" — um item não comercial restringe o vídeo inteiro. Decisão final é do dono.
 - Mix ≈ −14 LUFS. O CapCut exporta a mistura exata da linha do tempo (não normaliza; medido em 26/09); o alvo −23 LUFS
-  do app só age em "Normalizar volume" no clipe. Volume baixo → subir os clipes com som. Exportar `.mp4` H.264
-  1080×1920 30 fps ("Personalizado 16.000" deu 14.636 kbps reais: passa).
+  do app só age em "Normalizar volume" no clipe. O plano já põe a voz perto de −14 LUFS (medição do `bruto.json`);
+  volume ainda baixo → subir os clipes com som. Exportar `.mp4` H.264 1080×1920 30 fps ("Personalizado 16.000" deu
+  14.636 kbps reais: passa).
 - Não mudar configurações do CapCut sem o dono pedir. Nunca Ctrl+Q nem Menu > Conta.
 - Não dar conselho de SEO nem sugerir mudança de escopo.
 
@@ -130,4 +131,6 @@ Conferência: APROVADO (ou: volume −22 LUFS → subir ~8 dB no clipe e exporta
 | Sem transcrição (faster-whisper/modelo) | Seguir sem legendas ou pedir `atualizar.bat`; o modelo baixa no primeiro uso (~480 MB). |
 | Conferência: "áudio" reprovado num plano mudo | O arquivo saiu com som: a faixa-guia não foi desligada (V) no CapCut; exportar de novo. |
 | Mídia perdida ao abrir o rascunho | Não mover/renomear o bruto depois do rascunho; se aconteceu, avisar e gerar de novo. |
+| Aviso "bruto.json não tem a medição de volume" | Bruto preparado antes de 26/09: `video.preparar` de novo e planejar de novo (senão a voz sai no volume do celular). |
+| Aviso "a voz tem picos altos" | O ganho parou no pico −1 dBTP. Seguir; se a conferência reprovar o volume, passar o "Fazer" ao usuário (compressor no clipe). |
 | Rascunho abre com o clipe verde da Biblioteca no lugar do vídeo | Material herdou `material_id`/`source` do gabarito: conferir `limpar_campos_origem` e `zerar_campos_origem` em `config/capcut.json` (resolvido em 26/09). |
