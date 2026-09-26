@@ -235,8 +235,10 @@ def _volume(info: midia.InfoMidia, som: dict, exp: dict, som_esperado: str = "co
         return _item("volume", esperado, obtido, True)
     if lufs < alvo:
         ganho = alvo - lufs
-        fazer = (f"Subir o ganho do clipe ~{_n(ganho, 0)} dB e exportar de novo: o CapCut está com alvo −23 LUFS "
-                 "(Configurações > Editar > Nível de volume desejado), que deixa o áudio ~9 dB abaixo de −14.")
+        # 26/09/2026: o CapCut exporta a mistura exatamente como está na linha do tempo (não normaliza na exportação).
+        fazer = (f"Subir o volume dos clipes com som (voz e música) ~{_n(ganho, 0)} dB e exportar de novo: o CapCut "
+                 "exporta a mistura como está na linha do tempo. Se usou \"Normalizar volume\" no clipe, ela mira o "
+                 "alvo do app (−23 LUFS, ~9 dB abaixo de −14).")
         if pico is not None and pico + ganho > pico_max:
             fazer += (f" Com +{_n(ganho, 0)} dB o pico real iria a {_n(pico + ganho)} dBTP: subir só até o pico "
                       f"chegar a {_n(pico_max, None)} dBTP (~{_n(max(pico_max - pico, 0), 0)} dB) e baixar os picos "

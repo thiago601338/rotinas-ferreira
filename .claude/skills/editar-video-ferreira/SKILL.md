@@ -102,7 +102,9 @@ Ler `fila\feito\<id>.json` ou `fila\erro\<id>.json` a cada ~10 s (só aparece qu
   sem juros. Só cores e tamanhos com estoque.
 - Música: exportar sem música do CapCut e pôr no Instagram (ou faixa licenciada). Item da biblioteca do CapCut só com
   marca "comercial" — um item não comercial restringe o vídeo inteiro. Decisão final é do dono.
-- Mix ≈ −14 LUFS (o CapCut do usuário está em −23 LUFS: subir o ganho). Exportar `.mp4` H.264 1080×1920 30 fps.
+- Mix ≈ −14 LUFS. O CapCut exporta a mistura exata da linha do tempo (não normaliza; medido em 26/09); o alvo −23 LUFS
+  do app só age em "Normalizar volume" no clipe. Volume baixo → subir os clipes com som. Exportar `.mp4` H.264
+  1080×1920 30 fps ("Personalizado 16.000" deu 14.636 kbps reais: passa).
 - Não mudar configurações do CapCut sem o dono pedir. Nunca Ctrl+Q nem Menu > Conta.
 - Não dar conselho de SEO nem sugerir mudança de escopo.
 

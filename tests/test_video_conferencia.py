@@ -116,7 +116,7 @@ def test_audio_baixo_do_alvo_padrao_do_capcut(cfg, pasta_videos):
     _so_falha(r, "volume")
     volume = _itens(r)["volume"]
     assert abs(r["medidas"]["lufs"] - (-23.0)) <= 0.7
-    assert "−23 LUFS" in volume["fazer"] and "Subir o ganho do clipe ~9 dB" in volume["fazer"]
+    assert "−23 LUFS" in volume["fazer"] and "Subir o volume dos clipes com som (voz e música) ~9 dB" in volume["fazer"]
 
 
 @pytest.mark.ffmpeg

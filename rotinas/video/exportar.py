@@ -127,8 +127,9 @@ def instrucoes(destino: str, rascunho: str, nome: str | None = None, duracao_s: 
                 maximo = limite * 8000 / float(duracao_s) - AUDIO_KBPS_ESTIMADO
                 linha += f". PASSA DO LIMITE: use no máximo {_n(maximo)} kbps."
         L.append(linha)
-    L += ["Volume: o CapCut está em \"Padrão (−23 LUFS)\" e a mixagem mira −14 LUFS; "
-          "não mudar essa configuração sem o dono pedir.",
+    L += ["Volume: o CapCut exporta a mistura como está na linha do tempo (não normaliza); a mixagem mira −14 LUFS. "
+          "\"Normalizar volume\" no clipe usa o alvo do app, \"Padrão (−23 LUFS)\": não mudar essa configuração sem o "
+          "dono pedir.",
           f"Depois de exportar: o arquivo {nome}.{p.get('formato', 'mp4')} é conferido sozinho quando aparecer na pasta "
           "(duração, resolução, fps, codec, taxa de bits, áudio, loudness e tamanho)."]
     if som_esperado == "mudo":

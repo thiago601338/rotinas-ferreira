@@ -55,7 +55,17 @@ Complementa `edicao-video-capcut.md`. Origem: mapeamento feito no PC do usuário
 - **B3 validado (26/09/2026 03:02, "Teste Rotinas 20260926-030215", com as 2 correções acima):** o usuário abriu no
   CapCut e confirmou: miniatura com o **nosso** vídeo (barras de cor + "TESTE ROTINAS", não mais o clipe verde da
   Biblioteca), texto "num tamanho bom", **legenda e música aparecem**. O aviso "limpei os campos de origem (conferir)"
-  sai do relatório (`origem_limpa_confirmada`). Falta o B4 (exportar esse projeto e `testar.bat conferir`).
+  sai do relatório (`origem_limpa_confirmada`).
+- **B4 no PC (26/09/2026 03:13, `testar.bat conferir`):** o usuário exportou esse projeto (1080P, Personalizado 16.000,
+  H.264, mp4, 30 fps, pasta `videos\exportado`) e a conferência rodou em 4 s: **10 de 11 itens passaram** — 4,0 s,
+  1080×1920, 30 fps, H.264 Main yuv420p, mp4, BT.709 SDR, **14.636 kbps** reais para "Personalizado 16.000" (dentro de
+  12.000–20.000), AAC 44,1 kHz estéreo, 7,3 MB. Reprovou só o volume, **como esperado no teste**: −23,7 LUFS, pico
+  −20 dBTP.
+- **O CapCut NÃO normaliza na exportação:** a mesma mistura simulada no ffmpeg (tom 440 Hz a 0 dB e −6 dB + música
+  220 Hz a −18 dB, os volumes do rascunho) dá **exatamente −23,7 LUFS / −20,3 dBFS**. Ou seja, o arquivo sai com os
+  volumes da linha do tempo; o "Nível de volume desejado −23 LUFS" só age quando se usa "Normalizar volume" no clipe.
+  Para chegar a −14 LUFS: subir o volume dos clipes com som. O "Fazer" da conferência foi corrigido (culpava o alvo
+  −23 LUFS do app).
 
 ## Exportação (modal "Exportar-<nome do projeto>", Ctrl+E)
 - Campos: Nome · Exportar para (padrão `C:/Users/V15/AppData/Local/CapCut…`) · ☑ Vídeo: Resolução (480P · 720P · **1080P** · 2K · 4K · 8K), Taxa de bits (Abaixar · **Recomendado** · Superior · Personalizado), Codec (**H.264** · HEVC · HEVC Alpha · HEVC 422 · AV1 · RLE), Formato (mov · **mp4**), Taxa de quadros (24 · 25 · 29.97 · **30** · 50 · 59.94 · 60), Espaço de cores Rec.709 SDR (fixo) · ☑ "Sincronize os vídeos exportados com o espaço" · ☐ Áudio (MP3) · ☐ GIF · ☐ Legendas 💎 (SRT) · Verificar direitos autorais (desligado) · rodapé com o tamanho estimado e os botões **[Exportar]** e **[Cancelar]**.
