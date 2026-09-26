@@ -1,0 +1,35 @@
+{
+  "id": "r12-escolha-o-look",
+  "nome": "Escolha o look",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R12",
+  "descricao": "Tela de game → cursor com clique → troca → \"comenta o número\".",
+  "objetivo": "divertir",
+  "estetica": "jovem",
+  "destinos": ["reels", "tiktok", "stories"],
+  "duracao_s": [10, 15],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [2.0, 3.0], "composicao": "game", "tomada_sugerida": "tela de game: uma tomada curta de cada look parado de frente (vira recorte numerado 1, 2, 3 sobre um fundo)", "texto": "gancho", "efeito": 28, "som": "clique", "repete": null},
+    {"papel": "look", "dur_s": [1.5, 3.0], "tomada_sugerida": "cada look de corpo inteiro (tripé fixo, mesma pose), com a troca na mão na lente", "texto": "contador", "efeito": null, "troca": 24, "reforco": "whoosh", "repete": [2, 3]},
+    {"papel": "final", "dur_s": [1.5, 2.5], "composicao": "game", "tomada_sugerida": "a tela de game de novo com os looks (emenda no começo)", "texto": "cta", "efeito": 28, "payoff": true, "repete": null}
+  ],
+  "ritmo": {"troca_s": [1.0, 3.0], "corte_na_batida": false, "batidas_por_troca": null, "bpm": [100, 128]},
+  "textos": {
+    "gancho":   {"y": [420, 580], "tamanho_px": 96, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]},
+    "contador": {"x": 260, "y": [330, 350], "tamanho_px": 72, "min_s": 1.0, "entra_max_s": 0.1, "estilo": "contador", "animacao": "nenhuma", "formato": "{n}"},
+    "cta":      {"y": [1220, 1260], "tamanho_px": 72, "tamanho_min_px": 56, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "cta", "animacao": "pop", "padrao": "Comenta o número"}
+  },
+  "legendas": {"ligado": false, "estilo": "legenda", "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco"], "max": 0},
+  "efeitos": {"assinatura": 28, "apoio": [], "sonoros": ["clique", "whoosh"]},
+  "musica": {"origem": "instagram", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -7, "volume_voz_db": 0, "volume_clipe_sem_fala_db": null},
+  "cor": {"look": "clean", "filtro_max": 0.4, "tomada_cor_fiel": true},
+  "loop": true,
+  "itens_biblioteca": [],
+  "notas": [
+    "Tripé fixo e fita no chão; mesma pose, luz e enquadramento em todos os looks; foco, exposição e branco travados.",
+    "Uma tomada curta de cada look parado de frente com fundo contrastado (vira recorte na tela de game).",
+    "Mão na lente: cobrir a lente toda por 2–3 quadros, na saída de um look e na entrada do outro.",
+    "Cursor feito à mão (imagem própria ou texto \"➤\" com quadros-chave de posição); figurinha da biblioteca só com marca comercial (§7).",
+    "Só looks com estoque; tomada de cor fiel das peças."
+  ]
+}

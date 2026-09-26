@@ -1,0 +1,37 @@
+{
+  "id": "r11-embalando-seu-pedido",
+  "nome": "Embalando seu pedido",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R11",
+  "descricao": "ASMR com jump cuts, close do laço e do adesivo, texto mínimo, loop.",
+  "objetivo": "inspirar",
+  "estetica": "clean_girl",
+  "destinos": ["reels", "tiktok", "stories"],
+  "duracao_s": [15, 30],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [1.5, 2.5], "tomada_sugerida": "o pacote pronto com o laço (resultado primeiro), mesmo enquadramento do último plano", "texto": "gancho", "efeito": 21, "repete": null},
+    {"papel": "embalando", "dur_s": [1.0, 2.5], "tomada_sugerida": "mãos embalando: dobrar a peça, papel de seda, fita (câmera fixa de cima ou a 45°, som a 20–30 cm)", "texto": "regancho", "efeito": 15, "repete": [5, 10]},
+    {"papel": "laco", "dur_s": [1.5, 2.5], "tomada_sugerida": "close do laço sendo fechado, em 4K", "texto": "rotulo", "efeito": 2, "payoff": true, "repete": null},
+    {"papel": "adesivo", "dur_s": [1.5, 2.5], "tomada_sugerida": "close do adesivo da loja sendo colado", "texto": null, "efeito": 58, "repete": null},
+    {"papel": "final", "dur_s": [1.5, 2.5], "tomada_sugerida": "o pacote pronto no mesmo enquadramento da abertura (fecha o loop)", "texto": null, "efeito": 13, "repete": null}
+  ],
+  "ritmo": {"troca_s": [1.0, 3.0], "corte_na_batida": false, "batidas_por_troca": null, "bpm": [70, 100]},
+  "textos": {
+    "gancho": {"y": [420, 580], "tamanho_px": 88, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]},
+    "regancho": {"y": [420, 580], "tamanho_px": 80, "tamanho_min_px": 64, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "gancho", "animacao": "pop", "opcional": true},
+    "rotulo": {"y": [1180, 1220], "tamanho_px": 56, "tamanho_min_px": 46, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "padrao", "animacao": "subir", "opcional": true}
+  },
+  "legendas": {"ligado": false, "estilo": "legenda", "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco"], "max": 0},
+  "efeitos": {"assinatura": 58, "apoio": [2], "sonoros": []},
+  "musica": {"origem": "sem", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -20, "volume_voz_db": 0, "volume_clipe_sem_fala_db": 4},
+  "cor": {"look": "clean", "filtro_max": 0.3, "tomada_cor_fiel": true},
+  "loop": true,
+  "itens_biblioteca": [],
+  "notas": [
+    "Mesa limpa, luz de janela difusa, câmera fixa (de cima ou a 45°); foco, exposição e branco travados.",
+    "Som gravado a 20–30 cm (papel, fita, adesivo); ar-condicionado, ventilador e música ambiente desligados.",
+    "Último plano igual ao primeiro (mesmo enquadramento do pacote pronto) para o loop.",
+    "Nada de nome, endereço ou telefone de cliente na tela (etiqueta de envio fora do quadro).",
+    "Sem música por padrão (o som é o ASMR); se entrar música, bem baixa (−15 a −25 dB) ou pelo Instagram."
+  ]
+}

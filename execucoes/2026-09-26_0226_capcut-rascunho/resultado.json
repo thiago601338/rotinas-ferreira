@@ -1,0 +1,73 @@
+{
+  "alvo": "capcut-rascunho",
+  "argv": [],
+  "pasta": "execucoes/2026-09-26_0226_capcut-rascunho",
+  "inicio": "2026-09-26T02:26:52-03:00",
+  "resultado": {
+    "rascunho": "Teste Rotinas 20260926-022653",
+    "pasta": "C:\\Users\\V15\\AppData\\Local\\CapCut\\User Data\\Projects\\com.lveditor.draft\\Teste Rotinas 20260926-022653",
+    "resumo": {
+      "nome": "Teste Rotinas 20260926-022653",
+      "duracao_s": 4.0,
+      "largura": 1080,
+      "altura": 1920,
+      "fps": 30.0,
+      "video": 2,
+      "audio": 1,
+      "textos": 1,
+      "legendas": 1,
+      "faixas": {
+        "video": 1,
+        "audio": 1,
+        "text": 2
+      },
+      "arquivos": [
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/attachment/patch/mini_draft.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/attachment/patch/patch.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/attachment_editing.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/attachment_pc_common.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/common_attachment/attachment_action_scene.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/common_attachment/attachment_gen_ai_info.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/common_attachment/attachment_id_mapping.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/common_attachment/attachment_pc_timeline.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/common_attachment/attachment_plugin_draft.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/common_attachment/attachment_script_video.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/draft.extra",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/draft_content.json",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/template-2.tmp",
+        "Timelines/4C0E6B1A-510A-46A8-8AF9-14F32FF9F93D/template.tmp",
+        "Timelines/project.json",
+        "common_attachment/attachment_id_mapping.json",
+        "draft.extra",
+        "draft_agency_config.json",
+        "draft_biz_config.json",
+        "draft_content.json",
+        "draft_meta_info.json",
+        "draft_settings",
+        "draft_virtual_store.json",
+        "key_value.json",
+        "performance_opt_info.json",
+        "template-2.tmp",
+        "timeline_layout.json"
+      ]
+    },
+    "avisos": [
+      "O protótipo de video do gabarito veio da Biblioteca do CapCut: limpei os campos de origem (conferir).",
+      "O gabarito não tem faixa de audio: usei o protótipo de reserva (pyCapCut, não confirmado na 9.5). Conferir esse item no CapCut.",
+      "Tamanho dos textos aproximado (fator provisório 3.0 px por unidade de 'size'): conferir no CapCut e calibrar com a régua."
+    ],
+    "manual": [],
+    "backup": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\backups\\capcut\\2026-09-26_022656",
+    "indice": "registrado em root_meta_info.json",
+    "relatorio": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\execucoes\\2026-09-26_0226_capcut-rascunho\\relatorio_rascunho.txt",
+    "gabarito": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\gabaritos\\capcut-9.5\\0925",
+    "copias": {
+      "rascunho_gerado": 27,
+      "gabarito_usado": 27
+    },
+    "pedido_ao_usuario": "Abra o CapCut, procure o projeto \"Teste Rotinas 20260926-022653\" e me diga: 1) abriu sem erro? 2) apareceu \"mídia perdida\" ou pedido para vincular mídia? 3) aparecem 2 trechos de vídeo, o texto TESTE ROTINAS em cima, a legenda embaixo e a música? Depois feche o CapCut sem salvar mudanças."
+  },
+  "ok": true,
+  "fim": "2026-09-26T02:26:56-03:00",
+  "duracao_s": 4.2
+}

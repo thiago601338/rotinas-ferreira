@@ -1,0 +1,40 @@
+{
+  "id": "r01-troca-de-look-na-batida",
+  "nome": "Troca de look na batida",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R1",
+  "descricao": "Cold open com o último look + \"4 looks com 1 saia\" → trocas (pulo/estalo) a cada 2 batidas com \"LOOK 1/4\" e punch-in → último look em câmera lenta → preço e CTA.",
+  "objetivo": "vender",
+  "estetica": "jovem",
+  "destinos": ["reels", "tiktok", "stories"],
+  "duracao_s": [12, 20],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [0.7, 1.2], "batidas": 2, "tomada_sugerida": "o último look no ápice do pulo ou do giro (abertura pelo clímax: o melhor 0,7–1 s do final)", "texto": "gancho", "efeito": 21, "repete": null},
+    {"papel": "look", "dur_s": [0.8, 2.5], "tomada_sugerida": "cada look de corpo inteiro no mesmo enquadramento (tripé fixo, fita no chão), cortado no ápice do pulo ou no estalo", "texto": "contador", "efeito": 1, "troca": 22, "reforco": "whoosh", "repete": [2, 4]},
+    {"papel": "look_final", "dur_s": [1.5, 3.0], "batidas": 4, "velocidade": 0.5, "tomada_sugerida": "o último look girando, gravado em 4K a 60 fps (câmera lenta)", "texto": "contador", "efeito": 9, "troca": 22, "reforco": "whoosh", "payoff": true, "repete": null},
+    {"papel": "preco", "dur_s": [2.5, 3.5], "batidas": 6, "tomada_sugerida": "último look parado de corpo inteiro, com espaço livre no alto do quadro para o preço", "texto": ["preco", "parcelas", "cta"], "efeito": 53, "som": "pop", "payoff": true, "repete": null}
+  ],
+  "ritmo": {"troca_s": [1.0, 3.0], "corte_na_batida": true, "batidas_por_troca": 2, "bpm": [100, 128]},
+  "textos": {
+    "gancho":   {"y": [420, 580], "tamanho_px": 96, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]},
+    "contador": {"x": 260, "y": [330, 350], "tamanho_px": 56, "min_s": 0.5, "entra_max_s": 0.1, "estilo": "contador", "animacao": "nenhuma", "formato": "LOOK {n}/{total}"},
+    "preco":    {"y": [390, 430], "tamanho_px": 96, "tamanho_min_px": 72, "min_s": 2.0, "entra_max_s": 0.3, "estilo": "preco", "animacao": "pop"},
+    "parcelas": {"y": [500, 530], "tamanho_px": 56, "tamanho_min_px": 44, "min_s": 2.0, "entra_max_s": 0.3, "estilo": "preco", "animacao": "pop"},
+    "cta":      {"y": [600, 640], "tamanho_px": 64, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "cta", "animacao": "pop", "atraso_s": 0.5, "padrao": "Chama no WhatsApp"}
+  },
+  "legendas": {"ligado": false, "estilo": "legenda", "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco"], "max": 0},
+  "efeitos": {"assinatura": 22, "apoio": [1], "sonoros": ["whoosh", "pop"]},
+  "musica": {"origem": "instagram", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -7, "volume_voz_db": 0, "volume_clipe_sem_fala_db": null},
+  "cor": {"look": "clean", "filtro_max": 0.4, "tomada_cor_fiel": true},
+  "loop": false,
+  "itens_biblioteca": [],
+  "notas": [
+    "Tripé fixo e fita no chão marcando os pés e o tripé; mesma luz, lente e enquadramento em todos os looks (§2).",
+    "Foco/exposição (BLOQUEIO AE/AF) e balanço de branco travados; o automático pula quando muda a cor da roupa.",
+    "Cada look: 2 s de sobra antes e depois, o mesmo gesto (pulo ou estalo) repetido igual; obturador 1/60 a 30 fps para borrão natural (acima de 1/250 fica picotado).",
+    "Último look girando em 4K a 60 fps para a câmera lenta; os outros em 4K a 30 fps.",
+    "Tomada de cor fiel da peça (peça + cartão cinza ou folha branca, luz do dia, 5 s).",
+    "Faixa-guia de 100–128 BPM para marcar as batidas (video-preparar --musica); a música final entra pelo Instagram (§7).",
+    "Troca de look na batida é corte seco com um reforço só (whoosh), sem transição de biblioteca (§4.1)."
+  ]
+}

@@ -16,11 +16,56 @@ Complementa `edicao-video-capcut.md`. Origem: mapeamento feito no PC do usuário
 | pyCapCut (v0.0.3, 08/2025) | Python: modo modelo (troca mídia e texto), mídia, animações, efeitos, filtros, máscaras, keyframes, fades | só rascunho não criptografado; módulos "em migração" |
 | pyJianYingDraft | o mesmo, para JianYing | foco no JianYing |
 | capcut-mcp | lista rascunhos, lê a linha do tempo, adiciona, move, apara e divide clipes, texto e áudio; salva com backup `.mcpbak`; aceita `CAPCUT_DRAFTS_DIR` | CapCut fechado; efeitos e transições são "melhor esforço"; texto exige modelo com camada de texto |
-| capcut-cli (v0.17.x, 08/2026) | CLI determinística: detecta criptografia, testada com 8.7 e 9.x, importa OpenTimelineIO, gera rascunhos em lote | não descriptografa |
+| capcut-cli (v0.26.0 em 25/09/2026; era 0.17.x em 08/2026) | CLI determinística (Node): detecta criptografia, testada com 8.7 e 9.x, importa OpenTimelineIO, gera rascunhos em lote, registra no `root_meta_info.json`; tem `lint` | não descriptografa; duração do material errada (usa a do trecho) |
 | capcut-ai-editor | remove silêncios e tomadas repetidas de vídeo falado e gera projeto | foco em vídeo de "cabeça falante" |
 
 - **Nenhuma exporta MP4** e não existe API oficial.
+- Avaliação rodada de cada uma e a decisão (gerador próprio sobre o gabarito "0925", `rotinas/video/rascunho.py`): `capcut-avaliacao-ferramentas.md`.
 - Regras: CapCut fechado ao gravar, backup antes, validação antes de salvar. Depois, abrir no app, revisar e exportar.
+
+## Formato confirmado no PC (diagnóstico de 25/09/2026, CapCut 9.5.0.4050, projeto "0925")
+- Pasta do projeto: `draft_content.json` (**principal**; não existe `draft_info.json`), `template-2.tmp` (cópia idêntica, JSON aberto), `draft_meta_info.json`, `draft_virtual_store.json`, `draft_agency_config.json`, `draft_biz_config.json`, `key_value.json`, `timeline_layout.json`, `performance_opt_info.json`, `draft_settings`, `draft.extra`, `common_attachment/`, `draft_cover.jpg` e **`Timelines/`**.
+- `Timelines/project.json`: `main_timeline_id` = `id` do rascunho; `timelines[0]` = "Linha do tempo 01". `Timelines/<id>/draft_content.json` e `template-2.tmp` são iguais ao da raiz; `template.tmp` é o modelo vazio inicial (outro id). O gerador espelha essa pasta (`config/capcut.json → timelines: espelhar`).
+- Marcadores: `platform.app_version` 9.5.0, `new_version` 187.0.0, `version` 360000. Projeto novo nasce com `canvas_config.ratio` "original" 1920×1080.
+- Vídeo exige `extra_material_refs`: speeds, placeholder_infos, canvases, sound_channel_mappings, material_colors, vocal_separations; texto: material_animations. O "0925" não tem áudio local: o protótipo de áudio ainda é o de reserva.
+- `root_meta_info.json` (raiz dos rascunhos): `all_draft_store`, `draft_ids` (= quantidade de projetos; 41 no PC) e `root_path` com barras `/`.
+- Gabarito guardado no repositório em `gabaritos/capcut-9.5/0925/` (sem `.bak`), com uma amostra do índice só com a entrada do "0925".
+
+## 1º rascunho gerado aberto no CapCut (26/09/2026 02:26, `testar.bat capcut-rascunho`)
+- "Teste Rotinas 20260926-022653" (backup dos rascunhos antes; registrado em `root_meta_info.json`) **abriu certo, sem
+  "mídia perdida"**: o formato do rascunho (clone do gabarito "0925", Timelines espelhado) está aceito pela 9.5.
+- O usuário viu os **2 trechos de vídeo**; o texto "TESTE ROTINAS" saiu **grande demais**; legenda e música não foram
+  marcadas como vistas. No rascunho gerado: 2 faixas de texto (título size 32 = 96 px ÷ fator provisório 3,0; legenda
+  21,33) e 1 faixa de áudio montada com o protótipo de reserva (o gabarito "0925" só tem vídeo + texto, sem áudio).
+  O texto padrão do CapCut é size 15 ("Texto padrão"). Próximo: `testar.bat capcut-copiar "<projeto>"` (copia o
+  projeto como o CapCut deixou, sem mídia) para ver o que ele manteve/descartou; depois calibrar o fator do texto e,
+  se o áudio foi descartado, um gabarito com música feito à mão.
+- **`capcut-copiar` do mesmo projeto (26/09/2026 02:47):** o CapCut regravou o projeto ao abrir (criou
+  `attachment_editing.json`, `attachment_pc_common.json` e `draft_content.json.bak`) e **manteve tudo**: 2 trechos de
+  vídeo, 2 textos (título e legenda, sem mudar nada neles) e a faixa de música (só acrescentou campos de IA vazios ao
+  material de áudio) — legenda e música estavam lá. **Mas trocou o caminho do vídeo** pelo clipe da Biblioteca do
+  gabarito (`Cache/onlineMaterial/…`, "coin rainy animation greenscreen", `unique_id` preenchido): o material gerado
+  herdou do gabarito `material_id` = id do clipe na Biblioteca e `source` = 1, e o CapCut religou pelo id. Correção:
+  em mídia local a partir de protótipo da Biblioteca, `material_id` vai para `limpar_campos_origem` e `source`/
+  `source_platform` vão a 0 (`zerar_campos_origem` em `config/capcut.json`); teste com o gabarito real do PC.
+- **Tamanho do texto calibrado (26/09/2026 02:56, `capcut-copiar` depois do ajuste do usuário):** o usuário deixou o
+  título com `size` 45 e a caixa em escala 0,45 → 20,2 efetivo para os 96 px da receita → `texto_px_por_unidade` =
+  4,75 (era 3,0 provisório). O aviso "fator provisório" sai do relatório (`texto_calibrado`), e o da faixa de áudio de
+  reserva também (`audio_reserva_confirmado`: a faixa ficou no projeto depois de o CapCut regravar).
+- **B3 validado (26/09/2026 03:02, "Teste Rotinas 20260926-030215", com as 2 correções acima):** o usuário abriu no
+  CapCut e confirmou: miniatura com o **nosso** vídeo (barras de cor + "TESTE ROTINAS", não mais o clipe verde da
+  Biblioteca), texto "num tamanho bom", **legenda e música aparecem**. O aviso "limpei os campos de origem (conferir)"
+  sai do relatório (`origem_limpa_confirmada`).
+- **B4 no PC (26/09/2026 03:13, `testar.bat conferir`):** o usuário exportou esse projeto (1080P, Personalizado 16.000,
+  H.264, mp4, 30 fps, pasta `videos\exportado`) e a conferência rodou em 4 s: **10 de 11 itens passaram** — 4,0 s,
+  1080×1920, 30 fps, H.264 Main yuv420p, mp4, BT.709 SDR, **14.636 kbps** reais para "Personalizado 16.000" (dentro de
+  12.000–20.000), AAC 44,1 kHz estéreo, 7,3 MB. Reprovou só o volume, **como esperado no teste**: −23,7 LUFS, pico
+  −20 dBTP.
+- **O CapCut NÃO normaliza na exportação:** a mesma mistura simulada no ffmpeg (tom 440 Hz a 0 dB e −6 dB + música
+  220 Hz a −18 dB, os volumes do rascunho) dá **exatamente −23,7 LUFS / −20,3 dBFS**. Ou seja, o arquivo sai com os
+  volumes da linha do tempo; o "Nível de volume desejado −23 LUFS" só age quando se usa "Normalizar volume" no clipe.
+  Para chegar a −14 LUFS: subir o volume dos clipes com som. O "Fazer" da conferência foi corrigido (culpava o alvo
+  −23 LUFS do app).
 
 ## Exportação (modal "Exportar-<nome do projeto>", Ctrl+E)
 - Campos: Nome · Exportar para (padrão `C:/Users/V15/AppData/Local/CapCut…`) · ☑ Vídeo: Resolução (480P · 720P · **1080P** · 2K · 4K · 8K), Taxa de bits (Abaixar · **Recomendado** · Superior · Personalizado), Codec (**H.264** · HEVC · HEVC Alpha · HEVC 422 · AV1 · RLE), Formato (mov · **mp4**), Taxa de quadros (24 · 25 · 29.97 · **30** · 50 · 59.94 · 60), Espaço de cores Rec.709 SDR (fixo) · ☑ "Sincronize os vídeos exportados com o espaço" · ☐ Áudio (MP3) · ☐ GIF · ☐ Legendas 💎 (SRT) · Verificar direitos autorais (desligado) · rodapé com o tamanho estimado e os botões **[Exportar]** e **[Cancelar]**.

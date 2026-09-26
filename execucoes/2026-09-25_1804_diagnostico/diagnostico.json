@@ -1,0 +1,653 @@
+{
+  "rotinas": "0.1.0",
+  "gerado_em": "2026-09-25T18:04:53-03:00",
+  "versoes": {
+    "rotinas": "0.1.0",
+    "gerado_em": "2026-09-25T18:04:53-03:00",
+    "sistema": {
+      "plataforma": "Windows-11-10.0.26200-SP0",
+      "sistema": "Windows",
+      "release": "11",
+      "versao": "10.0.26200",
+      "maquina": "AMD64",
+      "edicao": "Professional"
+    },
+    "python": {
+      "versao": "3.12.10",
+      "executavel": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\.venv\\Scripts\\python.exe",
+      "bits": 64
+    },
+    "pacotes": {
+      "PIL": "12.3.0",
+      "numpy": "2.5.3",
+      "requests": "2.34.2",
+      "uiautomator2": "3.7.0",
+      "faster_whisper": "1.2.1",
+      "pillow_heif": "1.8.0"
+    },
+    "repositorio": {
+      "raiz": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema",
+      "commit": "2fb9120c40b0683752879d5d90a4d3a15dcbfabb",
+      "ramo": "claude/fase-1-briefing-x8e3im",
+      "data_commit": "2026-09-25 20:10:18 +0000",
+      "alteracoes_locais": 1
+    },
+    "ffmpeg": {
+      "encontrado": true,
+      "caminho": "C:\\Users\\V15\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-9.0.2-full_build\\bin\\ffmpeg.EXE",
+      "versao": "ffmpeg version 9.0.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+    },
+    "git": {
+      "encontrado": true,
+      "caminho": "C:\\Program Files\\Git\\cmd\\git.EXE",
+      "versao": "git version 2.55.0.windows.3"
+    },
+    "adb": {
+      "encontrado": true,
+      "caminho": "C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe",
+      "versao": "Android Debug Bridge version 1.0.36 | Revision 6e8ac8fa2d76-android"
+    },
+    "ffprobe": {
+      "encontrado": true,
+      "caminho": "C:\\Users\\V15\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-9.0.2-full_build\\bin\\ffprobe.EXE",
+      "versao": "ffprobe version 9.0.2-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers"
+    },
+    "bluestacks": {
+      "registro": {
+        "disponivel": true,
+        "encontrado": true,
+        "DataDir": "C:\\ProgramData\\BlueStacks_nxt\\Engine\\",
+        "InstallDir": "C:\\Program Files\\BlueStacks_nxt\\",
+        "UserDefinedDir": "C:\\ProgramData\\BlueStacks_nxt",
+        "Version": "5.22.265.1012"
+      },
+      "conf": {
+        "bst.do_not_show_noncfu_popup_version": "0",
+        "bst.launcher_version": "10.42.265.1001",
+        "bst.openclaw_version": "2026.3.8",
+        "bst.status.imap_schema_version": "",
+        "bst.version_machine_id": "9b663342-3970-4e5b-8c98-9c6785447e26"
+      }
+    },
+    "capcut": {
+      "pasta_apps": "C:\\Users\\V15\\AppData\\Local\\CapCut\\Apps",
+      "existe": true,
+      "instaladas": [
+        "9.5.0.4050"
+      ],
+      "mais_recente": "9.5.0.4050"
+    }
+  },
+  "verificar": {
+    "disponivel": true,
+    "codigo": 2,
+    "resultado": {
+      "gerado_em": "2026-09-25T18:04:54-03:00",
+      "sistema_operacional": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.10",
+      "pasta_sistema": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema",
+      "resumo": {
+        "ok": 16,
+        "falhas": 2,
+        "nao_se_aplica": 0
+      },
+      "itens": [
+        {
+          "chave": "python",
+          "nome": "Python >= 3.10",
+          "estado": "ok",
+          "detalhe": "3.12.10 (C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\.venv\\Scripts\\python.exe)",
+          "acao": ""
+        },
+        {
+          "chave": "pacote:PIL",
+          "nome": "pacote PIL (pillow)",
+          "estado": "ok",
+          "detalhe": "12.3.0",
+          "acao": ""
+        },
+        {
+          "chave": "pacote:numpy",
+          "nome": "pacote numpy (numpy)",
+          "estado": "ok",
+          "detalhe": "2.5.3",
+          "acao": ""
+        },
+        {
+          "chave": "pacote:requests",
+          "nome": "pacote requests (requests)",
+          "estado": "ok",
+          "detalhe": "2.34.2",
+          "acao": ""
+        },
+        {
+          "chave": "pacote:uiautomator2",
+          "nome": "pacote uiautomator2 (uiautomator2)",
+          "estado": "ok",
+          "detalhe": "importa",
+          "acao": ""
+        },
+        {
+          "chave": "pacote:faster_whisper",
+          "nome": "pacote faster_whisper (faster-whisper)",
+          "estado": "ok",
+          "detalhe": "1.2.1",
+          "acao": ""
+        },
+        {
+          "chave": "pacote:pillow_heif",
+          "nome": "pacote pillow_heif (pillow-heif)",
+          "estado": "ok",
+          "detalhe": "1.8.0",
+          "acao": ""
+        },
+        {
+          "chave": "ffmpeg",
+          "nome": "ffmpeg",
+          "estado": "ok",
+          "detalhe": "C:\\Users\\V15\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-9.0.2-full_build\\bin\\ffmpeg.EXE",
+          "acao": ""
+        },
+        {
+          "chave": "ffprobe",
+          "nome": "ffprobe",
+          "estado": "ok",
+          "detalhe": "C:\\Users\\V15\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-9.0.2-full_build\\bin\\ffprobe.EXE",
+          "acao": ""
+        },
+        {
+          "chave": "adb",
+          "nome": "adb",
+          "estado": "ok",
+          "detalhe": "adb do BlueStacks (HD-Adb.exe): C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe",
+          "acao": ""
+        },
+        {
+          "chave": "git",
+          "nome": "git",
+          "estado": "ok",
+          "detalhe": "C:\\Program Files\\Git\\cmd\\git.EXE",
+          "acao": ""
+        },
+        {
+          "chave": "pastas",
+          "nome": "pastas de trabalho",
+          "estado": "ok",
+          "detalhe": "11 pastas em C:\\Users\\V15\\Documents\\Rotinas Ferreira",
+          "acao": ""
+        },
+        {
+          "chave": "env",
+          "nome": "arquivo .env",
+          "estado": "ok",
+          "detalhe": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\.env",
+          "acao": ""
+        },
+        {
+          "chave": "env:SUPABASE_URL",
+          "nome": "SUPABASE_URL no .env",
+          "estado": "ok",
+          "detalhe": "preenchido",
+          "acao": ""
+        },
+        {
+          "chave": "env:SUPABASE_KEY",
+          "nome": "SUPABASE_KEY no .env",
+          "estado": "falha",
+          "detalhe": "vazio",
+          "acao": "Abra o .env (notepad \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\.env\"), preencha SUPABASE_KEY, salve e rode de novo."
+        },
+        {
+          "chave": "supabase",
+          "nome": "Supabase (leitura)",
+          "estado": "falha",
+          "detalhe": "não testei: falta SUPABASE_URL ou SUPABASE_KEY no .env",
+          "acao": "Preencha o .env e rode de novo."
+        },
+        {
+          "chave": "vigia_registrado",
+          "nome": "vigia no logon",
+          "estado": "ok",
+          "detalhe": "tarefa agendada \"Rotinas Ferreira - Vigia\"",
+          "acao": ""
+        },
+        {
+          "chave": "vigia_vivo",
+          "nome": "vigia rodando",
+          "estado": "ok",
+          "detalhe": "sim (último sinal de vida há 1 s)",
+          "acao": ""
+        }
+      ]
+    }
+  },
+  "pastas": {
+    "stories_fonte": {
+      "caminho": "C:\\Users\\V15\\Documents\\Stories da Loja",
+      "existe": true,
+      "pastas_de_data": [
+        {
+          "nome": "2026-09-22",
+          "arquivos": 31
+        }
+      ]
+    },
+    "rotinas": {
+      "caminho": "C:\\Users\\V15\\Documents\\Rotinas Ferreira",
+      "existe": true
+    },
+    "sistema": {
+      "caminho": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema",
+      "existe": true
+    },
+    "capcut_rascunhos": {
+      "caminho": "C:\\Users\\V15\\AppData\\Local\\CapCut\\User Data\\Projects\\com.lveditor.draft",
+      "existe": true
+    },
+    "capcut_apps": {
+      "caminho": "C:\\Users\\V15\\AppData\\Local\\CapCut\\Apps",
+      "existe": true
+    },
+    "videos": {
+      "caminho": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\videos",
+      "existe": true
+    },
+    "fila": {
+      "caminho": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\fila",
+      "existe": true
+    },
+    "logs": {
+      "caminho": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\logs",
+      "existe": true
+    },
+    "registros": {
+      "caminho": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\registros",
+      "existe": true
+    }
+  },
+  "env": {
+    "arquivo": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\.env",
+    "existe": true,
+    "variaveis": {
+      "SUPABASE_KEY": "vazia",
+      "SUPABASE_URL": "preenchida"
+    }
+  },
+  "bluestacks": {
+    "conf": {
+      "caminho": "C:\\ProgramData\\BlueStacks_nxt\\bluestacks.conf",
+      "existe": true,
+      "enable_adb_access": "1",
+      "instancias": {
+        "Pie64": {
+          "adb_port": "5555",
+          "display_name": "BlueStacks App Player",
+          "status.adb_port": "5555"
+        }
+      }
+    },
+    "portas": [
+      5555
+    ],
+    "adb": "C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe",
+    "dispositivos_antes": [
+      {
+        "serial": "emulator-5554",
+        "estado": "device",
+        "detalhes": "product:b0qxxx model:SM_S908E device:b0q"
+      }
+    ],
+    "conexoes": {
+      "127.0.0.1:5555": {
+        "ok": true,
+        "saida": "connected to 127.0.0.1:5555"
+      }
+    },
+    "dispositivos": [
+      {
+        "serial": "127.0.0.1:5555",
+        "estado": "device",
+        "detalhes": "product:b0qxxx model:SM_S908E device:b0q"
+      },
+      {
+        "serial": "emulator-5554",
+        "estado": "device",
+        "detalhes": "product:b0qxxx model:SM_S908E device:b0q"
+      }
+    ],
+    "serial": "127.0.0.1:5555",
+    "ligado": true,
+    "mensagem": "ADB do BlueStacks ligado e conectado em 127.0.0.1:5555."
+  },
+  "android": {
+    "serial": "127.0.0.1:5555",
+    "android_versao": "9",
+    "modelo": "SM-S908E",
+    "tela": "Physical size: 1600x900",
+    "densidade": "Physical density: 240",
+    "instagram": {
+      "pacote": "com.instagram.android",
+      "instalado": true,
+      "versao": "448.0.0.52.84",
+      "versionCode": "385412063"
+    },
+    "pastas_android": {
+      "/sdcard/Pictures": {
+        "existe": true,
+        "pastas": []
+      },
+      "/sdcard/DCIM": {
+        "existe": true,
+        "pastas": [
+          "SharedFolder"
+        ]
+      }
+    },
+    "mediastore": {
+      "responde": true,
+      "itens": 71
+    },
+    "tela_inicial": {
+      "abrir": {
+        "ok": true,
+        "saida": "ime=273ms (0ms mobile, 0ms wifi, 273ms not connected)\nargs: [-p, com.instagram.android, -c, android.intent.category.LAUNCHER, 1]\n arg: \"-p\"\n arg: \"com.instagram.android\"\n arg: \"-c\"\n arg: \"android.intent.category.LAUNCHER\"\n arg: \"1\"\ndata=\"com.instagram.android\"\ndata=\"android.intent.category.LAUNCHER\""
+      },
+      "xml": {
+        "arquivo": "tela_inicial_instagram.xml",
+        "pacote_na_tela": "com.instagram.android",
+        "saida_dump": "UI hierchary dumped to: /data/local/tmp/rotinas_diag_tela.xml"
+      },
+      "print": {
+        "arquivo": "tela_inicial_instagram.png",
+        "tamanho_kb": 656.1
+      }
+    },
+    "uiautomator2": {
+      "ok": true,
+      "info": {
+        "currentPackageName": "com.instagram.android",
+        "displayHeight": 1600,
+        "displayRotation": 1,
+        "displaySizeDpX": 450,
+        "displaySizeDpY": 800,
+        "displayWidth": 900,
+        "productName": "b0qxxx",
+        "screenOn": true,
+        "sdkInt": 28,
+        "naturalOrientation": false
+      },
+      "xml": "tela_inicial_u2.xml"
+    }
+  },
+  "capcut": {
+    "pasta_rascunhos": "C:\\Users\\V15\\AppData\\Local\\CapCut\\User Data\\Projects\\com.lveditor.draft",
+    "existe": true,
+    "gabarito": "0925",
+    "projetos": [
+      "0217",
+      "0217 (1)",
+      "0217 (2)",
+      "0218",
+      "0219",
+      "0220",
+      "0225",
+      "0301",
+      "0303",
+      "0303 (1)",
+      "0303 (2)",
+      "0304",
+      "0305",
+      "0305 (1)",
+      "0305 (2)",
+      "0308",
+      "0309",
+      "0309 (1)",
+      "0311",
+      "0311 (1)",
+      "0313",
+      "0315",
+      "0315 (1)",
+      "0316",
+      "0316 (1)",
+      "0317",
+      "0317 (1)",
+      "0318",
+      "0318 (1)",
+      "0319",
+      "0320",
+      "0321",
+      "0327",
+      "0329",
+      "0402",
+      "0407",
+      "0408",
+      "0409",
+      "0925",
+      "1212",
+      "VIDEO RUA"
+    ],
+    "raiz": {
+      "destino": "capcut_raiz",
+      "copiados": [
+        "root_meta_info.json"
+      ],
+      "omitidos": [],
+      "erros": []
+    },
+    "gabarito_encontrado": true,
+    "copia": {
+      "origem": "C:\\Users\\V15\\AppData\\Local\\CapCut\\User Data\\Projects\\com.lveditor.draft\\0925",
+      "destino": "capcut_0925",
+      "arquivos": 32,
+      "copiados": 32,
+      "tamanho_total_mb": 0.17,
+      "omitidos": [],
+      "erros": [],
+      "arvore": "arvore_capcut.txt"
+    },
+    "formato": {
+      "draft_content.json": {
+        "formato": "json_aberto",
+        "tamanho_kb": 15.2,
+        "chaves": [
+          "id",
+          "version",
+          "new_version",
+          "name",
+          "duration",
+          "create_time",
+          "update_time",
+          "fps",
+          "is_drop_frame_timecode",
+          "color_space",
+          "config",
+          "canvas_config",
+          "tracks",
+          "group_container",
+          "materials",
+          "keyframes",
+          "keyframe_graph_list",
+          "platform",
+          "last_modified_platform",
+          "mutable_config",
+          "cover",
+          "retouch_cover",
+          "extra_info",
+          "relationships",
+          "mixed_track_mode_on",
+          "render_index_track_mode_on",
+          "free_render_index_mode_on",
+          "static_cover_image_path",
+          "source",
+          "time_marks",
+          "path",
+          "lyrics_effects",
+          "uneven_animation_template_info",
+          "draft_type",
+          "smart_ads_info",
+          "function_assistant_info"
+        ],
+        "version": 360000,
+        "new_version": "187.0.0",
+        "duration": 7333333,
+        "fps": 30.0,
+        "canvas_config": {
+          "ratio": "original",
+          "width": 1920,
+          "height": 1080,
+          "background": null
+        },
+        "platform": {
+          "app_source": "cc",
+          "app_version": "9.5.0",
+          "os": "windows",
+          "os_version": "10.0.26200"
+        },
+        "last_modified_platform": {
+          "app_source": "cc",
+          "app_version": "9.5.0",
+          "os": "windows",
+          "os_version": "10.0.26200"
+        }
+      },
+      "draft_info.json": {
+        "formato": "ausente"
+      },
+      "draft_meta_info.json": {
+        "formato": "json_aberto",
+        "tamanho_kb": 3.8,
+        "chaves": [
+          "cloud_draft_cover",
+          "cloud_draft_sync",
+          "cloud_package_completed_time",
+          "draft_cloud_capcut_purchase_info",
+          "draft_cloud_last_action_download",
+          "draft_cloud_package_type",
+          "draft_cloud_purchase_info",
+          "draft_cloud_template_id",
+          "draft_cloud_tutorial_info",
+          "draft_cloud_videocut_purchase_info",
+          "draft_cover",
+          "draft_deeplink_url",
+          "draft_enterprise_info",
+          "draft_fold_path",
+          "draft_has_unfinished_aigc_video_effect",
+          "draft_id",
+          "draft_is_ae_produce",
+          "draft_is_ai_packaging_used",
+          "draft_is_ai_shorts",
+          "draft_is_ai_translate",
+          "draft_is_article_video_draft",
+          "draft_is_cloud_temp_draft",
+          "draft_is_from_deeplink",
+          "draft_is_infinite_canvas_draft",
+          "draft_is_invisible",
+          "draft_is_pippit_draft",
+          "draft_is_web_article_video",
+          "draft_materials",
+          "draft_materials_copied_info",
+          "draft_name",
+          "draft_need_rename_folder",
+          "draft_new_version",
+          "draft_removable_storage_device",
+          "draft_root_path",
+          "draft_segment_extra_info",
+          "draft_timeline_materials_size_",
+          "draft_type",
+          "draft_web_article_video_enter_from",
+          "pippit_avatar_url",
+          "pippit_extra_info",
+          "pippit_id",
+          "pippit_user_name",
+          "tm_draft_cloud_completed",
+          "tm_draft_cloud_entry_id",
+          "tm_draft_cloud_modified",
+          "tm_draft_cloud_parent_entry_id",
+          "tm_draft_cloud_space_id",
+          "tm_draft_cloud_user_id",
+          "tm_draft_create",
+          "tm_draft_modified",
+          "tm_draft_removed",
+          "tm_duration"
+        ],
+        "draft_name": "0925",
+        "tm_duration": 7333333
+      },
+      "template-2.tmp": {
+        "formato": "json_aberto",
+        "tamanho_kb": 15.2,
+        "chaves": [
+          "id",
+          "version",
+          "new_version",
+          "name",
+          "duration",
+          "create_time",
+          "update_time",
+          "fps",
+          "is_drop_frame_timecode",
+          "color_space",
+          "config",
+          "canvas_config",
+          "tracks",
+          "group_container",
+          "materials",
+          "keyframes",
+          "keyframe_graph_list",
+          "platform",
+          "last_modified_platform",
+          "mutable_config",
+          "cover",
+          "retouch_cover",
+          "extra_info",
+          "relationships",
+          "mixed_track_mode_on",
+          "render_index_track_mode_on",
+          "free_render_index_mode_on",
+          "static_cover_image_path",
+          "source",
+          "time_marks",
+          "path",
+          "lyrics_effects",
+          "uneven_animation_template_info",
+          "draft_type",
+          "smart_ads_info",
+          "function_assistant_info"
+        ],
+        "version": 360000,
+        "new_version": "187.0.0",
+        "duration": 7333333,
+        "fps": 30.0,
+        "canvas_config": {
+          "ratio": "original",
+          "width": 1920,
+          "height": 1080,
+          "background": null
+        },
+        "platform": {
+          "app_source": "cc",
+          "app_version": "9.5.0",
+          "os": "windows",
+          "os_version": "10.0.26200"
+        },
+        "last_modified_platform": {
+          "app_source": "cc",
+          "app_version": "9.5.0",
+          "os": "windows",
+          "os_version": "10.0.26200"
+        }
+      }
+    }
+  },
+  "supabase": {
+    "configurado": false,
+    "ok": false,
+    "mensagem": "SUPABASE_URL ou SUPABASE_KEY vazio no .env."
+  },
+  "problemas": [
+    "O verificar da instalação marcou com falha: SUPABASE_KEY no .env, Supabase (leitura).",
+    "No .env, sem valor: SUPABASE_KEY.",
+    "Supabase: SUPABASE_URL ou SUPABASE_KEY vazio no .env."
+  ],
+  "duracao_s": 22.4
+}

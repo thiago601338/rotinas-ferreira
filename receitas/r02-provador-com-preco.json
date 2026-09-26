@@ -1,0 +1,42 @@
+{
+  "id": "r02-provador-com-preco",
+  "nome": "Provador com preço",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R2",
+  "descricao": "Cortina abre → giro → lupa no tecido → seta no bolso → \"R$229,99 · 3x sem juros\" + legenda com destaques + CTA WhatsApp.",
+  "objetivo": "vender",
+  "estetica": "casual",
+  "destinos": ["reels", "stories", "tiktok"],
+  "duracao_s": [15, 25],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [1.0, 2.5], "tomada_sugerida": "cortina do provador abrindo com a cliente já vestida (cortar quando o corpo aparece)", "texto": "gancho", "efeito": 27, "repete": null},
+    {"papel": "prova", "dur_s": [1.5, 3.0], "tomada_sugerida": "peça no corpo em movimento: giro 360°, costas, caminhando até a câmera (um movimento por tomada, 2x a 3–4 m, câmera na altura da cintura)", "texto": "regancho", "efeito": null, "repete": [2, 4]},
+    {"papel": "detalhe", "dur_s": [1.5, 3.0], "tomada_sugerida": "close do tecido com luz lateral, gravado em 4K (a lupa amplia 2–2,5x)", "texto": null, "efeito": 55, "som": "clique", "repete": null},
+    {"papel": "bolso", "dur_s": [1.0, 2.5], "tomada_sugerida": "bolso, zíper, fenda ou botão em plano médio", "texto": "rotulo", "efeito": 54, "repete": null},
+    {"papel": "preco", "dur_s": [2.5, 3.5], "tomada_sugerida": "look inteiro parado de frente, com espaço livre no alto do quadro para o preço", "texto": ["preco", "parcelas", "cta"], "efeito": 53, "som": "pop", "payoff": true, "repete": null}
+  ],
+  "ritmo": {"troca_s": [1.0, 3.0], "corte_na_batida": false, "batidas_por_troca": null, "bpm": [90, 120]},
+  "textos": {
+    "gancho":   {"y": [420, 580], "tamanho_px": 96, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]},
+    "regancho": {"y": [420, 580], "tamanho_px": 80, "tamanho_min_px": 64, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "gancho", "animacao": "pop", "opcional": true},
+    "rotulo":   {"y": [560, 640], "tamanho_px": 60, "tamanho_min_px": 48, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "padrao", "animacao": "pop", "opcional": true},
+    "preco":    {"y": [390, 430], "tamanho_px": 96, "tamanho_min_px": 72, "min_s": 2.0, "entra_max_s": 0.3, "estilo": "preco", "animacao": "pop"},
+    "parcelas": {"y": [500, 530], "tamanho_px": 56, "tamanho_min_px": 44, "min_s": 2.0, "entra_max_s": 0.3, "estilo": "preco", "animacao": "pop"},
+    "cta":      {"y": [600, 640], "tamanho_px": 64, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "cta", "animacao": "pop", "atraso_s": 0.5, "padrao": "Chama no WhatsApp"}
+  },
+  "legendas": {"ligado": true, "estilo": "legenda", "destaques": true, "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco"], "max": 0},
+  "efeitos": {"assinatura": 55, "apoio": [1], "sonoros": ["clique", "pop"]},
+  "musica": {"origem": "instagram", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -7, "volume_voz_db": 0, "volume_clipe_sem_fala_db": null},
+  "cor": {"look": "clean", "filtro_max": 0.4, "tomada_cor_fiel": true},
+  "loop": false,
+  "itens_biblioteca": [],
+  "notas": [
+    "Provador: câmera a 30–45° do espelho, espelho limpo, luzes fora do reflexo; o espelho inverte letras e estampas (Espelhar no CapCut).",
+    "Luz de janela difusa ou softbox 5.600 K a 45°; apagar lâmpadas quentes; foco, exposição e branco travados.",
+    "Close do tecido em 4K com luz lateral rasante (a lupa precisa de 4K).",
+    "Fala da vendedora com lapela a um palmo do queixo, fora de paetê/renda/colar; música ambiente, ar-condicionado e ventilador desligados; frases curtas (preço, tamanhos, chamada para o WhatsApp).",
+    "Tomada de cor fiel da peça (cartão cinza ou folha branca, luz do dia, 5 s); cor com o nome exato na legenda.",
+    "Seta no bolso feita à mão (texto \"➜\" ou forma); figurinha da biblioteca só com marca comercial (§7).",
+    "Preço e parcelas vêm do cadastro (sku); só cores e tamanhos com estoque."
+  ]
+}

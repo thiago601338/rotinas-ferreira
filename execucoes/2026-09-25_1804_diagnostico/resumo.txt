@@ -1,0 +1,31 @@
+Diagnóstico do PC — Rotinas Ferreira 0.1.0 (2026-09-25T18:04:53-03:00)
+
+Windows: Windows-11-10.0.26200-SP0
+Python: 3.12.10
+Repositório: ramo claude/fase-1-briefing-x8e3im, commit 2fb9120c40
+Pacotes Python: todos instalados
+ffmpeg: ffmpeg version 9.0.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers
+ffprobe: ffprobe version 9.0.2-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers
+git: git version 2.55.0.windows.3
+adb: Android Debug Bridge version 1.0.36 | Revision 6e8ac8fa2d76-android
+BlueStacks: 5.22.265.1012
+CapCut instalado: 9.5.0.4050
+
+ADB do BlueStacks: ADB do BlueStacks ligado e conectado em 127.0.0.1:5555.
+Android 9, modelo SM-S908E, Physical size: 1600x900, Physical density: 240
+Instagram: 448.0.0.52.84
+Tela inicial do Instagram: XML salvo, print salvo
+uiautomator2: ok
+Galeria (MediaStore): responde (71 itens)
+Rascunhos do CapCut: 41 projeto(s)
+Gabarito '0925': 32 de 32 arquivos copiados (0 grandes ficaram de fora)
+  draft_content.json: json_aberto
+  draft_info.json: ausente
+  draft_meta_info.json: json_aberto
+  template-2.tmp: json_aberto
+Supabase: SUPABASE_URL ou SUPABASE_KEY vazio no .env.
+
+Precisa de atenção:
+  - O verificar da instalação marcou com falha: SUPABASE_KEY no .env, Supabase (leitura).
+  - No .env, sem valor: SUPABASE_KEY.
+  - Supabase: SUPABASE_URL ou SUPABASE_KEY vazio no .env.

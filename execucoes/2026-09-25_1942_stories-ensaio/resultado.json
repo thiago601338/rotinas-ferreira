@@ -1,0 +1,70 @@
+{
+  "alvo": "stories-ensaio",
+  "argv": [
+    "--sintetico"
+  ],
+  "pasta": "execucoes/2026-09-25_1942_stories-ensaio",
+  "inicio": "2026-09-25T19:42:58-03:00",
+  "ok": false,
+  "erro": "Parei na letra T (passo 'musica_1'): a busca de música 'fashion' não trouxe nenhuma faixa Publicadas antes: nenhuma. Não iniciadas: nenhuma.",
+  "tipo_erro": "ErroPostagem",
+  "detalhe": "Traceback (most recent call last):\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 796, in rodar\n    self._letra(plano, L, r, res)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 753, in _letra\n    self._montar_midias(L, r, res)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 610, in _montar_midias\n    self._musica(m, r, res)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 560, in _musica\n    raise ErroPasso(f\"a busca de música '{busca}' não trouxe nenhuma faixa\")\nrotinas.stories.bluestacks.ErroPasso: a busca de música 'fashion' não trouxe nenhuma faixa\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\execucao.py\", line 431, in testar\n    retorno = resolver_alvo(alvo)(ctx, extra)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 1113, in teste_ensaio\n    res = executar(plano, ctx, ensaio=True, diagnostico=True)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 857, in executar\n    return _postar(plano, ctx, res, cfg, ensaio=ensaio, diagnostico=diagnostico, tela=tela, enviar=enviar,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 916, in _postar\n    res = postador.rodar(plano, pular)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 808, in rodar\n    raise ErroPostagem(mensagem_parada(res, r), res) from e\nrotinas.stories.bluestacks.ErroPostagem: Parei na letra T (passo 'musica_1'): a busca de música 'fashion' não trouxe nenhuma faixa Publicadas antes: nenhuma. Não iniciadas: nenhuma.\n",
+  "resultado_parcial": {
+    "ensaio": true,
+    "id": "teste-sintetico",
+    "data": "2000-01-01",
+    "letras": [
+      {
+        "letra": "T",
+        "estado": "falhou",
+        "midias": [
+          "T - 1",
+          "T - 2",
+          "T - 3"
+        ],
+        "prints": [
+          "falha_T_musica_1.png"
+        ],
+        "erro": "a busca de música 'fashion' não trouxe nenhuma faixa",
+        "envio": {
+          "pasta": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T",
+          "album": "2000-01-01_T",
+          "arquivos": [
+            {
+              "nome": "T - 1",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_1.mp4",
+              "mtime": "202609251943.02",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 2",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_2.jpg",
+              "mtime": "202609251942.02",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 3",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_3.jpg",
+              "mtime": "202609251941.02",
+              "varredura": "broadcast"
+            }
+          ],
+          "varredura": [
+            "broadcast"
+          ],
+          "ordem_data_da_midia": {
+            "datetaken": true
+          },
+          "avisos": []
+        },
+        "album": "2000-01-01_T",
+        "xml_falha": "falha_T_musica_1.xml"
+      }
+    ],
+    "publicadas": [],
+    "parou_em": "letra T: musica_1",
+    "avisos": []
+  },
+  "fim": "2026-09-25T19:43:48-03:00",
+  "duracao_s": 50.3
+}

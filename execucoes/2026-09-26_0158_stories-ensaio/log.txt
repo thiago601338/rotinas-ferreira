@@ -1,0 +1,56 @@
+2026-09-26 01:58:41 INFO    rotinas.execucao: Teste 'stories-ensaio' começou. Pasta: C:\Users\V15\Documents\Rotinas Ferreira\sistema\execucoes\2026-09-26_0158_stories-ensaio
+2026-09-26 01:58:43 INFO    rotinas.stories.bluestacks: Ensaio com a letra de teste gerada em C:\Users\V15\Documents\Rotinas Ferreira\stories\_teste\2026-09-26_0158
+2026-09-26 01:58:43 INFO    rotinas.stories.android: adb usado nesta execução: C:\Program Files\BlueStacks_nxt\HD-Adb.exe
+2026-09-26 01:58:43 INFO    rotinas.stories.android: Conectado ao BlueStacks em 127.0.0.1:5555
+2026-09-26 01:58:43 INFO    rotinas.stories.bluestacks: BlueStacks: {'serial': '127.0.0.1:5555', 'adb': 'C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe', 'android': '9', 'sdk': '28', 'modelo': 'SM-S908E', 'tela': 'Physical size: 1600x900', 'densidade': 'Physical density: 240\nOverride density: 320', 'instagram': '448.0.0.52.84'}
+2026-09-26 01:58:44 INFO    rotinas.stories.bluestacks: Postando 2 letra(s) de 2000-01-01 em modo ENSAIO
+2026-09-26 01:58:44 INFO    rotinas.stories.bluestacks: Letra T: enviar midias
+2026-09-26 01:58:45 INFO    rotinas.stories.android: Enviando 3 mídia(s) da letra T para a galeria do BlueStacks (/sdcard/Pictures/RotinasFerreira/2000-01-01_T)
+2026-09-26 01:58:46 INFO    rotinas.stories.android: Varredura da galeria que funcionou: broadcast
+2026-09-26 01:58:51 INFO    rotinas.stories.android: Letra T na galeria: 3 de 3 mídia(s), na ordem
+2026-09-26 01:58:51 INFO    rotinas.stories.bluestacks: Letra T: abrir instagram
+2026-09-26 01:58:56 INFO    rotinas.stories.bluestacks: Letra T: criar
+2026-09-26 01:58:57 INFO    rotinas.stories.bluestacks: Letra T: 'Adicionar ao story' abriu direto a galeria/câmera (sem escolher 'Story')
+2026-09-26 01:58:57 INFO    rotinas.stories.bluestacks: Letra T: abrir galeria
+2026-09-26 01:58:58 INFO    rotinas.stories.bluestacks: Letra T: escolher album
+2026-09-26 01:59:04 INFO    rotinas.stories.bluestacks: Letra T: selecionar varios
+2026-09-26 01:59:05 INFO    rotinas.stories.bluestacks: Letra T: tocar midias
+2026-09-26 01:59:10 INFO    rotinas.stories.bluestacks: Letra T: conferir selecao
+2026-09-26 01:59:11 INFO    rotinas.stories.bluestacks: Seleção conferida: 3 mídia(s) (número na descrição das miniaturas)
+2026-09-26 01:59:11 INFO    rotinas.stories.bluestacks: Letra T: avancar
+2026-09-26 01:59:12 INFO    rotinas.stories.bluestacks: Letra T: midia 1
+2026-09-26 01:59:14 INFO    rotinas.stories.bluestacks: Letra T: musica 1
+2026-09-26 01:59:18 INFO    rotinas.stories.android: 'enviar_busca_musica': tecla enter
+2026-09-26 01:59:19 INFO    rotinas.stories.bluestacks: Letra T: música sorteada entre 6 da busca 'fashion': Westside de Tony Dark Eyes
+2026-09-26 01:59:23 INFO    rotinas.stories.bluestacks: Letra T: midia 2
+2026-09-26 01:59:25 INFO    rotinas.stories.bluestacks: Letra T: midia 3
+2026-09-26 01:59:27 INFO    rotinas.stories.bluestacks: Letra T: figurinha 3
+2026-09-26 01:59:31 INFO    rotinas.stories.bluestacks: Campo campo_url conferido: wa.me/5582988748649?text=Quero+comprar+a+Pe%C3%A7a+de+Teste
+2026-09-26 01:59:33 INFO    rotinas.stories.bluestacks: Campo campo_texto_figurinha conferido: Comprar
+2026-09-26 01:59:33 INFO    rotinas.stories.android: 'confirmar_teclado': tecla enter
+2026-09-26 01:59:36 INFO    rotinas.stories.bluestacks: Letra T: compartilhar ensaio
+2026-09-26 01:59:39 INFO    rotinas.stories.bluestacks: Letra T: sair sem publicar
+2026-09-26 01:59:43 INFO    rotinas.stories.bluestacks: Letra T montada em ENSAIO (nada publicado)
+2026-09-26 01:59:43 INFO    rotinas.stories.bluestacks: Letra U: enviar midias
+2026-09-26 01:59:43 INFO    rotinas.stories.android: Enviando 1 mídia(s) da letra U para a galeria do BlueStacks (/sdcard/Pictures/RotinasFerreira/2000-01-01_U)
+2026-09-26 01:59:45 INFO    rotinas.stories.android: Varredura da galeria que funcionou: broadcast
+2026-09-26 01:59:46 INFO    rotinas.stories.android: Letra U na galeria: 1 de 1 mídia(s), na ordem
+2026-09-26 01:59:46 INFO    rotinas.stories.bluestacks: Letra U: abrir instagram
+2026-09-26 01:59:47 INFO    rotinas.stories.bluestacks: Letra U: criar
+2026-09-26 01:59:49 INFO    rotinas.stories.bluestacks: Letra U: 'Adicionar ao story' abriu direto a galeria/câmera (sem escolher 'Story')
+2026-09-26 01:59:49 INFO    rotinas.stories.bluestacks: Letra U: abrir galeria
+2026-09-26 01:59:50 INFO    rotinas.stories.bluestacks: Letra U: escolher album
+2026-09-26 01:59:56 INFO    rotinas.stories.bluestacks: Letra U: selecionar varios
+2026-09-26 01:59:57 INFO    rotinas.stories.bluestacks: Letra U: tocar midias
+2026-09-26 01:59:59 INFO    rotinas.stories.bluestacks: Letra U: conferir selecao
+2026-09-26 01:59:59 INFO    rotinas.stories.bluestacks: Seleção conferida: 1 mídia(s) (número na descrição das miniaturas)
+2026-09-26 01:59:59 INFO    rotinas.stories.bluestacks: Letra U: avancar
+2026-09-26 02:00:01 INFO    rotinas.stories.bluestacks: Letra U: midia 1
+2026-09-26 02:00:02 INFO    rotinas.stories.bluestacks: Letra U: figurinha 1
+2026-09-26 02:00:06 INFO    rotinas.stories.bluestacks: Campo campo_url conferido: wa.me/5582988748649?text=Quero+comprar+a+Pe%C3%A7a+de+Teste
+2026-09-26 02:00:08 INFO    rotinas.stories.bluestacks: Campo campo_texto_figurinha conferido: Comprar agora
+2026-09-26 02:00:08 INFO    rotinas.stories.android: 'confirmar_teclado': tecla enter
+2026-09-26 02:00:11 INFO    rotinas.stories.bluestacks: Letra U: compartilhar ensaio
+2026-09-26 02:00:14 INFO    rotinas.stories.bluestacks: Letra U: sair sem publicar
+2026-09-26 02:00:17 INFO    rotinas.stories.bluestacks: Letra U montada em ENSAIO (nada publicado)
+2026-09-26 02:00:17 INFO    rotinas.execucao: Teste 'stories-ensaio' terminou bem em 96.4 s

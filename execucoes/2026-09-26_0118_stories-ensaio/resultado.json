@@ -1,0 +1,94 @@
+{
+  "alvo": "stories-ensaio",
+  "argv": [
+    "--sintetico"
+  ],
+  "pasta": "execucoes/2026-09-26_0118_stories-ensaio",
+  "inicio": "2026-09-26T01:18:15-03:00",
+  "resultado": {
+    "ensaio": true,
+    "id": "teste-sintetico",
+    "data": "2000-01-01",
+    "letras": [
+      {
+        "letra": "T",
+        "estado": "ensaio_ok",
+        "midias": [
+          "T - 1",
+          "T - 2",
+          "T - 3"
+        ],
+        "prints": [
+          "ensaio_T_1.png",
+          "ensaio_T_2.png",
+          "ensaio_T_3.png"
+        ],
+        "erro": null,
+        "envio": {
+          "pasta": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T",
+          "album": "2000-01-01_T",
+          "arquivos": [
+            {
+              "nome": "T - 1",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_1.mp4",
+              "mtime": "202609260118.21",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 2",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_2.jpg",
+              "mtime": "202609260117.21",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 3",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_3.jpg",
+              "mtime": "202609260116.21",
+              "varredura": "broadcast"
+            }
+          ],
+          "varredura": [
+            "broadcast"
+          ],
+          "ordem_data_da_midia": {
+            "datetaken": true
+          },
+          "avisos": []
+        },
+        "album": "2000-01-01_T",
+        "musicas": [
+          {
+            "midia": "T - 1",
+            "busca": "fashion",
+            "musica": "The Signs de Tash",
+            "entre": 6
+          }
+        ],
+        "figurinha": {
+          "midia": "T - 3",
+          "url": "wa.me/5582988748649?text=Quero+comprar+a+Pe%C3%A7a+de+Teste",
+          "texto": "Comprar"
+        }
+      }
+    ],
+    "publicadas": [],
+    "parou_em": null,
+    "avisos": [],
+    "dispositivo": {
+      "serial": "127.0.0.1:5555",
+      "adb": "C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe",
+      "android": "9",
+      "sdk": "28",
+      "modelo": "SM-S908E",
+      "tela": "Physical size: 1600x900",
+      "densidade": "Physical density: 240\nOverride density: 320",
+      "instagram": "448.0.0.52.84"
+    },
+    "plano": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\stories\\_teste\\2026-09-26_0118",
+    "ok": true,
+    "resumo": "ENSAIO: nada foi publicado.\n- T: montada em ensaio (3 mídia(s)); prints: ensaio_T_1.png, ensaio_T_2.png, ensaio_T_3.png"
+  },
+  "ok": true,
+  "fim": "2026-09-26T01:19:21-03:00",
+  "duracao_s": 65.4
+}

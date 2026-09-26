@@ -1,0 +1,80 @@
+{
+  "alvo": "stories-ensaio",
+  "argv": [
+    "--sintetico"
+  ],
+  "pasta": "execucoes/2026-09-26_0034_stories-ensaio",
+  "inicio": "2026-09-26T00:34:31-03:00",
+  "ok": false,
+  "erro": "Parei na letra T (passo 'figurinha_3'): não achei 'figurinha_link' na tela Publicadas antes: nenhuma. Não iniciadas: nenhuma.",
+  "tipo_erro": "ErroPostagem",
+  "detalhe": "Traceback (most recent call last):\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 836, in rodar\n    self._letra(plano, L, r, res)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 793, in _letra\n    self._montar_midias(L, r, res)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 653, in _montar_midias\n    self._figurinha(m, r)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 627, in _figurinha\n    self._tocar(\"figurinha_link\")\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 233, in _tocar\n    raise ErroPasso(f\"não achei '{chave}' na tela\")\nrotinas.stories.bluestacks.ErroPasso: não achei 'figurinha_link' na tela\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\execucao.py\", line 450, in testar\n    retorno = resolver_alvo(alvo)(ctx, extra)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 1153, in teste_ensaio\n    res = executar(plano, ctx, ensaio=True, diagnostico=True)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 897, in executar\n    return _postar(plano, ctx, res, cfg, ensaio=ensaio, diagnostico=diagnostico, tela=tela, enviar=enviar,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 956, in _postar\n    res = postador.rodar(plano, pular)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 848, in rodar\n    raise ErroPostagem(mensagem_parada(res, r), res) from e\nrotinas.stories.bluestacks.ErroPostagem: Parei na letra T (passo 'figurinha_3'): não achei 'figurinha_link' na tela Publicadas antes: nenhuma. Não iniciadas: nenhuma.\n",
+  "resultado_parcial": {
+    "ensaio": true,
+    "id": "teste-sintetico",
+    "data": "2000-01-01",
+    "letras": [
+      {
+        "letra": "T",
+        "estado": "falhou",
+        "midias": [
+          "T - 1",
+          "T - 2",
+          "T - 3"
+        ],
+        "prints": [
+          "ensaio_T_1.png",
+          "ensaio_T_2.png",
+          "falha_T_figurinha_3.png"
+        ],
+        "erro": "não achei 'figurinha_link' na tela",
+        "envio": {
+          "pasta": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T",
+          "album": "2000-01-01_T",
+          "arquivos": [
+            {
+              "nome": "T - 1",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_1.mp4",
+              "mtime": "202609260034.35",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 2",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_2.jpg",
+              "mtime": "202609260033.35",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 3",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_3.jpg",
+              "mtime": "202609260032.35",
+              "varredura": "broadcast"
+            }
+          ],
+          "varredura": [
+            "broadcast"
+          ],
+          "ordem_data_da_midia": {
+            "datetaken": true
+          },
+          "avisos": []
+        },
+        "album": "2000-01-01_T",
+        "musicas": [
+          {
+            "midia": "T - 1",
+            "busca": "fashion",
+            "musica": "Fool Me Once de Jazmine Robinson",
+            "entre": 6
+          }
+        ],
+        "xml_falha": "falha_T_figurinha_3.xml"
+      }
+    ],
+    "publicadas": [],
+    "parou_em": "letra T: figurinha_3",
+    "avisos": []
+  },
+  "fim": "2026-09-26T00:35:41-03:00",
+  "duracao_s": 70.3
+}

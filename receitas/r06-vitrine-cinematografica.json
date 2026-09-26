@@ -1,0 +1,37 @@
+{
+  "id": "r06-vitrine-cinematografica",
+  "nome": "Vitrine cinematográfica",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R6",
+  "descricao": "Timelapse da montagem → barras de cinema + zoom lento → \"NOVA COLEÇÃO\" atrás da modelo. O grão de 10% vem do look de cor Filme (Ajuste > Granulação); o vazamento de luz fica de fora (item da biblioteca, §7, e orçamento, §4.1).",
+  "objetivo": "inspirar",
+  "estetica": "luxo",
+  "destinos": ["reels", "tiktok", "stories"],
+  "duracao_s": [10, 20],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [1.5, 3.0], "velocidade": 10, "tomada_sugerida": "timelapse da montagem da vitrine (tripé fixo; vídeo normal acelerado 8–20x)", "texto": "gancho", "efeito": 12, "repete": null},
+    {"papel": "vitrine", "dur_s": [1.5, 3.0], "tomada_sugerida": "planos da vitrine pronta: peças, manequim, arara, detalhe (tripé, movimento lento)", "texto": "regancho", "efeito": [2, 43], "repete": [2, 4]},
+    {"papel": "final", "dur_s": [2.5, 3.5], "transicao": "fusao", "tomada_sugerida": "modelo parada na frente da vitrine, corpo inteiro, fundo contrastado (texto atrás dela)", "texto": ["titulo", "cta"], "efeito": [40, 43], "payoff": true, "repete": null}
+  ],
+  "ritmo": {"troca_s": [1.3, 3.0], "corte_na_batida": true, "batidas_por_troca": 2, "bpm": [70, 90]},
+  "textos": {
+    "gancho": {"y": [420, 580], "tamanho_px": 88, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]},
+    "regancho": {"y": [420, 580], "tamanho_px": 80, "tamanho_min_px": 64, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "gancho", "animacao": "pop", "opcional": true},
+    "titulo": {"y": [560, 640], "tamanho_px": 140, "tamanho_min_px": 100, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "titulo", "animacao": "subir", "padrao": "NOVA COLEÇÃO"},
+    "cta":    {"y": [1200, 1240], "tamanho_px": 60, "min_s": 1.5, "entra_max_s": 0.3, "estilo": "cta", "animacao": "pop", "atraso_s": 0.8, "padrao": "Chama no WhatsApp"}
+  },
+  "legendas": {"ligado": false, "estilo": "legenda", "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco", "fusao"], "max": 1},
+  "efeitos": {"assinatura": 40, "apoio": [43, 2], "sonoros": []},
+  "musica": {"origem": "instagram", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -7, "volume_voz_db": 0, "volume_clipe_sem_fala_db": null},
+  "cor": {"look": "filme", "filtro_max": 0.3, "tomada_cor_fiel": true, "granulacao": 10},
+  "loop": false,
+  "itens_biblioteca": [],
+  "notas": [
+    "Timelapse com o celular no tripé, sem mexer, durante toda a montagem (vídeo normal; o CapCut acelera 8–20x).",
+    "Planos da vitrine com tripé e movimento lento; luz da vitrine sem misturar temperaturas (apagar lâmpadas quentes).",
+    "Modelo parada, corpo inteiro, fundo com contraste para a Remoção automática (texto atrás dela).",
+    "Barras de cinema feitas com formas pretas ou máscara (sem item da biblioteca).",
+    "Um plano com a cor real das peças (o look Filme dessatura); faixa-guia de 70–90 BPM para cortar a cada 2 batidas.",
+    "Foco, exposição e branco travados."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "alvo": "bluestacks",
+  "argv": [],
+  "pasta": "execucoes/2026-09-25_1833_bluestacks",
+  "inicio": "2026-09-25T18:33:19-03:00",
+  "resultado": {
+    "ok": true,
+    "dispositivo": {
+      "serial": "127.0.0.1:5555",
+      "adb": "C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe",
+      "android": "9",
+      "sdk": "28",
+      "modelo": "SM-S908E",
+      "tela": "Physical size: 1600x900",
+      "densidade": "Physical density: 240\nOverride density: 320",
+      "instagram": "448.0.0.52.84"
+    },
+    "passos": [
+      {
+        "passo": "abrir_instagram",
+        "ok": true
+      },
+      {
+        "passo": "entrar_no_story",
+        "ok": true
+      },
+      {
+        "passo": "abrir_galeria",
+        "ok": true
+      },
+      {
+        "passo": "selecionar_varios",
+        "ok": true
+      },
+      {
+        "passo": "album_menu",
+        "ok": true
+      }
+    ],
+    "saiu_com_seguranca": true,
+    "tamanho_tela": [
+      900,
+      1600
+    ],
+    "miniaturas_galeria": 8,
+    "resumo": "BlueStacks 127.0.0.1:5555 (Android 9, tela Physical size: 1600x900), Instagram 448.0.0.52.84\n- abrir_instagram: ok\n- entrar_no_story: ok\n- abrir_galeria: ok\n- selecionar_varios: ok\n- album_menu: ok\nVoltou ao feed."
+  },
+  "ok": true,
+  "fim": "2026-09-25T18:33:36-03:00",
+  "duracao_s": 16.5
+}

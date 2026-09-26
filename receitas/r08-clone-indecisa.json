@@ -1,0 +1,34 @@
+{
+  "id": "r08-clone-indecisa",
+  "nome": "Clone indecisa",
+  "referencia": "conhecimento/edicao-video-capcut.md §4.4 R8",
+  "descricao": "3 clones, um em cada cor, \"conversando\" com J/L-cut → \"qual eu levo? comenta 1, 2 ou 3\".",
+  "objetivo": "divertir",
+  "estetica": "casual",
+  "destinos": ["reels", "tiktok", "stories"],
+  "duracao_s": [10, 15],
+  "estrutura": [
+    {"papel": "gancho", "dur_s": [1.5, 3.0], "composicao": "clone", "tomada_sugerida": "as 3 cores juntas: uma tomada por cor, a vendedora em lugares diferentes do quadro que não se cruzam (tripé fixo)", "texto": "gancho", "efeito": 39, "repete": null},
+    {"papel": "fala", "dur_s": [1.5, 3.0], "fala": true, "tomada_sugerida": "cada clone falando com a outra (uma cor por tomada), respostas curtas", "texto": null, "efeito": 16, "repete": [2, 3]},
+    {"papel": "final", "dur_s": [2.5, 3.5], "composicao": "clone", "tomada_sugerida": "os 3 clones olhando para a câmera", "texto": "cta", "efeito": 39, "som": "pop", "payoff": true, "repete": null}
+  ],
+  "ritmo": {"troca_s": [1.5, 3.0], "corte_na_batida": false, "batidas_por_troca": null, "bpm": [90, 120]},
+  "textos": {
+    "gancho": {"y": [420, 580], "tamanho_px": 96, "tamanho_min_px": 80, "min_s": 2.0, "entra_max_s": 0.5, "estilo": "gancho", "animacao": "nenhuma", "palavras": [3, 7]},
+    "cta":    {"y": [560, 640], "tamanho_px": 72, "tamanho_min_px": 56, "min_s": 2.0, "entra_max_s": 0.3, "estilo": "cta", "animacao": "pop", "atraso_s": 0.5, "padrao": "Comenta 1, 2 ou 3"}
+  },
+  "legendas": {"ligado": true, "estilo": "legenda", "destaques": true, "y": [1060, 1140], "tamanho_px": 64},
+  "transicoes": {"permitidas": ["corte_seco"], "max": 0},
+  "efeitos": {"assinatura": 39, "apoio": [], "sonoros": ["pop"]},
+  "musica": {"origem": "instagram", "volume_musica_com_fala_db": -18, "volume_musica_sem_fala_db": -7, "volume_voz_db": 0, "volume_clipe_sem_fala_db": null},
+  "cor": {"look": "clean", "filtro_max": 0.3, "tomada_cor_fiel": true},
+  "loop": false,
+  "itens_biblioteca": [],
+  "notas": [
+    "Tripé fixo; foco, exposição e branco travados; não mexer em nada entre as tomadas (senão o clone não casa).",
+    "Uma tomada por cor, a vendedora em posições diferentes que não se cruzam; deixar uma faixa calma (parede lisa) entre elas para a borda da máscara.",
+    "Lapela a um palmo do queixo; falas curtas se respondendo (o J/L-cut adianta a voz 0,5–1 s antes do corte).",
+    "Só cores com estoque; nome exato de cada cor na fala (vira legenda).",
+    "Tomada de cor fiel de cada cor (cartão cinza, luz do dia)."
+  ]
+}

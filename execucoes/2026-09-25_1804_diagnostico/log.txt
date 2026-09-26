@@ -1,0 +1,12 @@
+2026-09-25 18:04:51 INFO    rotinas.execucao: Teste 'diagnostico' começou. Pasta: C:\Users\V15\Documents\Rotinas Ferreira\sistema\execucoes\2026-09-25_1804_diagnostico
+2026-09-25 18:04:53 INFO    rotinas.diagnostico: Diagnóstico: gravando em C:\Users\V15\Documents\Rotinas Ferreira\sistema\execucoes\2026-09-25_1804_diagnostico
+2026-09-25 18:04:53 INFO    rotinas.diagnostico: Coletando versões
+2026-09-25 18:04:53 INFO    rotinas.diagnostico: Rodando o verificar da instalação
+2026-09-25 18:04:54 INFO    rotinas.diagnostico: Conferindo o BlueStacks e o ADB
+2026-09-25 18:05:01 INFO    rotinas.diagnostico: Abrindo o Instagram para salvar a tela inicial
+2026-09-25 18:05:01 INFO    rotinas.diagnostico: Instagram aberto; esperando 8 s
+2026-09-25 18:05:12 INFO    rotinas.diagnostico: Testando o uiautomator2
+2026-09-25 18:05:15 INFO    rotinas.diagnostico: Copiando o gabarito do CapCut (só leitura)
+2026-09-25 18:05:15 INFO    rotinas.diagnostico: Testando a leitura do Supabase
+2026-09-25 18:05:15 INFO    rotinas.diagnostico: Diagnóstico pronto em 22.4 s
+2026-09-25 18:05:15 INFO    rotinas.execucao: Teste 'diagnostico' terminou bem em 23.9 s

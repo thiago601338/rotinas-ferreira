@@ -1,0 +1,44 @@
+{
+  "_comentario": "Diagnóstico do PC (diagnostico.bat) e ciclo de teste (testar.bat → execucoes/). BRIEFING §6. Nunca grava nada na pasta do CapCut.",
+  "capcut_projeto_gabarito": "0925",
+  "capcut_max_mb_por_arquivo": 20,
+  "capcut_arquivos_principais": ["draft_content.json", "draft_info.json", "draft_meta_info.json", "template-2.tmp"],
+  "adb_timeout_s": 30,
+  "adb_portas_padrao": [5555],
+  "android_pasta_temporaria": "/data/local/tmp",
+  "android_pastas_listar": ["/sdcard/Pictures", "/sdcard/DCIM"],
+  "instagram_espera_s": 8,
+  "u2_timeout_s": 120,
+  "supabase_timeout_s": 20,
+  "verificar_timeout_s": 600,
+  "max_pastas_de_data": 60,
+  "pacotes_python": {
+    "PIL": "pillow",
+    "numpy": "numpy",
+    "requests": "requests",
+    "uiautomator2": "uiautomator2",
+    "faster_whisper": "faster-whisper",
+    "pillow_heif": "pillow-heif"
+  },
+  "bluestacks_registro": "HKLM\\SOFTWARE\\BlueStacks_nxt",
+  "bluestacks_registro_valores": ["Version", "InstallDir", "UserDefinedDir", "DataDir"],
+  "execucao": {
+    "pasta": "execucoes",
+    "max_mb_por_arquivo": 20,
+    "pasta_local_omitidos": "saida_local/execucoes",
+    "extensoes_texto": [".txt", ".json", ".xml", ".log", ".csv", ".md", ".srt", ".conf", ".ini", ".cfg", ".tmp", ".yaml", ".yml", ".html"],
+    "extensoes_video": [".mp4", ".mov", ".m4v", ".3gp", ".avi", ".mkv", ".webm", ".wmv", ".ts", ".mts"],
+    "_privacidade": "Telas salvas (xml + png) antes do git (repositório público). Tela com um destes resource-id (Direct) fica só no PC; nós do pacote de notificações têm texto/descrição apagados e a faixa da notificação flutuante é coberta no print (margem acima/abaixo em px).",
+  "privacidade": {
+    "marcadores_tela_privada": ["direct_thread", "row_thread_composer", "thread_fragment_container", "direct_inbox", "inbox_refreshable_thread_list"],
+    "pacote_notificacoes": "com.android.systemui",
+    "ids_mantidos": ["com.android.systemui:id/clock"],
+    "margem_print_px": [56, 24],
+    "_textos_permitidos_tela": "testar.bat tela (tela fora do fluxo conhecido, pode listar pessoas): só textos IGUAIS a estes termos ficam no XML e no print (e os que contêm 'Facebook'); todo outro texto/descrição vira [oculto] e a área é coberta de preto. resource-id e classe ficam.",
+    "textos_permitidos_tela": ["Compartilhar", "Seu story", "Amigos próximos", "Melhores amigos", "Concluir", "Concluído", "Avançar", "Cancelar", "Voltar", "Fechar", "Agora não", "Publicar", "Story", "Stories", "Descartar", "Opções", "Mais opções", "Copiar link", "Salvar", "Editar", "Configurações", "Destaque", "Público", "Enviar", "Pesquisar", "Página inicial", "Reels", "Perfil", "Texto", "Figurinhas", "Músicas", "Efeitos", "Compartilhar story", "Compartilhar para", "Seu story e Facebook"]
+  },
+  "timeout_pytest_s": 1800,
+    "timeout_git_s": 180,
+    "git_autor_padrao": {"nome": "PC Ferreira Boutique", "email": "pc-ferreira@users.noreply.github.com"}
+  }
+}

@@ -1,0 +1,4 @@
+2026-09-26 02:39:18 INFO    rotinas.execucao: Teste 'capcut-rascunho' começou. Pasta: C:\Users\V15\Documents\Rotinas Ferreira\sistema\execucoes\2026-09-26_0239_capcut-rascunho
+2026-09-26 02:39:22 INFO    rotinas.video.capcut: Backup dos rascunhos do CapCut em C:\Users\V15\Documents\Rotinas Ferreira\backups\capcut\2026-09-26_023922
+2026-09-26 02:39:22 INFO    rotinas.video.rascunho: Rascunho 'Teste Rotinas 20260926-023919' gravado em C:\Users\V15\AppData\Local\CapCut\User Data\Projects\com.lveditor.draft\Teste Rotinas 20260926-023919
+2026-09-26 02:39:23 INFO    rotinas.execucao: Teste 'capcut-rascunho' terminou bem em 4.5 s

@@ -1,0 +1,18 @@
+{
+  "alvo": "diagnostico",
+  "argv": [],
+  "pasta": "execucoes/2026-09-25_1804_diagnostico",
+  "inicio": "2026-09-25T18:04:51-03:00",
+  "resultado": {
+    "arquivo": "diagnostico.json",
+    "problemas": [
+      "O verificar da instalação marcou com falha: SUPABASE_KEY no .env, Supabase (leitura).",
+      "No .env, sem valor: SUPABASE_KEY.",
+      "Supabase: SUPABASE_URL ou SUPABASE_KEY vazio no .env."
+    ],
+    "resumo": "Diagnóstico do PC — Rotinas Ferreira 0.1.0 (2026-09-25T18:04:53-03:00)\n\nWindows: Windows-11-10.0.26200-SP0\nPython: 3.12.10\nRepositório: ramo claude/fase-1-briefing-x8e3im, commit 2fb9120c40\nPacotes Python: todos instalados\nffmpeg: ffmpeg version 9.0.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers\nffprobe: ffprobe version 9.0.2-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers\ngit: git version 2.55.0.windows.3\nadb: Android Debug Bridge version 1.0.36 | Revision 6e8ac8fa2d76-android\nBlueStacks: 5.22.265.1012\nCapCut instalado: 9.5.0.4050\n\nADB do BlueStacks: ADB do BlueStacks ligado e conectado em 127.0.0.1:5555.\nAndroid 9, modelo SM-S908E, Physical size: 1600x900, Physical density: 240\nInstagram: 448.0.0.52.84\nTela inicial do Instagram: XML salvo, print salvo\nuiautomator2: ok\nGaleria (MediaStore): responde (71 itens)\nRascunhos do CapCut: 41 projeto(s)\nGabarito '0925': 32 de 32 arquivos copiados (0 grandes ficaram de fora)\n  draft_content.json: json_aberto\n  draft_info.json: ausente\n  draft_meta_info.json: json_aberto\n  template-2.tmp: json_aberto\nSupabase: SUPABASE_URL ou SUPABASE_KEY vazio no .env.\n\nPrecisa de atenção:\n  - O verificar da instalação marcou com falha: SUPABASE_KEY no .env, Supabase (leitura).\n  - No .env, sem valor: SUPABASE_KEY.\n  - Supabase: SUPABASE_URL ou SUPABASE_KEY vazio no .env."
+  },
+  "ok": true,
+  "fim": "2026-09-25T18:05:15-03:00",
+  "duracao_s": 23.9
+}

@@ -1,0 +1,3 @@
+# Os .bat ficam com CRLF também dentro do repositório: o cmd precisa de CRLF
+# e o instalar.bat pode ser baixado sozinho do GitHub (vem como está gravado).
+*.bat -text

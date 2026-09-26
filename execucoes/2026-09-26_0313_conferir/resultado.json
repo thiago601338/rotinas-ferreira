@@ -1,0 +1,24 @@
+{
+  "alvo": "conferir",
+  "argv": [],
+  "pasta": "execucoes/2026-09-26_0313_conferir",
+  "inicio": "2026-09-26T03:13:02-03:00",
+  "resultado": {
+    "arquivo": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\videos\\exportado\\Teste Rotinas 20260926-030215.mp4",
+    "destino": "reels",
+    "aprovado": false,
+    "texto": "Conferência de Teste Rotinas 20260926-030215.mp4 (reels): REPROVADO, 1 de 11 itens com problema.\nNão passou:\n- volume: −23,7 LUFS (esperado −14 LUFS ± 2). Fazer: Subir o ganho do clipe ~10 dB e exportar de novo: o CapCut está com alvo −23 LUFS (Configurações > Editar > Nível de volume desejado), que deixa o áudio ~9 dB abaixo de −14.\nPassou: duração 4,0 s; resolução 1080×1920; taxa de quadros 30 fps; codec H.264; formato .mp4; taxa de bits 14.636 kbps; áudio AAC 44,1 kHz estéreo; pico real −20,0 dBTP; tamanho 7,3 MB; HDR SDR.",
+    "versoes": {
+      "ffmpeg": "ffmpeg version 9.0.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+      "ffprobe": "ffprobe version 9.0.2-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers"
+    },
+    "arquivos": [
+      "conferencia.json",
+      "conferencia.txt",
+      "ffprobe.json"
+    ]
+  },
+  "ok": true,
+  "fim": "2026-09-26T03:13:06-03:00",
+  "duracao_s": 4.1
+}
