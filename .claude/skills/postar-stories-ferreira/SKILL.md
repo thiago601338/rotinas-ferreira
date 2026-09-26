@@ -61,7 +61,9 @@ Regras completas: `...\sistema\conhecimento\stories.md` (obrigatórias).
      última mídia de cada letra, música nos vídeos sem som. Aviso "cor aproximada: 'verde' → 'Verde Bandeira'" = o script
      aceitou um nome parecido: confira se é a cor certa; se não, refaça com o nome exato.
    - O `stories.postar` de ensaio monta cada letra no Instagram e **para antes de publicar**; prints `ensaio_<L>_<n>.png`
-     e `ensaio_<L>_compartilhar.png` (tela "Compartilhar": só "Seu story" marcado; nunca "Amigos Próximos").
+     e `ensaio_<L>_compartilhar.png` (tela "Compartilhar": só "Seu story" marcado; nunca "Amigos Próximos"). Letra de uma
+     mídia só não tem essa tela: publica pelo "Seu story" do editor (destino "Seu story (botão do editor)"). Facebook
+     que não aparece ("não apareceu") é normal: não insistir (regra do usuário).
      `"diagnostico": true` no montar vale para o postar gerado (XML + print de cada passo).
    - O relatório do postar tem "Avisos da postagem:" (ex.: 'Recentes' no lugar do álbum, ordem por data): mostre ao
      usuário; com aviso de 'Recentes' ou de ordem, confira os prints antes de liberar o real.

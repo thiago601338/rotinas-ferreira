@@ -499,6 +499,9 @@
     ],
     "seu_story": [
       {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?your_story_share_shortcut_button$"
+      },
+      {
         "text": "Seu story"
       },
       {

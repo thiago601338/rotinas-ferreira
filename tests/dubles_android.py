@@ -385,7 +385,8 @@ class TelaFalsa:
                 v = {"itens_lista_album"} | ({"album_item"} if self.rolagens >= self.album_rolagens else set())
         elif e == "editor":
             v = {"editor", "figurinhas", "musica", "miniaturas_editor"}
-            v.add("avancar_editor" if self.compartilhar_448 else "seu_story")
+            # 448: várias mídias → "Avançar" (tela Compartilhar); uma mídia só → "Seu story" no próprio editor
+            v.add("avancar_editor" if self.compartilhar_448 and len(self.midias) > 1 else "seu_story")
             if self.midias and self.midias[self.atual].get("figurinha"):
                 v.add("figurinha_na_tela")
         elif e == "figurinhas":

@@ -271,7 +271,7 @@ def test_448_real_publica_pela_tela_compartilhar(ambiente):
 def test_448_amigos_proximos_marcado_vira_seu_story_antes_de_publicar(ambiente):
     a = _448(ambiente)
     a.tela.destino_story, a.tela.destino_amigos = False, True
-    res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}, ensaio=False), ensaio=False)
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto", "foto"]}, ensaio=False), ensaio=False)
     assert res["publicadas"] == ["A"] and "opcao_seu_story" in a.tela.toques
     assert a.tela.publicacoes[0]["seu_story"] is True and a.tela.publicacoes[0]["amigos_proximos"] is False
 
@@ -281,8 +281,22 @@ def test_448_destino_que_nao_muda_nao_publica(ambiente):
     a.tela.destino_story, a.tela.destino_amigos = False, True
     a.tela.destino_travado = True
     with pytest.raises(bluestacks.ErroPostagem, match="Seu story"):
-        rodar(a, montar_plano(a.midias, {"A": ["foto"]}, ensaio=False), ensaio=False)
+        rodar(a, montar_plano(a.midias, {"A": ["foto", "foto"]}, ensaio=False), ensaio=False)
     assert a.tela.publicacoes == [] and "concluir_publicacao" not in a.tela.toques
+
+
+def test_448_uma_midia_publica_pelo_seu_story_do_editor(ambiente):
+    """26/09 01:58: com uma foto só, o editor tem "Seu story" (publica direto) e não tem "Avançar"."""
+    a = _448(ambiente)
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}, ensaio=False), ensaio=False)
+    assert res["publicadas"] == ["A"] and "avancar_editor" not in a.tela.toques and "seu_story" in a.tela.toques
+
+
+def test_448_uma_midia_ensaio_confere_o_botao_sem_tocar(ambiente):
+    a = _448(ambiente)
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}), ensaio=True)
+    assert res["letras"][0]["destino"] == "Seu story (botão do editor)"
+    assert "seu_story" not in a.tela.toques and a.tela.publicacoes == []
 
 
 def test_448_ensaio_vai_ate_compartilhar_e_volta_sem_publicar(ambiente):
@@ -1030,8 +1044,8 @@ def test_ensaio_sintetico_monta_letra_de_teste_sem_publicar(sem_emulador, cfg):
     assert a.tela.publicacoes == [] and not set(a.tela.toques) & bluestacks.CHAVES_PUBLICAR
     t, u = res["letras"]  # T: vídeo + 2 fotos; U: uma foto só (o editor de uma mídia só pode ser diferente)
     assert t["estado"] == u["estado"] == "ensaio_ok"
-    assert len(t["prints"]) == 4 and len(u["prints"]) == 2  # um por mídia + a tela "Compartilhar"
-    assert t["destino"] == u["destino"] == "Seu story"
+    assert len(t["prints"]) == 4 and len(u["prints"]) == 1  # T: um por mídia + a tela "Compartilhar"
+    assert t["destino"] == "Seu story" and u["destino"] == "Seu story (botão do editor)"  # U: uma mídia só
     # mídia de teste fica na pasta de trabalho das rotinas, nunca em Stories da Loja
     assert Path(res["plano"]).is_relative_to(cfg.p.trabalho_stories)
     assert not any(cfg.p.stories_fonte.rglob("T - *")) and not any(cfg.p.stories_fonte.rglob("U - *"))

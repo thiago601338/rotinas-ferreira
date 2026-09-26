@@ -784,6 +784,11 @@ class Postador:
         """Ensaio vai até o passo anterior a publicar: abre "Compartilhar", confere o destino, tira print e volta ao
         editor sem tocar em "Compartilhar"."""
         if not self._abrir_compartilhar():
+            # uma mídia só (26/09 01:58): o editor tem embaixo "Seu story" (publica direto), "Amigos Próximos" e
+            # "Compartilhar em"; o real toca "Seu story" do editor. No ensaio só confere que o botão está lá.
+            if self.tela.achar("seu_story", self._t("espera_curta_s", 2), plano_b=False) is None:
+                raise ErroPasso("no editor não achei nem 'Avançar' nem 'Seu story': não sei publicar esta letra")
+            r["destino"] = "Seu story (botão do editor)"
             return
         r["destino"] = self._conferir_destino()
         _, ligado = self._estado_facebook()

@@ -129,3 +129,12 @@ def test_editor_tem_avancar_para_compartilhar(telas, relogio):
     tela = telas("editor")
     assert tela.achar("avancar_editor", 0, plano_b=False).limites == (663, 1494, 880, 1582)
     assert not tela.existe("tela_compartilhar")
+
+
+def test_editor_de_uma_midia_publica_por_seu_story(telas, relogio):
+    """26/09 01:58 (letra U, uma foto): sem "Avançar"; embaixo "Seu story" (publica direto), "Amigos Próximos" e
+    "Compartilhar em". O seletor tem que pegar o botão "Seu story", nunca o de "Amigos Próximos"."""
+    tela = telas("editor_uma_midia")
+    assert tela.achar("avancar_editor", 0, plano_b=False) is None
+    assert tela.achar("seu_story", 0, plano_b=False).limites == (24, 1494, 394, 1582)
+    assert tela.existe("editor") and len(tela.grade("figurinha_na_tela")) == 1
