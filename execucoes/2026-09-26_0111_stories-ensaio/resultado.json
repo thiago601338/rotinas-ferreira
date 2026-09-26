@@ -1,0 +1,80 @@
+{
+  "alvo": "stories-ensaio",
+  "argv": [
+    "--sintetico"
+  ],
+  "pasta": "execucoes/2026-09-26_0111_stories-ensaio",
+  "inicio": "2026-09-26T01:11:56-03:00",
+  "ok": false,
+  "erro": "Parei na letra T (passo 'figurinha_3'): a figurinha de link não apareceu na tela (XML) Publicadas antes: nenhuma. Não iniciadas: nenhuma.",
+  "tipo_erro": "ErroPostagem",
+  "detalhe": "Traceback (most recent call last):\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 853, in rodar\n    self._letra(plano, L, r, res)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 810, in _letra\n    self._montar_midias(L, r, res)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 670, in _montar_midias\n    self._figurinha(m, r)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 657, in _figurinha\n    self._conferir_figurinha(fig)\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 635, in _conferir_figurinha\n    raise ErroPasso(\"a figurinha de link não apareceu na tela (XML)\")\nrotinas.stories.bluestacks.ErroPasso: a figurinha de link não apareceu na tela (XML)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\execucao.py\", line 450, in testar\n    retorno = resolver_alvo(alvo)(ctx, extra)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 1170, in teste_ensaio\n    res = executar(plano, ctx, ensaio=True, diagnostico=True)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 914, in executar\n    return _postar(plano, ctx, res, cfg, ensaio=ensaio, diagnostico=diagnostico, tela=tela, enviar=enviar,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 973, in _postar\n    res = postador.rodar(plano, pular)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\rotinas\\stories\\bluestacks.py\", line 865, in rodar\n    raise ErroPostagem(mensagem_parada(res, r), res) from e\nrotinas.stories.bluestacks.ErroPostagem: Parei na letra T (passo 'figurinha_3'): a figurinha de link não apareceu na tela (XML) Publicadas antes: nenhuma. Não iniciadas: nenhuma.\n",
+  "resultado_parcial": {
+    "ensaio": true,
+    "id": "teste-sintetico",
+    "data": "2000-01-01",
+    "letras": [
+      {
+        "letra": "T",
+        "estado": "falhou",
+        "midias": [
+          "T - 1",
+          "T - 2",
+          "T - 3"
+        ],
+        "prints": [
+          "ensaio_T_1.png",
+          "ensaio_T_2.png",
+          "falha_T_figurinha_3.png"
+        ],
+        "erro": "a figurinha de link não apareceu na tela (XML)",
+        "envio": {
+          "pasta": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T",
+          "album": "2000-01-01_T",
+          "arquivos": [
+            {
+              "nome": "T - 1",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_1.mp4",
+              "mtime": "202609260112.02",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 2",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_2.jpg",
+              "mtime": "202609260111.02",
+              "varredura": "broadcast"
+            },
+            {
+              "nome": "T - 3",
+              "remoto": "/sdcard/Pictures/RotinasFerreira/2000-01-01_T/2000-01-01_T_3.jpg",
+              "mtime": "202609260110.02",
+              "varredura": "broadcast"
+            }
+          ],
+          "varredura": [
+            "broadcast"
+          ],
+          "ordem_data_da_midia": {
+            "datetaken": true
+          },
+          "avisos": []
+        },
+        "album": "2000-01-01_T",
+        "musicas": [
+          {
+            "midia": "T - 1",
+            "busca": "fashion",
+            "musica": "Timeline de Shanice",
+            "entre": 6
+          }
+        ],
+        "xml_falha": "falha_T_figurinha_3.xml"
+      }
+    ],
+    "publicadas": [],
+    "parou_em": "letra T: figurinha_3",
+    "avisos": []
+  },
+  "fim": "2026-09-26T01:13:07-03:00",
+  "duracao_s": 70.7
+}
