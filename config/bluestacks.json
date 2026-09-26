@@ -472,6 +472,31 @@
         "textContains": "wa.me"
       }
     ],
+    "avancar_editor": [
+      {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?media_thumbnail_tray_button$"
+      }
+    ],
+    "tela_compartilhar": [
+      {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?share_story_button$"
+      }
+    ],
+    "opcao_seu_story": [
+      {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?row_add_to_story_container$"
+      }
+    ],
+    "opcao_amigos_proximos": [
+      {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?row_add_to_story_favorites_container$"
+      }
+    ],
+    "radio_destino": [
+      {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?recipient_picker_radio_button$"
+      }
+    ],
     "seu_story": [
       {
         "text": "Seu story"
@@ -514,6 +539,9 @@
       }
     ],
     "concluir_publicacao": [
+      {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?share_story_button$"
+      },
       {
         "text": "Compartilhar"
       },
@@ -562,7 +590,7 @@
       }
     ]
   },
-  "_seletores_conferidos": "25/09/2026, Instagram 448.0.0.52.84 (Android 9, tela 900×1600 em pé), testar.bat bluestacks: feed_tab 'Página inicial'; sem aba 'Criar' — 'Adicionar ao story' (reel_empty_badge) abre direto a galeria (gallery_title_text 'Adicionar ao story'); 'Selecionar' = gallery_menu_multi_select_button (vira 'Cancelar' quando ligado); 'Recentes ▾' = gallery_folder_menu_tv, menu com Recentes/Fotos/Vídeos/Todos os álbuns/Dos apps da Meta; miniaturas = gallery_grid_item_thumbnail com descrição 'Não selecionado Miniatura de foto/vídeo…' (a célula 'Abrir câmera' não tem esse id); o círculo gallery_grid_item_selection_circle existe em todas. Ensaio de 25/09 19:08: seleção marcada = descrição 'Número da mídia selecionada N'; editor com music_button ('Músicas'), asset_button ('Figurinhas'), media_thumbnail_tray_button ('Avançar'); busca de música = row_search_edit_text, faixas com descrição 'Selecionar faixa <título> de <autor>,…'. Telas Compose (editor, música) têm resource-id SEM o prefixo com.instagram.android:id/ (music_button, asset_button, audio_browser_track_*, audio_bar_select_tap_target); conferidos contra os XMLs reais em tests/test_seletores_448.py. Da figurinha de link em diante ainda são chutes.",
+  "_seletores_conferidos": "25/09/2026, Instagram 448.0.0.52.84 (Android 9, tela 900×1600 em pé), testar.bat bluestacks: feed_tab 'Página inicial'; sem aba 'Criar' — 'Adicionar ao story' (reel_empty_badge) abre direto a galeria (gallery_title_text 'Adicionar ao story'); 'Selecionar' = gallery_menu_multi_select_button (vira 'Cancelar' quando ligado); 'Recentes ▾' = gallery_folder_menu_tv, menu com Recentes/Fotos/Vídeos/Todos os álbuns/Dos apps da Meta; miniaturas = gallery_grid_item_thumbnail com descrição 'Não selecionado Miniatura de foto/vídeo…' (a célula 'Abrir câmera' não tem esse id); o círculo gallery_grid_item_selection_circle existe em todas. Ensaio de 25/09 19:08: seleção marcada = descrição 'Número da mídia selecionada N'; editor com music_button ('Músicas'), asset_button ('Figurinhas'), media_thumbnail_tray_button ('Avançar'); busca de música = row_search_edit_text, faixas com descrição 'Selecionar faixa <título> de <autor>,…'. Telas Compose (editor, música) têm resource-id SEM o prefixo com.instagram.android:id/ (music_button, asset_button, audio_browser_track_*, audio_bar_select_tap_target); conferidos contra os XMLs reais em tests/test_seletores_448.py. Figurinha de link (26/09 00:34–01:11) e tela Compartilhar (01:52: row_add_to_story_container, row_add_to_story_favorites_container, recipient_picker_radio_button, share_story_button; sem Facebook) conferidas; a publicação em si (depois do Compartilhar) ainda não foi vista.",
   "descricao_nao_selecionado": "Não selecionado",
   "descricao_numero_selecao": "(?i)selecionada\\s+(\\d+)",
   "espera_selecao_s": 4,

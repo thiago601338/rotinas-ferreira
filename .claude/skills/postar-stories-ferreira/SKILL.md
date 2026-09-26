@@ -60,7 +60,8 @@ Regras completas: `...\sistema\conhecimento\stories.md` (obrigatórias).
    - Conferir no `relatorio` (e em `plano.letras`): cortes certos, festa "sem link", link `wa.me/…` sem `https://` só na
      última mídia de cada letra, música nos vídeos sem som. Aviso "cor aproximada: 'verde' → 'Verde Bandeira'" = o script
      aceitou um nome parecido: confira se é a cor certa; se não, refaça com o nome exato.
-   - O `stories.postar` de ensaio monta cada letra no Instagram e **para antes de publicar**; prints `ensaio_<L>_<n>.png`.
+   - O `stories.postar` de ensaio monta cada letra no Instagram e **para antes de publicar**; prints `ensaio_<L>_<n>.png`
+     e `ensaio_<L>_compartilhar.png` (tela "Compartilhar": só "Seu story" marcado; nunca "Amigos Próximos").
      `"diagnostico": true` no montar vale para o postar gerado (XML + print de cada passo).
    - O relatório do postar tem "Avisos da postagem:" (ex.: 'Recentes' no lugar do álbum, ordem por data): mostre ao
      usuário; com aviso de 'Recentes' ou de ordem, confira os prints antes de liberar o real.

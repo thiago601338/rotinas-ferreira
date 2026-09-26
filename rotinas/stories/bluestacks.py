@@ -742,6 +742,57 @@ class Postador:
                 return
         raise ErroPasso("toquei em publicar, mas o Instagram não voltou ao feed")
 
+    # -- tela "Compartilhar" do Instagram 448 (editor → "Avançar" → Compartilhar; conferida em 26/09 01:52)
+    def _abrir_compartilhar(self) -> bool:
+        """No 448 o editor não tem "Seu story": "Avançar" abre a tela "Compartilhar". ``False`` = editor sem "Avançar"
+        (versão antiga, com "Seu story" no editor)."""
+        if self.tela.achar("avancar_editor", self._t("espera_curta_s", 2), plano_b=False) is None:
+            return False
+        self._tocar("avancar_editor")
+        if self.tela.achar("tela_compartilhar", self._t("espera_padrao_s", 10), plano_b=False) is None:
+            raise ErroPasso("toquei em 'Avançar' no editor e a tela 'Compartilhar' não abriu")
+        return True
+
+    def _radio_da_linha(self, chave: str):
+        linha = self.tela.achar(chave, 0, plano_b=False)
+        if linha is None:
+            return None, None
+        for radio in self.tela.grade("radio_destino"):
+            if linha.limites[1] <= radio.centro[1] <= linha.limites[3]:
+                return linha, radio
+        return linha, None
+
+    def _conferir_destino(self) -> str:
+        """Story público: "Seu story" marcado e "Amigos Próximos" desmarcado (nunca publicar só para amigos
+        próximos). Marcar "Seu story" não publica nada."""
+        for tentativa in range(2):
+            linha, radio = self._radio_da_linha("opcao_seu_story")
+            if linha is None or radio is None:
+                raise ErroPasso("não achei a opção 'Seu story' (com o botão de marcar) na tela 'Compartilhar'")
+            _, amigos = self._radio_da_linha("opcao_amigos_proximos")
+            if radio.marcado and not (amigos is not None and amigos.marcado):
+                return "Seu story"
+            if tentativa == 0:
+                log.warning("Letra %s: 'Seu story' não estava marcado (ou 'Amigos Próximos' estava); marcando 'Seu story'",
+                            self.letra)
+                linha.tocar()
+                self._pausa()
+        raise ErroPasso("não consegui deixar só 'Seu story' marcado na tela 'Compartilhar' (Amigos Próximos?); "
+                        "não publico")
+
+    def _ensaiar_compartilhar(self, r: dict) -> None:
+        """Ensaio vai até o passo anterior a publicar: abre "Compartilhar", confere o destino, tira print e volta ao
+        editor sem tocar em "Compartilhar"."""
+        if not self._abrir_compartilhar():
+            return
+        r["destino"] = self._conferir_destino()
+        _, ligado = self._estado_facebook()
+        r["facebook"] = "não apareceu" if ligado is None else ("LIGADO" if ligado else "desligado")
+        self._print(f"ensaio_{self.letra}_compartilhar.png", r)
+        self.tela.voltar()  # fecha a tela Compartilhar (não publica)
+        self._pausa()
+        self._esperar_editor("fechar a tela Compartilhar")
+
     def _publicar(self, r: dict) -> None:
         with self._passo("conferir_editor"):
             if not self.tela.existe("editor") or self.tela.existe("feed"):
@@ -749,6 +800,16 @@ class Postador:
                 raise ErroPasso("não estou no editor do story; não publico")
         self.publicando = True
         try:
+            with self._passo("abrir_compartilhar"):
+                tela_448 = self._abrir_compartilhar()
+            if tela_448:  # editor → "Avançar" → Compartilhar: marcar "Seu story" e tocar "Compartilhar"
+                with self._passo("destino"):
+                    r["destino"] = self._conferir_destino()
+                with self._passo("facebook"):
+                    r["facebook"] = self._garantir_facebook_desligado()
+                with self._passo("concluir_publicacao"):
+                    self._concluir_publicacao()
+                return
             with self._passo("facebook"):
                 r["facebook"] = self._garantir_facebook_desligado()
             with self._passo("seu_story"):
@@ -813,6 +874,8 @@ class Postador:
             self._esperar_editor("Avançar")
         self._montar_midias(L, r, res)
         if self.ensaio:
+            with self._passo("compartilhar_ensaio"):
+                self._ensaiar_compartilhar(r)
             with self._passo("sair_sem_publicar"):
                 if not self._sair_com_seguranca():
                     res["avisos"].append(f"Letra {self.letra}: não confirmei a volta ao feed depois do ensaio.")
@@ -1146,8 +1209,9 @@ def teste_tela(ctx: Contexto, argv: list[str]) -> dict:
 
 
 def plano_sintetico(pasta: Path) -> dict:
-    """Letra de teste "T" (1 vídeo mudo + 2 fotos geradas na hora, em ``pasta``; nunca na pasta do usuário)
-    com música no vídeo e figurinha de link na última foto — para afinar os passos do editor em ENSAIO.
+    """Letras de teste geradas na hora em ``pasta`` (nunca na pasta do usuário), para afinar o editor em ENSAIO:
+    "T" = 1 vídeo mudo + 2 fotos (música no vídeo, figurinha de link na última foto); "U" = 1 foto só (figurinha de
+    link; o editor de uma mídia só pode ser diferente) — e a passagem de uma letra para a outra.
 
     O vídeo imita um vídeo de celular (``sintetico_video_ffmpeg`` na config: H.264 Main sem B-frames, áudio AAC
     em silêncio, faststart): o H.264 High com B-frames e sem áudio ficou cinza na galeria do BlueStacks (25/09)."""
@@ -1163,13 +1227,14 @@ def plano_sintetico(pasta: Path) -> dict:
             raise ErroPasso("falta 'sintetico_video_ffmpeg' em config/bluestacks.json (como gerar o vídeo de teste)")
         ferramentas.rodar([midia.ffmpeg(), "-hide_banner", "-nostdin", "-y", *args, str(video)], timeout=180)
     fotos = []
-    for n, cor in ((2, (170, 40, 70)), (3, (40, 110, 70))):
-        foto = pasta / f"T - {n}.jpg"
+    for nome, cor in (("T - 2", (170, 40, 70)), ("T - 3", (40, 110, 70)), ("U - 1", (40, 70, 160))):
+        foto = pasta / f"{nome}.jpg"
         if not foto.exists():
             img = Image.new("RGB", (1080, 1920), cor)
-            ImageDraw.Draw(img).text((80, 900), f"TESTE ROTINAS {n} - NAO POSTAR", fill=(255, 255, 255))
+            ImageDraw.Draw(img).text((80, 900), f"TESTE ROTINAS {nome} - NAO POSTAR", fill=(255, 255, 255))
             img.save(foto, "JPEG", quality=90)
         fotos.append(foto)
+    foto_u = fotos.pop()
     peca = "Peça de Teste"
     midias = [{"nome": "T - 1", "arquivo": video.name, "caminho": str(video), "tipo": "video", "hash": midia.hash_arquivo(video),
                "cores": ["Teste"], "precisa_musica": True, "musica": link.musica_sem_som(), "figurinha": None}]
@@ -1178,8 +1243,12 @@ def plano_sintetico(pasta: Path) -> dict:
         midias.append({"nome": foto.stem, "arquivo": foto.name, "caminho": str(foto), "tipo": "foto",
                        "hash": midia.hash_arquivo(foto), "cores": ["Teste"], "precisa_musica": False, "musica": None,
                        "figurinha": {"url": link.montar_link(peca), "texto": link.texto_figurinha(0)} if ultima else None})
+    so_foto = [{"nome": foto_u.stem, "arquivo": foto_u.name, "caminho": str(foto_u), "tipo": "foto",
+                "hash": midia.hash_arquivo(foto_u), "cores": ["Teste"], "precisa_musica": False, "musica": None,
+                "figurinha": {"url": link.montar_link(peca), "texto": link.texto_figurinha(1)}}]
     return {"data": "2000-01-01", "id": "teste-sintetico", "ensaio": True, "ordem": "letras",
-            "letras": [{"letra": "T", "sku": "TESTE", "peca": peca, "categoria": "Teste", "midias": midias}],
+            "letras": [{"letra": "T", "sku": "TESTE", "peca": peca, "categoria": "Teste", "midias": midias},
+                       {"letra": "U", "sku": "TESTE", "peca": peca, "categoria": "Teste", "midias": so_foto}],
             "cortes": [], "avisos": ["Plano sintético de teste: nunca publicar."]}
 
 

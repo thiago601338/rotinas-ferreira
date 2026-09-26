@@ -106,6 +106,7 @@ def test_instagram_448_como_no_pc(ambiente):
     a.tela.criar_abre_galeria = True
     a.tela.album_via_todos = True
     a.tela.numeros_na_selecao = False
+    a.tela.compartilhar_448 = True  # editor com "Avançar" → tela "Compartilhar" (26/09 01:52)
     res = rodar(a, montar_plano(a.midias, {"A": ["foto", "foto", "foto"]}, ensaio=False), ensaio=False)
     assert res["publicadas"] == ["A"]
     assert "abrir_story" not in a.tela.toques and "abrir_galeria" not in a.tela.toques
@@ -248,6 +249,51 @@ def test_figurinha_que_nao_entra_na_tela_para_sem_publicar(ambiente):
     with pytest.raises(bluestacks.ErroPostagem, match="figurinha de link não apareceu"):
         rodar(a, montar_plano(a.midias, {"A": ["foto", "foto"]}, ensaio=False), ensaio=False)
     assert a.tela.publicacoes == []
+
+
+def _448(a):
+    a.tela.criar_abre_galeria = True
+    a.tela.compartilhar_448 = True
+    return a
+
+
+def test_448_real_publica_pela_tela_compartilhar(ambiente):
+    """Instagram 448 (tela vista em 26/09 01:52): editor → "Avançar" → "Compartilhar" com "Seu story" marcado."""
+    a = _448(ambiente)
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto", "foto"]}, ensaio=False), ensaio=False)
+    assert res["publicadas"] == ["A"] and res["letras"][0]["destino"] == "Seu story"
+    t = a.tela.toques
+    assert t.index("avancar_editor") < t.index("concluir_publicacao") and "seu_story" not in t
+    pub = a.tela.publicacoes[0]
+    assert pub["seu_story"] is True and pub["amigos_proximos"] is False and pub["facebook"] is False
+
+
+def test_448_amigos_proximos_marcado_vira_seu_story_antes_de_publicar(ambiente):
+    a = _448(ambiente)
+    a.tela.destino_story, a.tela.destino_amigos = False, True
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto"]}, ensaio=False), ensaio=False)
+    assert res["publicadas"] == ["A"] and "opcao_seu_story" in a.tela.toques
+    assert a.tela.publicacoes[0]["seu_story"] is True and a.tela.publicacoes[0]["amigos_proximos"] is False
+
+
+def test_448_destino_que_nao_muda_nao_publica(ambiente):
+    a = _448(ambiente)
+    a.tela.destino_story, a.tela.destino_amigos = False, True
+    a.tela.destino_travado = True
+    with pytest.raises(bluestacks.ErroPostagem, match="Seu story"):
+        rodar(a, montar_plano(a.midias, {"A": ["foto"]}, ensaio=False), ensaio=False)
+    assert a.tela.publicacoes == [] and "concluir_publicacao" not in a.tela.toques
+
+
+def test_448_ensaio_vai_ate_compartilhar_e_volta_sem_publicar(ambiente):
+    """O ensaio vai até o passo anterior a publicar (a tela "Compartilhar"), tira print e volta."""
+    a = _448(ambiente)
+    res = rodar(a, montar_plano(a.midias, {"A": ["foto", "foto"]}), ensaio=True)
+    (letra,) = res["letras"]
+    assert letra["estado"] == "ensaio_ok" and letra["destino"] == "Seu story" and letra["facebook"] == "não apareceu"
+    assert "avancar_editor" in a.tela.toques and "concluir_publicacao" not in a.tela.toques
+    assert (a.ctx.pasta_saida / "ensaio_A_compartilhar.png").is_file() and a.tela.publicacoes == []
+    assert a.tela.estado == "feed"
 
 
 def test_versao_com_aba_criar_ainda_escolhe_story(ambiente):
@@ -975,20 +1021,26 @@ def test_teste_ensaio_usa_o_plano_mais_recente_da_data(sem_emulador, cfg):
 def test_ensaio_sintetico_monta_letra_de_teste_sem_publicar(sem_emulador, cfg):
     a = sem_emulador
     a.tela.criar_abre_galeria = True
+    a.tela.compartilhar_448 = True
     a.tela.albuns["2000-01-01_T"] = 3
+    a.tela.albuns["2000-01-01_U"] = 1
     ctx = Contexto(a.ctx.pasta_saida / "ensaio-sintetico", diagnostico=True)
     res = bluestacks.teste_ensaio(ctx, ["--sintetico"])
     assert res["ok"] is True, res
     assert a.tela.publicacoes == [] and not set(a.tela.toques) & bluestacks.CHAVES_PUBLICAR
-    (letra,) = res["letras"]
-    assert letra["estado"] == "ensaio_ok" and len(letra["prints"]) == 3
+    t, u = res["letras"]  # T: vídeo + 2 fotos; U: uma foto só (o editor de uma mídia só pode ser diferente)
+    assert t["estado"] == u["estado"] == "ensaio_ok"
+    assert len(t["prints"]) == 4 and len(u["prints"]) == 2  # um por mídia + a tela "Compartilhar"
+    assert t["destino"] == u["destino"] == "Seu story"
     # mídia de teste fica na pasta de trabalho das rotinas, nunca em Stories da Loja
     assert Path(res["plano"]).is_relative_to(cfg.p.trabalho_stories)
-    assert not any(cfg.p.stories_fonte.rglob("T - *"))
+    assert not any(cfg.p.stories_fonte.rglob("T - *")) and not any(cfg.p.stories_fonte.rglob("U - *"))
     plano = bluestacks.plano_sintetico(Path(res["plano"]))
     midias = plano["letras"][0]["midias"]
     assert midias[0]["precisa_musica"] and midias[0]["musica"]
     assert midias[-1]["figurinha"]["url"].startswith("wa.me/") and all(m["figurinha"] is None for m in midias[:-1])
+    (so_foto,) = plano["letras"][1]["midias"]
+    assert so_foto["tipo"] == "foto" and so_foto["figurinha"]["url"].startswith("wa.me/") and not so_foto["musica"]
     # vídeo como o de celular: H.264 Main sem B-frames + AAC (o High com B-frames e sem áudio ficou cinza no 448)
     info = json.loads(subprocess.run(
         ["ffprobe", "-v", "error", "-show_entries", "stream=codec_name,profile,has_b_frames,pix_fmt", "-of", "json",

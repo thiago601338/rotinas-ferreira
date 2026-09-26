@@ -323,6 +323,9 @@ class TelaFalsa:
         self.popup_apos_digitar = 0  # quantas vezes o balão aparece logo depois de digitar (mesmo com o campo limpo)
         self.musica_sem_ajuste = False  # a seta da barra da música volta direto ao editor (sem "Concluído")
         self.direct_ao_digitar = False  # a notificação é tocada logo depois de digitar a busca (antes do Enter)
+        self.compartilhar_448 = False  # Instagram 448: editor com "Avançar" → tela "Compartilhar" (Seu story/Amigos)
+        self.destino_story, self.destino_amigos = True, False  # botões de marcar da tela "Compartilhar"
+        self.destino_travado = False  # tocar nas linhas da tela "Compartilhar" não muda a marcação
         self.figurinha_nao_entra = False  # "Concluir" da figurinha volta ao editor sem pôr a figurinha
         self.criar_tela_preta = False  # o toque em "criar" leva a uma tela preta (nem feed, nem galeria)
         self.deitado = 0  # quantas conferências de orientação dão "deitado" (tela na horizontal) antes de girar
@@ -381,7 +384,8 @@ class TelaFalsa:
             else:
                 v = {"itens_lista_album"} | ({"album_item"} if self.rolagens >= self.album_rolagens else set())
         elif e == "editor":
-            v = {"editor", "figurinhas", "musica", "seu_story", "miniaturas_editor"}
+            v = {"editor", "figurinhas", "musica", "miniaturas_editor"}
+            v.add("avancar_editor" if self.compartilhar_448 else "seu_story")
             if self.midias and self.midias[self.atual].get("figurinha"):
                 v.add("figurinha_na_tela")
         elif e == "figurinhas":
@@ -392,6 +396,8 @@ class TelaFalsa:
                 v |= {"faixas_musica"}
             if self.musica_escolhida:
                 v.add("usar_musica")  # barra de baixo com a faixa tocando e a seta
+        elif e == "compartilhar448":
+            v = {"tela_compartilhar", "opcao_seu_story", "opcao_amigos_proximos", "radio_destino", "concluir_publicacao"}
         elif e == "ajuste_musica":
             v = {"concluir_musica"}
         elif e == "direct":
@@ -414,7 +420,8 @@ class TelaFalsa:
 
     def _publicar(self):
         pub = {"album": self.album, "midias": copy.deepcopy(self.midias), "facebook": self.facebook_ligado,
-               "seu_story": self.seu_story_marcado}
+               "seu_story": self.destino_story if self.compartilhar_448 else self.seu_story_marcado,
+               "amigos_proximos": self.destino_amigos if self.compartilhar_448 else False}
         self.publicacoes.append(pub)
         self.eventos.append(("publicou", self.album))
         self._limpar_story()
@@ -517,6 +524,12 @@ class TelaFalsa:
                     self.estado = "compartilhar"
             elif chave in ("compartilhar_facebook_toggle", "interruptores"):
                 self.facebook_ligado = not self.facebook_ligado
+            elif chave == "avancar_editor":
+                self.estado = "compartilhar448"
+            elif chave in ("opcao_seu_story", "opcao_amigos_proximos"):
+                if not self.destino_travado:
+                    self.destino_story = chave == "opcao_seu_story"
+                    self.destino_amigos = not self.destino_story
             elif chave == "concluir_publicacao":
                 if e == "aviso_fb":  # "Compartilhar" do aviso: liga o Facebook e publica lá também
                     self.facebook_ligado = True
@@ -536,6 +549,9 @@ class TelaFalsa:
         return Elemento(texto=f"coordenada {chave}", plano_b=True, acao=tocar)
 
     def _elemento(self, chave: str, **valores) -> Elemento:
+        linhas = {"opcao_seu_story": (0, 619, 900, 739), "opcao_amigos_proximos": (0, 739, 900, 859)}
+        if chave in linhas:
+            return Elemento(texto=chave, limites=linhas[chave], acao=self._acao(chave))
         if chave == "compartilhar_facebook_toggle" and self.facebook_rotulo:
             # só o texto (não é o interruptor): o fluxo tem que achar o interruptor na mesma linha
             return Elemento(texto="Compartilhar também no Facebook", marcado=False, marcavel=False,
@@ -611,6 +627,9 @@ class TelaFalsa:
                                     acao=lambda: self.toques.append("editor_extra")))
             for i in range(len(self.midias)):
                 els.append(Elemento(limites=(100 + i * 120, 1800, 200 + i * 120, 1900), acao=self._ir_midia(i)))
+        elif chave == "radio_destino":  # como na tela real: um botão de marcar em cada linha
+            els.append(Elemento(marcado=self.destino_story, marcavel=True, limites=(804, 647, 868, 711)))
+            els.append(Elemento(marcado=self.destino_amigos, marcavel=True, limites=(804, 767, 868, 831)))
         elif chave == "figurinha_na_tela":  # como no 448: item genérico, sem o texto nem o link
             els.append(Elemento(descricao="Figurinhas. Toque e mantenha pressionado para reposicionar.",
                                 limites=(304, 756, 595, 844)))
@@ -684,7 +703,7 @@ class TelaFalsa:
             "feed": "fora", "criacao": "feed", "camera": "feed", "galeria": "camera", "album_menu": "galeria",
             "editor": "dialogo", "dialogo": "editor", "musica": "editor", "figurinhas": "editor", "link": "editor",
             "compartilhar": "editor", "aviso_fb": "editor", "visualizador_story": "feed", "sugestao_teclado": "musica",
-            "ajuste_musica": "musica", "direct": "feed",
+            "ajuste_musica": "musica", "direct": "feed", "compartilhar448": "editor",
         }.get(self.estado, self.estado)
 
     def tamanho(self):

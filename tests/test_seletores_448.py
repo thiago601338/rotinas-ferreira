@@ -110,3 +110,22 @@ def test_figurinha_de_link_no_editor_e_um_item_generico(telas, relogio):
     com = telas("editor_com_figurinha")
     assert len(com.grade("figurinha_na_tela")) == 1
     assert len(telas("editor").grade("figurinha_na_tela")) == 0  # mesma tela sem figurinha (e com a música)
+
+
+def test_tela_compartilhar(telas, relogio):
+    """26/09 01:52 (aberta à mão com "Avançar", `testar.bat tela`): "Seu story" marcado, "Amigos Próximos" desmarcado,
+    botão "Compartilhar" (share_story_button) publica; não há opção de Facebook nessa tela."""
+    tela = telas("compartilhar")
+    assert tela.existe("tela_compartilhar")
+    assert tela.achar("concluir_publicacao", 0, plano_b=False).limites == (32, 1496, 868, 1584)
+    assert tela.achar("opcao_seu_story", 0, plano_b=False).limites == (0, 619, 900, 739)
+    assert tela.achar("opcao_amigos_proximos", 0, plano_b=False).limites == (0, 739, 900, 859)
+    radios = tela.grade("radio_destino")
+    assert [(r.limites[1], r.marcado) for r in radios] == [(647, True), (767, False)]
+    assert tela.achar("compartilhar_facebook_toggle", 0, plano_b=False) is None
+
+
+def test_editor_tem_avancar_para_compartilhar(telas, relogio):
+    tela = telas("editor")
+    assert tela.achar("avancar_editor", 0, plano_b=False).limites == (663, 1494, 880, 1582)
+    assert not tela.existe("tela_compartilhar")
