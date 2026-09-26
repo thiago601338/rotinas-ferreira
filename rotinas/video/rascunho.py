@@ -1491,6 +1491,28 @@ def plano_de_teste(video: Path, musica: Path, t: dict) -> dict:
     }
 
 
+def teste_copiar(ctx: Contexto, argv: list[str]) -> dict:
+    """``testar.bat capcut-copiar "<projeto>"``: copia um projeto do CapCut como ele está agora (sem as mídias) para
+    comparar — ex.: o "Teste Rotinas …" depois de o CapCut abrir e regravar, ou um projeto feito à mão para servir de
+    gabarito (texto, legenda, música). Não muda nada nos projetos."""
+    p = argparse.ArgumentParser(prog="testar capcut-copiar")
+    p.add_argument("projeto", help='nome do projeto no CapCut, ex.: "Teste Rotinas 20260926-022653"')
+    a = p.parse_args(argv)
+    c = capcut.cfg()
+    capcut.exigir_capcut_fechado()  # com o CapCut aberto, o rascunho pode estar no meio de uma gravação
+    pasta = config.pastas().capcut_rascunhos / a.projeto
+    if not (pasta / "draft_content.json").is_file() and not (pasta / "draft_info.json").is_file():
+        existentes = sorted(x.name for x in config.pastas().capcut_rascunhos.iterdir() if x.is_dir())[-15:]
+        raise FileNotFoundError(f"Projeto {a.projeto!r} não encontrado em {pasta.parent}. "
+                                f"Projetos mais recentes (por nome): {', '.join(existentes)}")
+    limite = int(float(c.get("max_mb_arquivo_auxiliar", 5)) * 1024 * 1024)
+    midia_ext = {e.lower() for e in c.get("extensoes_midia") or []}
+    copia = capcut.copiar_arvore(pasta, ctx.pasta_saida / "projeto" / pasta.name, limite, extensoes_fora=midia_ext)
+    ctx.arquivo("inspecao.json").write_text(json.dumps(inspecionar(pasta), ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"ok": True, "projeto": a.projeto, "copiados": len(copia["copiados"]),
+            "resumo": f"Copiei {len(copia['copiados'])} arquivo(s) do projeto {a.projeto!r} (sem as mídias)."}
+
+
 def teste_real(ctx: Contexto, argv: list[str]) -> dict:
     """No PC: gera 'Teste Rotinas <carimbo>' com mídia sintética e copia rascunho + gabarito para comparação."""
     p = argparse.ArgumentParser(prog="testar capcut-rascunho")

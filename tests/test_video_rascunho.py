@@ -720,6 +720,27 @@ def test_teste_real_gera_e_copia_para_comparar(cfg, tmp_path, monkeypatch):
     assert len(_segs(doc, "video")) == 2 and len(_segs(doc, "audio")) == 1 and len(_segs(doc, "text")) == 2
 
 
+def test_capcut_copiar_copia_o_projeto_como_esta_sem_midia(cfg, tmp_path, monkeypatch):
+    """``testar.bat capcut-copiar "<projeto>"``: ver o que o CapCut manteve depois de abrir o rascunho gerado."""
+    monkeypatch.setattr(capcut, "capcut_aberto", lambda: False)
+    proj = cfg.p.capcut_rascunhos / "Meu Teste"
+    shutil.copytree(GABARITO, proj)
+    (proj / "clipe.mp4").write_bytes(b"video")
+    antes = _hash_pasta(proj)
+    ctx = Contexto(tmp_path / "execucao")
+    r = rascunho.teste_copiar(ctx, ["Meu Teste"])
+    assert r["ok"] and (ctx.pasta_saida / "projeto" / "Meu Teste" / "draft_content.json").exists()
+    assert (ctx.pasta_saida / "inspecao.json").exists() and not list(ctx.pasta_saida.rglob("*.mp4"))
+    assert _hash_pasta(proj) == antes  # não muda nada no projeto
+
+
+def test_capcut_copiar_projeto_que_nao_existe_lista_os_recentes(cfg, tmp_path, monkeypatch):
+    monkeypatch.setattr(capcut, "capcut_aberto", lambda: False)
+    shutil.copytree(GABARITO, cfg.p.capcut_rascunhos / "Outro")
+    with pytest.raises(FileNotFoundError, match="Outro"):
+        rascunho.teste_copiar(Contexto(tmp_path / "execucao"), ["Nao Existe"])
+
+
 # ---------------------------------------------------------------- plano com violação e faixa-guia
 
 def test_plano_com_violacao_nao_vira_rascunho(amb):

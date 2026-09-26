@@ -40,6 +40,7 @@ ALVOS: dict[str, str] = {
     "stories-ensaio": "rotinas.stories.bluestacks:teste_ensaio",
     "tela": "rotinas.stories.bluestacks:teste_tela",
     "capcut-rascunho": "rotinas.video.rascunho:teste_real",
+    "capcut-copiar": "rotinas.video.rascunho:teste_copiar",
     "conferir": "rotinas.video.conferencia:teste_real",
 }
 
@@ -51,6 +52,7 @@ DESCRICOES: dict[str, str] = {
     "stories-ensaio": "stories em modo ensaio (--data D, --plano arquivo ou --sintetico): monta tudo e para antes de publicar",
     "tela": "salva a tela atual do BlueStacks (XML + print) sem tocar em nada",
     "capcut-rascunho": "gera um rascunho de teste no CapCut (B3)",
+    "capcut-copiar": "copia um projeto do CapCut como está agora, sem as mídias (\"nome do projeto\")",
     "conferir": "confere um vídeo exportado (B4)",
     ENVIAR: "tenta de novo enviar pelo git as execuções que ficaram só no PC",
 }

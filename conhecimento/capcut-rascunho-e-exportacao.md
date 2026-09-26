@@ -31,6 +31,16 @@ Complementa `edicao-video-capcut.md`. Origem: mapeamento feito no PC do usuário
 - `root_meta_info.json` (raiz dos rascunhos): `all_draft_store`, `draft_ids` (= quantidade de projetos; 41 no PC) e `root_path` com barras `/`.
 - Gabarito guardado no repositório em `gabaritos/capcut-9.5/0925/` (sem `.bak`), com uma amostra do índice só com a entrada do "0925".
 
+## 1º rascunho gerado aberto no CapCut (26/09/2026 02:26, `testar.bat capcut-rascunho`)
+- "Teste Rotinas 20260926-022653" (backup dos rascunhos antes; registrado em `root_meta_info.json`) **abriu certo, sem
+  "mídia perdida"**: o formato do rascunho (clone do gabarito "0925", Timelines espelhado) está aceito pela 9.5.
+- O usuário viu os **2 trechos de vídeo**; o texto "TESTE ROTINAS" saiu **grande demais**; legenda e música não foram
+  marcadas como vistas. No rascunho gerado: 2 faixas de texto (título size 32 = 96 px ÷ fator provisório 3,0; legenda
+  21,33) e 1 faixa de áudio montada com o protótipo de reserva (o gabarito "0925" só tem vídeo + texto, sem áudio).
+  O texto padrão do CapCut é size 15 ("Texto padrão"). Próximo: `testar.bat capcut-copiar "<projeto>"` (copia o
+  projeto como o CapCut deixou, sem mídia) para ver o que ele manteve/descartou; depois calibrar o fator do texto e,
+  se o áudio foi descartado, um gabarito com música feito à mão.
+
 ## Exportação (modal "Exportar-<nome do projeto>", Ctrl+E)
 - Campos: Nome · Exportar para (padrão `C:/Users/V15/AppData/Local/CapCut…`) · ☑ Vídeo: Resolução (480P · 720P · **1080P** · 2K · 4K · 8K), Taxa de bits (Abaixar · **Recomendado** · Superior · Personalizado), Codec (**H.264** · HEVC · HEVC Alpha · HEVC 422 · AV1 · RLE), Formato (mov · **mp4**), Taxa de quadros (24 · 25 · 29.97 · **30** · 50 · 59.94 · 60), Espaço de cores Rec.709 SDR (fixo) · ☑ "Sincronize os vídeos exportados com o espaço" · ☐ Áudio (MP3) · ☐ GIF · ☐ Legendas 💎 (SRT) · Verificar direitos autorais (desligado) · rodapé com o tamanho estimado e os botões **[Exportar]** e **[Cancelar]**.
 - **Bloqueio:** se a linha do tempo tiver só material da Biblioteca sem edição, o Ctrl+E mostra "Não foi possível exportar — Para evitar violação de direitos autorais, não exporte materiais sem editá-los no CapCut." [OK]. Depois de adicionar um texto, abriu normalmente.
