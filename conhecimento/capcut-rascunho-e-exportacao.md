@@ -40,6 +40,14 @@ Complementa `edicao-video-capcut.md`. Origem: mapeamento feito no PC do usuário
   O texto padrão do CapCut é size 15 ("Texto padrão"). Próximo: `testar.bat capcut-copiar "<projeto>"` (copia o
   projeto como o CapCut deixou, sem mídia) para ver o que ele manteve/descartou; depois calibrar o fator do texto e,
   se o áudio foi descartado, um gabarito com música feito à mão.
+- **`capcut-copiar` do mesmo projeto (26/09/2026 02:47):** o CapCut regravou o projeto ao abrir (criou
+  `attachment_editing.json`, `attachment_pc_common.json` e `draft_content.json.bak`) e **manteve tudo**: 2 trechos de
+  vídeo, 2 textos (título e legenda, sem mudar nada neles) e a faixa de música (só acrescentou campos de IA vazios ao
+  material de áudio) — legenda e música estavam lá. **Mas trocou o caminho do vídeo** pelo clipe da Biblioteca do
+  gabarito (`Cache/onlineMaterial/…`, "coin rainy animation greenscreen", `unique_id` preenchido): o material gerado
+  herdou do gabarito `material_id` = id do clipe na Biblioteca e `source` = 1, e o CapCut religou pelo id. Correção:
+  em mídia local a partir de protótipo da Biblioteca, `material_id` vai para `limpar_campos_origem` e `source`/
+  `source_platform` vão a 0 (`zerar_campos_origem` em `config/capcut.json`); teste com o gabarito real do PC.
 
 ## Exportação (modal "Exportar-<nome do projeto>", Ctrl+E)
 - Campos: Nome · Exportar para (padrão `C:/Users/V15/AppData/Local/CapCut…`) · ☑ Vídeo: Resolução (480P · 720P · **1080P** · 2K · 4K · 8K), Taxa de bits (Abaixar · **Recomendado** · Superior · Personalizado), Codec (**H.264** · HEVC · HEVC Alpha · HEVC 422 · AV1 · RLE), Formato (mov · **mp4**), Taxa de quadros (24 · 25 · 29.97 · **30** · 50 · 59.94 · 60), Espaço de cores Rec.709 SDR (fixo) · ☑ "Sincronize os vídeos exportados com o espaço" · ☐ Áudio (MP3) · ☐ GIF · ☐ Legendas 💎 (SRT) · Verificar direitos autorais (desligado) · rodapé com o tamanho estimado e os botões **[Exportar]** e **[Cancelar]**.

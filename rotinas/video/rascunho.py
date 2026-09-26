@@ -449,8 +449,9 @@ class _Construtor:
             m["category_name"] = "local"
             if "copyright_limit_type" in m:
                 m["copyright_limit_type"] = "none"
-            if isinstance(m.get("source_platform"), int) and not isinstance(m.get("source_platform"), bool):
-                m["source_platform"] = 0
+            for campo in self.c.get("zerar_campos_origem") or ["source_platform"]:
+                if isinstance(m.get(campo), int) and not isinstance(m.get(campo), bool):
+                    m[campo] = 0
             aviso = f"O protótipo de {tipo} do gabarito veio da Biblioteca do CapCut: limpei os campos de origem (conferir)."
             if aviso not in self.avisos:
                 self.avisos.append(aviso)

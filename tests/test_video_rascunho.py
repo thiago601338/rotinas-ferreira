@@ -574,6 +574,22 @@ def test_prototipo_da_biblioteca_tem_origem_limpa(amb, tmp_path):
         assert (m["category_name"], m["category_id"], m["resource_id"], m["material_url"]) == ("local", "", "", "")
 
 
+def test_gabarito_real_do_pc_nao_religa_o_clipe_da_biblioteca(amb, tmp_path):
+    """26/09 02:47 (``capcut-copiar``): o vídeo do gabarito "0925" é da Biblioteca ("Tela verde"); o material gerado
+    herdou ``material_id`` (id do clipe na biblioteca) e ``source`` 1, e o CapCut trocou o caminho do nosso vídeo pelo
+    clipe da biblioteca em ``Cache/onlineMaterial``. Mídia local: ``material_id`` vazio e ``source`` 0."""
+    from rotinas import config
+
+    gab = tmp_path / "gab" / "0925"
+    shutil.copytree(config.RAIZ / "gabaritos" / "capcut-9.5" / "0925", gab)
+    r = amb.gerar(gabarito=gab)
+    for nome in ("draft_content.json", "template-2.tmp"):
+        for m in _doc(r.pasta, nome)["materials"]["videos"]:
+            assert m["material_id"] == "" and m["source"] == 0 and m["source_platform"] == 0, nome
+            assert m["category_name"] == "local" and m["category_id"] == "" and m["request_id"] == ""
+            assert "onlineMaterial" not in m["path"] and m["material_name"] != "coin rainy animation greenscreen"
+
+
 def test_prototipo_local_nao_carrega_arquivos_derivados_nem_reverso(amb, tmp_path):
     # Gabarito com o clipe invertido e estabilizado: os arquivos derivados são do vídeo do GABARITO.
     gab = tmp_path / "gab" / "0925"

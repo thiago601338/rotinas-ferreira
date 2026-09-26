@@ -83,7 +83,10 @@
     "tail_leaders",
     "drafts"
   ],
+  "_zerar_campos_origem": "Números de origem da Biblioteca que viram 0 em mídia local. 26/09/2026: com material_id (id do clipe da Biblioteca) e source 1 herdados do gabarito, o CapCut trocou o caminho do nosso vídeo pelo clipe da Biblioteca (Cache/onlineMaterial).",
+  "zerar_campos_origem": ["source", "source_platform"],
   "limpar_campos_origem": [
+    "material_id",
     "resource_id",
     "third_resource_id",
     "category_id",
