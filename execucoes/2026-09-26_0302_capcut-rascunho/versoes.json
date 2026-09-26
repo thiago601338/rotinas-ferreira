@@ -1,0 +1,47 @@
+{
+  "rotinas": "0.1.0",
+  "gerado_em": "2026-09-26T03:02:14-03:00",
+  "sistema": {
+    "plataforma": "Windows-11-10.0.26200-SP0",
+    "sistema": "Windows",
+    "release": "11",
+    "versao": "10.0.26200",
+    "maquina": "AMD64",
+    "edicao": "Professional"
+  },
+  "python": {
+    "versao": "3.12.10",
+    "executavel": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema\\.venv\\Scripts\\python.exe",
+    "bits": 64
+  },
+  "pacotes": {
+    "PIL": "12.3.0",
+    "numpy": "2.5.3",
+    "requests": "2.34.2",
+    "uiautomator2": "3.7.0",
+    "faster_whisper": "1.2.1",
+    "pillow_heif": "1.8.0"
+  },
+  "repositorio": {
+    "raiz": "C:\\Users\\V15\\Documents\\Rotinas Ferreira\\sistema",
+    "commit": "02081b25f2c6b1df6747fed1b61834c1357e3e6c",
+    "ramo": "claude/fase-1-briefing-x8e3im",
+    "data_commit": "2026-09-26 05:58:48 +0000",
+    "alteracoes_locais": 1
+  },
+  "ffmpeg": {
+    "encontrado": true,
+    "caminho": "C:\\Users\\V15\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-9.0.2-full_build\\bin\\ffmpeg.EXE",
+    "versao": "ffmpeg version 9.0.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "git": {
+    "encontrado": true,
+    "caminho": "C:\\Program Files\\Git\\cmd\\git.EXE",
+    "versao": "git version 2.55.0.windows.3"
+  },
+  "adb": {
+    "encontrado": true,
+    "caminho": "C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe",
+    "versao": "Android Debug Bridge version 1.0.36 | Revision 6e8ac8fa2d76-android"
+  }
+}
