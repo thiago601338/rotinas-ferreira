@@ -128,3 +128,4 @@ Conferência: APROVADO (ou: volume −22 LUFS → subir ~8 dB no clipe e exporta
 | Sem transcrição (faster-whisper/modelo) | Seguir sem legendas ou pedir `atualizar.bat`; o modelo baixa no primeiro uso (~480 MB). |
 | Conferência: "áudio" reprovado num plano mudo | O arquivo saiu com som: a faixa-guia não foi desligada (V) no CapCut; exportar de novo. |
 | Mídia perdida ao abrir o rascunho | Não mover/renomear o bruto depois do rascunho; se aconteceu, avisar e gerar de novo. |
+| Rascunho abre com o clipe verde da Biblioteca no lugar do vídeo | Material herdou `material_id`/`source` do gabarito: conferir `limpar_campos_origem` e `zerar_campos_origem` em `config/capcut.json` (resolvido em 26/09). |

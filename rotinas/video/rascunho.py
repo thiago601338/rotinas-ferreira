@@ -453,7 +453,9 @@ class _Construtor:
                 if isinstance(m.get(campo), int) and not isinstance(m.get(campo), bool):
                     m[campo] = 0
             aviso = f"O protótipo de {tipo} do gabarito veio da Biblioteca do CapCut: limpei os campos de origem (conferir)."
-            if aviso not in self.avisos:
+            if self.c.get("origem_limpa_confirmada"):
+                log.info("Protótipo de %s da Biblioteca do CapCut: campos de origem limpos.", tipo)
+            elif aviso not in self.avisos:
                 self.avisos.append(aviso)
         # Arquivos derivados da mídia do GABARITO (reverso, estabilização, "intensifies"...): apontariam para
         # arquivos que não são deste vídeo. Vale também para protótipo local.

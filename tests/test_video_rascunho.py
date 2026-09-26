@@ -585,6 +585,20 @@ def test_prototipo_da_biblioteca_tem_origem_limpa(amb, tmp_path):
     r = amb.gerar(gabarito=gab)
     for m in _doc(r.pasta)["materials"]["videos"]:
         assert (m["category_name"], m["category_id"], m["resource_id"], m["material_url"]) == ("local", "", "", "")
+    # 26/09 03:02: confirmado no CapCut (abriu com o nosso vídeo): sem o aviso "(conferir)"
+    assert not any("campos de origem" in a for a in r.avisos)
+
+
+def test_origem_limpa_nao_confirmada_avisa(amb, tmp_path, cfg):
+    cfg.alterar("capcut", origem_limpa_confirmada=False)
+    gab = tmp_path / "gab" / "0925"
+    shutil.copytree(GABARITO, gab)
+    for nome in ("draft_info.json", "draft_content.json", "template-2.tmp"):
+        doc = json.loads((gab / nome).read_text(encoding="utf-8"))
+        doc["materials"]["videos"][0]["category_name"] = "stock"
+        (gab / nome).write_text(json.dumps(doc), encoding="utf-8")
+    r = amb.gerar(gabarito=gab)
+    assert any("campos de origem (conferir)" in a for a in r.avisos)
 
 
 def test_gabarito_real_do_pc_nao_religa_o_clipe_da_biblioteca(amb, tmp_path):

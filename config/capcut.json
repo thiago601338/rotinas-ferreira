@@ -117,6 +117,8 @@
   "texto_calibrado": true,
   "audio_reserva_confirmado": true,
   "_audio_reserva_confirmado": "26/09/2026: a faixa de áudio montada com o protótipo de reserva (o gabarito '0925' não tem áudio) ficou no projeto depois de o CapCut abrir e regravar (capcut-copiar).",
+  "origem_limpa_confirmada": true,
+  "_origem_limpa_confirmada": "26/09/2026 03:02: com material_id limpo e source/source_platform 0, o CapCut abriu o rascunho 'Teste Rotinas 20260926-030215' mostrando o NOSSO vídeo (não o clipe da Biblioteca do gabarito). O aviso '(conferir)' sai do relatório.",
   "estilos_texto": {
     "padrao": {
       "cor": "#FFFFFF",
