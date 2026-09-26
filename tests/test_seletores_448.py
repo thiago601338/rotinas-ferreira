@@ -92,3 +92,13 @@ def test_figurinhas_buscando_link(telas, relogio):
     link = tela.achar("figurinha_link", 0, plano_b=False)
     assert link is not None and link.limites == (30, 245, 205, 420)
     assert tela.achar("buscar_figurinha", 0, plano_b=False).texto == "link"
+
+
+def test_adicionar_link(telas, relogio):
+    """Ensaio de 26/09 00:45: tela "Adicionar link" com o link já digitado; "Personalizar o texto da figurinha" (com
+    "o") não batia com o seletor."""
+    tela = telas("adicionar_link")
+    assert tela.ler_texto("campo_url").startswith("wa.me/5582988748649?text=")
+    assert tela.achar("personalizar_texto", 0, plano_b=False).limites == (32, 378, 868, 419)
+    assert tela.achar("concluir_figurinha", 0, plano_b=False).limites == (704, 41, 900, 156)
+    assert tela.achar("campo_texto_figurinha", 0, plano_b=False) is None  # só aparece depois de personalizar

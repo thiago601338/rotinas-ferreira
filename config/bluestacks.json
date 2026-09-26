@@ -397,6 +397,9 @@
     ],
     "campo_url": [
       {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?link_sticker_list_web_url_edit_text$"
+      },
+      {
         "resourceId": "com.instagram.android:id/link_sticker_url_edit_text"
       },
       {
@@ -405,6 +408,12 @@
       }
     ],
     "personalizar_texto": [
+      {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?link_sticker_custom_cta_row$"
+      },
+      {
+        "textContains": "Personalizar o texto"
+      },
       {
         "text": "Personalizar texto da figurinha"
       },
@@ -416,6 +425,9 @@
       }
     ],
     "campo_texto_figurinha": [
+      {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?link_sticker.*(cta|custom).*edit_?text$"
+      },
       {
         "resourceId": "com.instagram.android:id/link_sticker_text_edit_text"
       },
@@ -430,6 +442,9 @@
       }
     ],
     "concluir_figurinha": [
+      {
+        "resourceIdMatches": "^(com\\.instagram\\.android:id/)?link_sticker_list_done_button$"
+      },
       {
         "description": "Concluir"
       },
