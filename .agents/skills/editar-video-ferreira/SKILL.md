@@ -9,7 +9,7 @@ Fonte de verdade: [`conhecimento/edicao-video-capcut.md`](../../../conhecimento/
 
 ## Julgamento criativo primeiro
 
-O usuário avaliou a edição anterior como ruim. As receitas e verificações do projeto ajudam a montar rascunhos, mas **não** são um padrão de qualidade aprovado. Examine a referência visual mais recente, o objetivo comercial, a peça e as tomadas reais antes de escolher estrutura. Revise o próprio rascunho e o arquivo exportado no formato de celular. Corrija ritmo, enquadramento, texto, transições, cor e áudio segundo a referência e o comentário do usuário. `video.conferir` verifica propriedades técnicas, não estética; `aprovado` ali não significa vídeo pronto para uso.
+O usuário avaliou a edição anterior como ruim, inclusive a fonte usada no primeiro teste. As receitas e verificações do projeto ajudam a montar rascunhos, mas **não** são um padrão de qualidade aprovado. Não reaproveite essa tipografia por inércia. Examine a referência visual mais recente, o objetivo comercial, a peça e as tomadas reais antes de escolher estrutura. Revise o próprio rascunho e o arquivo exportado no formato de celular. Corrija ritmo, enquadramento, texto, transições, cor e áudio segundo a referência e o comentário do usuário. `video.conferir` verifica propriedades técnicas, não estética; `aprovado` ali não significa vídeo pronto para uso.
 
 ## Operação técnica quando servir ao pedido
 
