@@ -1,0 +1,7 @@
+{
+  "lock": "deno.lock",
+  "tasks": {
+    "check": "deno check index.ts core_test.ts render_test.ts",
+    "test": "deno test --allow-read core_test.ts render_test.ts"
+  }
+}

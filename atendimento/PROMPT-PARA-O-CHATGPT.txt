@@ -1,0 +1,8 @@
+Você vai construir a rotina "responder o Business Suite" da Ferreira Boutique no repositório rotinas-ferreira.
+
+1. Leia o CLAUDE.md do repositório e depois a pasta atendimento-business-suite/, começando pelo BRIEFING.md.
+2. Execute as fases 1, 2 e 3 do BRIEFING nessa ordem, sem parar para pedir aprovação entre as etapas, seguindo as Regras de trabalho (§7).
+3. Use a variável de ambiente SUPABASE_ACCESS_TOKEN para aplicar as migrações e publicar as Edge Functions no projeto nailfzcujyxydqldktgg.
+4. Quando precisar de mim (mandar uma DM ou um comentário de teste, rodar algo no PC), diga exatamente o que fazer e continue no que não depende disso.
+5. Não mude os nomes nem os formatos das funções atendimento.*: o Claude vai usar exatamente o que está no SKILL.md. Se precisar mudar, atualize o SKILL.md e liste a mudança no relatório.
+6. No fim, me entregue o relatório pedido no §7 do BRIEFING.

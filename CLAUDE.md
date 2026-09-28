@@ -18,7 +18,8 @@ O que construir agora está em `BRIEFING.md`. O conhecimento acumulado está em 
 
 ## Regras fixas do código
 - Credenciais só no `.env` do PC do usuário. Nunca no repositório, nunca em log, nunca no chat. Manter `.env.example` só com os nomes das variáveis.
-- Banco: só leitura. Não ler nem gravar `products.cost_price`.
+- Estoque e cadastro (`products`, `product_variations`): só leitura. Não ler nem gravar `products.cost_price`.
+- A rotina de atendimento pode gravar apenas seus registros, a fila, os vínculos de mídia e os estados necessários no Supabase, conforme `atendimento/BRIEFING.md`. Nunca ligar `AI_SENDING_ENABLED` por causa dela.
 - Nunca sobrescrever nem apagar mídia do usuário: converter e copiar para arquivo novo.
 - Tudo que publica algo fora do PC (Instagram) tem **modo ensaio** (vai até o passo anterior a publicar) e registra log + prints.
 - Configuração (pastas, WhatsApp, lista de áudios, textos da figurinha, presets de exportação) fica em `config/*.json`, não espalhada no código.
@@ -38,4 +39,5 @@ Todo erro resolvido e toda regra nova do usuário entram, **no mesmo commit**, n
 - `README.md` — instalação e uso em uma página. `fila/README.md` — formato dos pedidos da fila, com exemplos.
 - `rotinas/` — código (`stories/`, `video/`, fila, núcleo). `config/*.json` — configuração. `receitas/` — R1–R12 em JSON.
 - `.claude/skills/postar-stories-ferreira/` e `.claude/skills/editar-video-ferreira/` — skills das rotinas.
+- `atendimento/BRIEFING.md` — contrato do atendimento do Direct e dos comentários; `conhecimento/atendimento-business-suite.md` — operação, limites e verificações; `.claude/skills/responder-business-suite-ferreira/` — execução da rodada.
 - `execucoes/` — resultados do `testar.bat`/`diagnostico.bat` enviados pelo PC (dar `git pull` para ver).

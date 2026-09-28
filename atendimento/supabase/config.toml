@@ -1,0 +1,17 @@
+[functions.meta-webhook]
+verify_jwt = false
+
+[functions.instagram-audio-preprocess]
+verify_jwt = false
+
+[functions.atendimento-sync]
+verify_jwt = false
+
+[functions.atendimento-enviar]
+verify_jwt = false
+
+[functions.atendimento-midia]
+verify_jwt = false
+
+[functions.atendimento-registrar-stories]
+verify_jwt = false
