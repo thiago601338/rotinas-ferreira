@@ -1,5 +1,6 @@
 // Núcleo sem dependências de rede implícitas: os testes fornecem banco e Meta falsos.
-export const REVISION = 'atendimento-enviar-20260927-r1';
+import { commentReplyGuard } from './comment-guard.mjs';
+export const REVISION = 'atendimento-enviar-20260928-r2';
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const META_ID = /^\d{5,40}$/;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -56,7 +57,17 @@ function validateJob(job, now) {
 }
 
 /** Exatamente uma tentativa de POST. Resposta ambígua nunca é repetida. */
-export async function sendToMeta(job, token, config, fetcher = fetch) {
+export async function sendToMeta(job, token, config, fetcher = fetch, beforePost = async () => null) {
+  if (job.tipo === 'comentario') {
+    const error = await commentReplyGuard(job, token, config, fetcher, boundedJson);
+    if (error) return { messageId: null, error };
+  }
+  // A leitura paginada pode levar segundos: modo e lease precisam ser conferidos
+  // novamente depois dela, ainda antes de qualquer efeito externo.
+  let blocked;
+  try { blocked = await beforePost(); }
+  catch { blocked = 'autorizacao_nao_verificada'; }
+  if (blocked) return { messageId: null, error: blocked };
   const target = job.tipo === 'direct' ? `${config.accountId}/messages` : `${job.commentId}/replies`;
   const body = job.tipo === 'direct'
     ? { recipient: { id: job.recipient }, message: { text: job.texto } }
@@ -136,8 +147,25 @@ export async function drain(db, token, config, options = {}) {
         }
         if (authorized === true) {
           if (databaseFailure || now() >= deadline - 35000) outcome.error = 'execucao_interrompida_antes_envio';
-          else outcome = await sendToMeta(job, token, config, fetcher);
+          else outcome = await sendToMeta(job, token, config, fetcher, async () => {
+            if (databaseFailure || now() >= deadline - 35000) return 'execucao_interrompida_antes_envio';
+            if (job.tipo === 'comentario' && !await db.deliveryAllowed(job)) return 'envio_nao_autorizado';
+            return null;
+          });
         } else if (!outcome.error) outcome.error = 'autorizacao_nao_verificada';
+      }
+      if (outcome.error === 'equipe_respondeu') {
+        try {
+          await db.commentReplied(job);
+          if (!await db.deliveryAllowed(job)) outcome.error = 'envio_nao_autorizado';
+        } catch { outcome.error = 'comentario_equipe_registro_nao_verificado'; }
+      }
+      if (outcome.error === 'envio_nao_autorizado') {
+        let status;
+        try { status = await db.status(job); }
+        catch { status = 'registro_pendente'; databaseFailure = true; }
+        results.push({ lote: job.lote, n: job.n, parte: job.parte, status: status ?? 'bloqueado', code: 'envio_nao_autorizado' });
+        continue;
       }
       const status = await finish(db, job, outcome, delay);
       results.push({ lote: job.lote, n: job.n, parte: job.parte, status,

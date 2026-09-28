@@ -39,6 +39,8 @@ O resultado lista `lote`, `n`, `parte` e `status`. `enviados` só conta partes a
 3. `atendimento.concluir_envio(lote,n,parte,owner,message_id,erro)` confirma a resposta. Deve ser idempotente para o mesmo dono/resultado e tratar o prefixo `meta_delivery_unknown:` como `incerto`.
 4. O SQL deve bloquear partes posteriores até a anterior estar `enviado`, agendar a próxima em pelo menos três segundos após a confirmação e impedir claims concorrentes para a mesma conversa/comentário. Casos incertos de outros lotes precisam continuar bloqueados.
 
+Antes de cada POST de comentário, o worker consulta `/me` (`id,username`) e todas as páginas de `/{commentId}/replies` (`id,username`). Uma resposta da loja bloqueia o envio, atualiza `comentarios.loja_respondeu` e passa pela guarda SQL existente para registrar `equipe_respondeu`. Usa o username atual e, se devolvidos, IDs configurado/canônico em `from`; nunca depende apenas do último sync. Falha de acesso, timeout, autor não identificável, paginação inválida/repetida ou varredura incompleta registra `comentario_nao_verificado`, sem POST. A leitura tem limite total de 15 segundos e 100 páginas; atingir o limite bloqueia. Só cursores são reutilizados, mantendo o token fora das URLs. Após a leitura, as guardas SQL e o prazo da execução são conferidos novamente.
+
 O schema `atendimento` permanece fora da API REST. O adaptador usa consultas parametrizadas por Postgres direto. Nenhuma tabela de catálogo é modificada.
 
 ## Concorrência e resultados incertos
@@ -60,8 +62,8 @@ node --test core.test.mjs
 npx --yes deno@2.9.6 check --config deno.json index.ts
 ```
 
-Os 20 testes cobrem autenticação, ensaio sem claim, payload indevido, token renovado/reserva, ausência de claim, pausa/revalidação, destinos Direct/comentário, ordem/intervalo, limite de concorrência, confirmação após a Meta, erro conhecido, envio incerto e confirmação SQL idempotente. Todos usam banco e HTTP falsos. `deno.lock` fixa `postgres@3.4.7` com integridade.
+Os 29 testes cobrem autenticação, ensaio sem claim, payload indevido, token renovado/reserva, ausência de claim, pausa/revalidação, destinos Direct/comentário, conferência paginada das respostas da loja, bloqueio por leitura incompleta ou prazo, ordem/intervalo, limite de concorrência, confirmação após a Meta, erro conhecido, envio incerto e confirmação SQL idempotente. Todos usam banco e HTTP falsos. `deno.lock` fixa `postgres@3.4.7` com integridade.
 
-Implementação e testes locais concluídos; publicação, permissões de comentários e teste real com a conta pessoal do dono permanecem etapas de validação do projeto.
+Versão 2 publicada em 27/09/2026; uma chamada autenticada com fila vazia confirmou `enviados=0` e a revisão `atendimento-enviar-20260928-r2`. Os endpoints de leitura `/me` e `/replies?fields=id,username` responderam 200 na conta atual. A validação de bloqueio e resposta pública com comentário da conta pessoal do dono ainda depende desse teste real.
 
 Documentação consultada: [autenticação de Edge Functions](https://supabase.com/docs/guides/functions/auth), [conexão Postgres](https://supabase.com/docs/guides/functions/connect-to-postgres) e [changelog](https://supabase.com/changelog).

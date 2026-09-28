@@ -29,6 +29,10 @@ export function createDatabase(sql) {
         where lote=${job.lote} and n=${job.n} and parte=${job.parte} and owner=${job.owner}::uuid`;
       return rows[0]?.status ?? 'bloqueado';
     },
+    async commentReplied(job) {
+      await sql`update atendimento.comentarios set loja_respondeu=true,atualizado_em=now()
+        where id=${job.commentId}`;
+    },
     async complete(job, outcome) {
       const rows = await sql`select atendimento.concluir_envio(
         ${job.lote}::text, ${job.n}::text, ${job.parte}::int, ${job.owner}::uuid,

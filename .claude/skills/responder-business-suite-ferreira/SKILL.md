@@ -42,13 +42,14 @@ parar.
    - Motivos de `pular`: `pagamento`, `entrega`, `reserva`, `troca`, `negociacao`, `identidade`, `reclamacao`,
      `pessoa`, `equipe_atendendo`, `audio`, `sem_peca`, `sem_dado`, `nao_entendi`, `cortesia`.
    - Comentário: exatamente 1 mensagem (resposta pública).
+   - Antes do POST de comentário, o worker confere as respostas atuais da loja em todas as páginas da Meta e revalida o banco. `equipe_respondeu` ou `comentario_nao_verificado` bloqueia o envio; apenas relatar e apurar, sem contornar a guarda por envio manual.
    - Teste sem enviar: terceiro parâmetro `true`.
    - Item `rejeitado` na resposta: corrigir só ele e mandar de novo no mesmo lote.
    - Itens `#j` vão no mesmo `responder`, com as mesmas regras. O sistema não manda esses pela API e devolve a lista
      pronta (`#j1 @usuario → …`). Mandar pelo Instagram no Chrome: abrir `https://ig.me/m/<usuario>` (se não abrir,
      procurar o @ em instagram.com/direct/inbox), digitar cada mensagem na caixa e Enter, com uns segundos entre
      elas; um print só no fim para conferir. O sistema reconhece o envio pelo eco.
-6. Uns 20 s depois: `select atendimento.status('L0927-1930');`. `nova_mensagem` → rodar pendentes de novo para
+6. Uns 20 s depois: `select atendimento.status('L0927-1930');`. `incerto` ou `registro_pendente` → apurar o ID e o eco na Meta antes de qualquer nova tentativa; nunca repetir o POST às cegas. `nova_mensagem` → rodar pendentes de novo para
    essa conversa. `fora_da_janela` → volta como `#j` no próximo pendentes. `pelo_instagram` → falta eu mandar pelo
    Instagram. `erro`, `equipe_respondeu` → só relatar.
 7. Relato ao dono em 1–2 linhas: respondidas, puladas por motivo, erros. Sem repetir as mensagens.

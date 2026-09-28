@@ -49,7 +49,10 @@ export class Graph {
     const left = this.deadline - Date.now(); if (left < 1500) throw Error('prazo_sync');
     const url = new URL(`https://graph.instagram.com/${GRAPH_VERSION}/${path}`);
     for (const [key, value] of Object.entries(params)) if (value !== null && value !== undefined) url.searchParams.set(key, String(value));
-    const response = await this.fetcher(url, { headers: { Authorization: 'Bearer ' + this.token }, redirect: 'error', signal: AbortSignal.timeout(Math.min(left, 10000)) });
+    // Páginas profundas de conversas podem demorar mais que os demais endpoints.
+    // O orçamento global do sync continua limitando a execução.
+    const requestTimeout = path === 'me/conversations' ? 25000 : 10000;
+    const response = await this.fetcher(url, { headers: { Authorization: 'Bearer ' + this.token }, redirect: 'error', signal: AbortSignal.timeout(Math.min(left, requestTimeout)) });
     let data; try { data = JSON.parse(new TextDecoder().decode(await bytes(response, 4 * 1024 * 1024))); } catch { throw Error('meta_resposta_invalida'); }
     if (!response.ok || data.error) throw new MetaError(response.status, data.error?.code, data.error?.error_subcode, data.error?.message ?? '');
     return data;

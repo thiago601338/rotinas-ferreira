@@ -195,8 +195,11 @@ export async function handleBusinessEcho(e:BusinessEcho):Promise<boolean>{
   let c=await findConversation(e.channel,e.recipientId);
   if(!c)c=await getOrCreateConversation({channel:e.channel,externalUserId:e.recipientId,externalThreadId:e.recipientId,initialStatus:'human'});
   // SMB echoes are explicitly messages from the phone: pause immediately, even during inference.
+  // API: só o ID externo confirmado prova a origem. Se o eco chegou antes da
+  // confirmação, concluir_envio conciliará esse ID depois; texto igual não basta.
   if(e.source!=='business_app'&&c.metadata?.aiProcessing){await new Promise(r=>setTimeout(r,1500));if(await messageExists(e.externalMessageId))return true;}
   const mode=e.channel==='instagram'?(await selectRows<{value:{instagram?:string}}>('ai_settings','select=value&key=eq.atendimento_modo&limit=1'))[0]?.value?.instagram:null;
+  // Esta previsão por texto vale exclusivamente para o fluxo pelo_instagram.
   const claudeEcho=mode==='claude'&&!!e.text&&await rpc<boolean>('ai_atendimento_echo_previsto',{p_conversation:c.id,p_texto:e.text});
   const lastInbound=(await selectRows('ai_messages',`select=created_at&conversation_id=eq.${c.id}&direction=eq.inbound&order=created_at.desc&limit=1`))[0];
   const stale=!!e.timestamp&&!!lastInbound?.created_at&&Date.parse(e.timestamp)<Date.parse(lastInbound.created_at);

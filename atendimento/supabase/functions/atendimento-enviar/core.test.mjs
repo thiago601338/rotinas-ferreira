@@ -31,6 +31,18 @@ function fakeDb(jobs = []) {
 }
 const noDelay = async () => {};
 const success = () => Response.json({ message_id: 'mid.accepted' });
+const commentJob = () => job({ tipo: 'comentario', n: 'c1', commentId: '18000000000000001' });
+const shop = { id: '17841400000000009', username: 'loja_teste' };
+function commentFetch(pages, calls = []) {
+  return async (url, options) => {
+    calls.push({ url, options });
+    if (options.method === 'POST') return success();
+    if (!new URL(url).pathname.endsWith('/replies')) return Response.json(shop);
+    const page = pages.shift();
+    if (page instanceof Error) throw page;
+    return page instanceof Response ? page : Response.json(page);
+  };
+}
 
 test('método e segredo malformado não abrem o banco nem enviam', async () => {
   let calls = 0;
@@ -130,16 +142,140 @@ test('erro na revalidação do claim impede envio e registra falha conhecida ant
 
 test('Direct e comentário usam endpoint e corpo corretos; token só em Authorization', async () => {
   const calls = [];
-  const fetcher = async (url, options) => { calls.push({ url, options }); return success(); };
+  const fetcher = commentFetch([{ data: [] }], calls);
   await sendToMeta(job(), META, config, fetcher);
   await sendToMeta(job({ tipo: 'comentario', commentId: '18000000000000001' }), META, config, fetcher);
-  assert.equal(calls[0].url, 'https://graph.instagram.com/v25.0/17841454587986765/messages');
-  assert.deepEqual(JSON.parse(calls[0].options.body), { recipient: { id: job().recipient }, message: { text: job().texto } });
-  assert.equal(calls[1].url, 'https://graph.instagram.com/v25.0/18000000000000001/replies');
-  assert.deepEqual(JSON.parse(calls[1].options.body), { message: job().texto });
-  assert.equal(calls[0].options.headers.Authorization, `Bearer ${META}`);
-  assert.equal(calls[0].options.redirect, 'error');
-  assert.ok(!calls[0].url.includes(META));
+  const posts = calls.filter(c => c.options.method === 'POST');
+  assert.equal(posts[0].url, 'https://graph.instagram.com/v25.0/17841454587986765/messages');
+  assert.deepEqual(JSON.parse(posts[0].options.body), { recipient: { id: job().recipient }, message: { text: job().texto } });
+  assert.equal(posts[1].url, 'https://graph.instagram.com/v25.0/18000000000000001/replies');
+  assert.deepEqual(JSON.parse(posts[1].options.body), { message: job().texto });
+  for (const call of calls) {
+    assert.equal(call.options.headers.Authorization, `Bearer ${META}`);
+    assert.equal(call.options.redirect, 'error');
+    assert.ok(!call.url.includes(META));
+  }
+  assert.equal(new URL(calls[1].url).pathname, '/v25.0/me');
+  assert.equal(new URL(calls[2].url).searchParams.get('fields'), 'id,username');
+});
+
+test('resposta da loja posterior ao sync bloqueia POST e marca equipe_respondeu no banco', async () => {
+  for (const reply of [{ username: 'LOJA_TESTE' }, { from: { username: 'Loja_Teste' } },
+    { from: { id: config.accountId } }, { from: { id: shop.id } }]) {
+    const db = fakeDb([commentJob()]);
+    let marked = false;
+    db.commentReplied = async item => { assert.equal(item.commentId, commentJob().commentId); marked = true; };
+    db.deliveryAllowed = async () => !marked;
+    db.status = async () => 'equipe_respondeu';
+    const calls = [];
+    const result = await drain(db, META, config, { fetch: commentFetch([{ data: [reply] }], calls), sleep: noDelay, now: () => clock });
+    assert.equal(calls.filter(c => c.options.method === 'POST').length, 0);
+    assert.equal(marked, true);
+    assert.equal(result.resultados[0].status, 'equipe_respondeu');
+    assert.equal(db.completed.length, 0);
+  }
+});
+
+test('resposta da loja na segunda página bloqueia envio e token de paging.next não é reutilizado', async () => {
+  const calls = [];
+  const result = await sendToMeta(commentJob(), META, config, commentFetch([
+    { data: [{ username: 'outra_conta' }], paging: { next: `https://graph.instagram.com/v25.0/${commentJob().commentId}/replies?after=pagina2&access_token=nao_reutilizar` } },
+    { data: [{ from: { id: shop.id } }] },
+  ], calls));
+  assert.equal(result.error, 'equipe_respondeu');
+  assert.equal(calls.filter(c => c.options.method === 'POST').length, 0);
+  assert.equal(new URL(calls[2].url).searchParams.get('after'), 'pagina2');
+  assert.ok(!calls[2].url.includes('access_token'));
+});
+
+test('paginação completa sem resposta da loja envia uma única vez após revalidar o banco', async () => {
+  const calls = [], events = [];
+  const db = fakeDb([commentJob()]);
+  db.deliveryAllowed = async () => { events.push('banco'); return true; };
+  const fetcher = commentFetch([
+    { data: [{ from: { id: '17841400000000003' } }], paging: { next: `https://graph.instagram.com/v25.0/${commentJob().commentId}/replies?after=pagina2` } },
+    { data: [{ username: 'outra_conta' }] },
+  ], calls);
+  const result = await drain(db, META, config, { fetch: async (...args) => { events.push(args[1].method); return fetcher(...args); }, sleep: noDelay, now: () => clock });
+  assert.equal(result.enviados, 1);
+  assert.deepEqual(events, ['banco', 'GET', 'GET', 'GET', 'banco', 'POST']);
+  assert.equal(calls.filter(c => c.options.method === 'POST').length, 1);
+});
+
+test('erro, autor ausente e paginação incompleta falham fechados antes de qualquer POST', async () => {
+  const next = `https://graph.instagram.com/v25.0/${commentJob().commentId}/replies?after=repetido`;
+  const scenarios = [[new Error(META)], [Response.json({ error: { code: 10, message: META } }, { status: 403 })],
+    [new Response('ilegivel')], [{ success: true }], [{ data: [{}] }],
+    [{ data: [], paging: { next: 'https://outro.invalid/replies?after=2' } }],
+    [{ data: [], paging: { next: false } }],
+    [{ data: [], paging: { next: `https://graph.instagram.com/v25.0/${commentJob().commentId}/replies` } }],
+    [{ data: [], paging: { next } }, { data: [], paging: { next } }],
+    [{ data: [], paging: { next } }, new Error(META)],
+    [Response.json({ data: [], padding: 'x'.repeat(70000) })]];
+  for (const pages of scenarios) {
+    const calls = [];
+    const db = fakeDb([commentJob()]);
+    const result = await drain(db, META, config, { fetch: commentFetch(pages, calls), sleep: noDelay, now: () => clock });
+    assert.equal(calls.filter(c => c.options.method === 'POST').length, 0);
+    assert.equal(result.resultados[0].code, 'comentario_nao_verificado');
+    assert.equal(result.resultados[0].status, 'erro');
+    assert.equal(result.incertos, 0);
+    assert.ok(!JSON.stringify(result).includes(META));
+  }
+});
+
+test('conta da loja não verificável impede consultar replies e enviar', async () => {
+  for (const account of [{}, { id: shop.id }, { id: 'invalido', username: shop.username }]) {
+    const calls = [];
+    const result = await sendToMeta(commentJob(), META, config, async (_url, options) => {
+      calls.push(options.method); return Response.json(account);
+    });
+    assert.equal(result.error, 'comentario_nao_verificado');
+    assert.deepEqual(calls, ['GET']);
+  }
+});
+
+test('pausa durante a consulta Meta barra o POST e preserva o status SQL', async () => {
+  const db = fakeDb([commentJob()]);
+  let checks = 0;
+  db.deliveryAllowed = async () => ++checks === 1;
+  const calls = [];
+  const result = await drain(db, META, config, { fetch: commentFetch([{ data: [] }], calls), sleep: noDelay, now: () => clock });
+  assert.equal(calls.filter(c => c.options.method === 'POST').length, 0);
+  assert.equal(result.resultados[0].status, 'cancelado');
+  assert.equal(db.completed.length, 0);
+});
+
+test('limite de páginas não libera um comentário cuja varredura ficou incompleta', async () => {
+  const calls = [];
+  const pages = Array.from({ length: 100 }, (_, index) => ({ data: [],
+    paging: { next: `https://graph.instagram.com/v25.0/${commentJob().commentId}/replies?after=pagina${index + 1}` } }));
+  const result = await sendToMeta(commentJob(), META, config, commentFetch(pages, calls));
+  assert.equal(result.error, 'comentario_nao_verificado');
+  assert.equal(calls.filter(c => c.options.method === 'POST').length, 0);
+});
+
+test('prazo esgotado durante a leitura dos replies não inicia POST', async () => {
+  let time = clock;
+  const calls = [];
+  const fetcher = commentFetch([{ data: [] }], calls);
+  const result = await drain(fakeDb([commentJob()]), META, config, { fetch: async (...args) => {
+    const response = await fetcher(...args);
+    time = clock + 31000;
+    return response;
+  }, sleep: noDelay, now: () => time });
+  assert.equal(calls.filter(c => c.options.method === 'POST').length, 0);
+  assert.equal(result.resultados[0].code, 'execucao_interrompida_antes_envio');
+});
+
+test('erro de registro da resposta da equipe não permite POST nem falso enviado', async () => {
+  const db = fakeDb([commentJob()]);
+  db.commentReplied = async () => { throw Error(META); };
+  const calls = [];
+  const result = await drain(db, META, config, { fetch: commentFetch([{ data: [{ username: shop.username }] }], calls), sleep: noDelay, now: () => clock });
+  assert.equal(calls.filter(c => c.options.method === 'POST').length, 0);
+  assert.equal(result.enviados, 0);
+  assert.equal(result.resultados[0].code, 'comentario_equipe_registro_nao_verificado');
 });
 
 test('sucesso só é persistido depois do id confirmado pela Meta', async () => {
@@ -261,4 +397,7 @@ test('adaptador usa funções corretas e parâmetros SQL separados do texto', as
   assert.ok(!queries[0].query.includes(AUTH));
   assert.deepEqual(queries[4].values, [job().lote, job().n, 1, job().owner, 'mid.accepted', null]);
   assert.match(queries[5].query, /atendimento\.envio_autorizado/);
+  await db.commentReplied(commentJob());
+  assert.match(queries[6].query, /update atendimento\.comentarios set loja_respondeu=true/);
+  assert.deepEqual(queries[6].values, [commentJob().commentId]);
 });
