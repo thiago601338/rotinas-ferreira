@@ -1,0 +1,5 @@
+{
+  "_comentario": "Associa peças aos Stories já publicados; falhas ficam pendentes e não repetem publicação. Segredo apenas no .env: ROTINAS_SEGREDO_ATENDIMENTO.",
+  "registrar_stories": true,
+  "registrar_stories_url": "https://nailfzcujyxydqldktgg.supabase.co/functions/v1/atendimento-registrar-stories"
+}

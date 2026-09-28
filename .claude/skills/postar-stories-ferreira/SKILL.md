@@ -143,4 +143,5 @@ Você precisa: nada.   (ou: repor Preto / aprovar o ensaio / fechar o postados.c
 | "não publico pela grade 'Recentes'" | O álbum da letra não abriu (seletores `album_menu`/`album_item`): pedir `testar.bat bluestacks` e ajustar no repositório. |
 | "O BlueStacks está em uso por outro pedido ou teste" | Nada foi feito. Esperar o outro terminar e pedir de novo; não pedir testes no PC com postagem na fila. |
 | "Já existe um pedido stories.postar real…" | Esperar o pedido anterior terminar; não criar outro. |
+| `atendimento_stories` pendente após letra publicada | A letra já subiu: não repostar. Conferir `atendimento_stories_<LETRA>.json` e a associação no banco. Se faltou só o registro, repetir o mesmo arquivo com `python -m rotinas.stories.atendimento --arquivo "<caminho>"`; isso não publica Story. Segredo em `ROTINAS_SEGREDO_ATENDIMENTO` apenas no `.env`. Manifesto com vários modelos exige SKU por mídia. |
 | "Interrompido" em `erro` | O vigia caiu no meio: o relatório diz "postagem INTERROMPIDA" e traz o JS de todas as letras. Rodar antes de pedir de novo; mandar só as letras que faltam. |

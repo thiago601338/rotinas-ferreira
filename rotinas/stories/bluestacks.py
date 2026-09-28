@@ -23,6 +23,7 @@ import re
 import sys
 import time
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .. import config, ferramentas, midia, registro
@@ -906,6 +907,20 @@ class Postador:
         raise ErroRegistro(aviso)
 
     # -- letra e execução
+    def _associar_atendimento(self, L: dict, r: dict, res: dict) -> None:
+        """Falha de associação nunca transforma publicação concluída em uma nova tentativa."""
+        try:
+            from . import atendimento
+            resultado = atendimento.registrar_letra(L, r["publicado_de"], r["publicado_ate"],
+                                                     self.ctx.pasta_saida, ensaio=self.ensaio)
+        except Exception:  # Mesmo falha de importação/configuração não interrompe a postagem.
+            resultado = {"status": "pendente", "motivo": "integracao_indisponivel"}
+        r["atendimento_stories"] = resultado
+        if resultado.get("status") != "registrado":
+            aviso = f"Letra {L['letra']}: associação das peças ao atendimento pendente; não repetir a publicação."
+            res["avisos"].append(aviso)
+            log.warning(aviso)
+
     def _letra(self, plano: dict, L: dict, r: dict, res: dict) -> None:
         n = len(L["midias"])
         with self._passo("enviar_midias"):
@@ -934,12 +949,18 @@ class Postador:
             r["estado"] = "ensaio_ok"
             log.info("Letra %s montada em ENSAIO (nada publicado)", self.letra)
             return
+        r["publicado_de"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         self._publicar(r)
+        r["publicado_ate"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         r["estado"] = "publicada"
         res["publicadas"].append(L["letra"])
         log.info("Letra %s PUBLICADA (%d mídia(s))", self.letra, n)
         self._print(f"publicada_{self.letra}.png", r)
-        self._registrar(plano["data"], L, r, res)
+        try:
+            self._registrar(plano["data"], L, r, res)
+        finally:
+            # Primeiro o registro local contra republicação; a associação remota é independente.
+            self._associar_atendimento(L, r, res)
 
     def _falhou(self, r: dict, res: dict, erro) -> None:
         passo = self.passo or "início"

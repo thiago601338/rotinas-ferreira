@@ -1,5 +1,16 @@
 # Stories da Ferreira Boutique — regras
 
+## Associação das peças ao atendimento (27/09/2026)
+
+Depois de concluir a publicação de uma letra e registrar `postados.csv` (ou seu pendente local), o publicador chama `atendimento-registrar-stories` com SKU/cor, quantidade e janela UTC da publicação. A Edge confere os Stories existentes antes de associá-los. A volta ao feed continua exigindo a conferência habitual no Instagram; fila concluída não substitui essa conferência.
+
+- Configuração pública em `config/atendimento.json`; segredo `ROTINAS_SEGREDO_ATENDIMENTO` somente no `.env`. O segredo não foi preenchido durante a implementação. A função remota precisa estar publicada e validada antes de o vínculo funcionar.
+- Mídias da mesma peça/cor usam o pedido simples. Cores ou SKUs diferentes usam manifesto por arquivo na ordem publicada; letra marcada `varios_modelos` exige SKU ou produto em cada mídia. Foto com várias cores usa cor nula, sem escolher uma arbitrariamente.
+- Ensaio, letra pulada e publicação interrompida não acionam registro. Falha na associação não aborta as próximas letras nem repete a publicação. O resultado fica em `atendimento_stories` e o corpo, sem segredos, em `atendimento_stories_<LETRA>.json` na pasta da execução.
+- Contagem ou ordem ambígua fica pendente na Edge. Se os timestamps empatarem em um manifesto, é necessário conferir os Stories e informar seus `story_id`; não adivinhar a associação. Vídeo dividido automaticamente em vários Stories também exige conferência da contagem.
+- Para repetir apenas um registro pendente: `.venv\Scripts\python.exe -m rotinas.stories.atendimento --arquivo "<caminho do atendimento_stories_A.json>"`. O corpo deve permanecer igual após timeout; a Edge reconhece a repetição. Esse comando não publica Stories.
+- Verificação local: testes com tela e HTTP simulados aprovados. Registro remoto real e correspondência final no banco exigem teste controlado após publicação da Edge.
+
 Regras ditadas pelo usuário entre 22 e 25/09/2026 e o que foi comprovado nas postagens feitas até agora. **Tudo aqui é obrigatório.**
 
 ## O que é
