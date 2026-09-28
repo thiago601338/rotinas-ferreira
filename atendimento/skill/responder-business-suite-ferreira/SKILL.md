@@ -38,7 +38,7 @@ parar.
      {"n":"j1","msgs":["Olá meu bem","R$189,99\nDividimos em até 3x sem juros"]}
    ]$j$);
    ```
-   - `produto`/`cor`: só quando eu identifiquei a peça de um item `sem peça` — o sistema grava e não pergunta de novo.
+   - `produto`/`cor`: usar quando eu identificar uma peça `sem peça`, para gravar o vínculo. Também informar `produto` em qualquer resposta com `R$` sem uma única peça já vinculada ao item (por exemplo, identificada por texto em `atendimento.produto`). O sistema valida preço/à vista contra esse SKU e rejeita SKU que conflite com vínculo já conhecido; não trocar o valor para contornar a rejeição.
    - Motivos de `pular`: `pagamento`, `entrega`, `reserva`, `troca`, `negociacao`, `identidade`, `reclamacao`,
      `pessoa`, `equipe_atendendo`, `audio`, `sem_peca`, `sem_dado`, `nao_entendi`, `cortesia`.
    - Comentário: exatamente 1 mensagem (resposta pública).
@@ -66,6 +66,7 @@ parar.
 - Só "ok", "tá bom", "entendi", emoji → pular (`cortesia`).
 - Tudo que eu afirmar (preço, parcelamento, cor, tamanho, estoque, tecido, endereço) tem que estar no lote ou em
   `atendimento.produto`. Nada inventado. Preço é sempre o do sistema.
+- Ao implantar ou alterar esta rotina, o único destinatário de envio real de teste é a conta pessoal do dono. Testar primeiro com `p_ensaio=true` e confirmar recebimento/eco e `atendimento.status` antes de considerar o envio entregue.
 
 ## Voz da loja
 
