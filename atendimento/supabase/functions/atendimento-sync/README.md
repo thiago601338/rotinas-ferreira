@@ -18,6 +18,8 @@ Na revisão `r3`, somente erro Meta `100`, subcódigo `33`, no **detalhe de uma 
 
 Na revisão `r4`, a leitura de uma página de conversas pode esperar até 25 s, ainda dentro do orçamento global da execução. O limite de 10 s estava interrompendo repetidamente uma página profunda com `tempo_esgotado`; o cursor voltou a avançar após a mudança. As outras consultas mantêm 10 s.
 
+Na revisão `r5`, cada página pede 50 conversas: a API da conta devolveu 50 numa consulta de leitura com limite maior. O cursor continua a guardar índice e `after`, de modo que uma execução curta retome a mesma página sem saltar conversas. Isso reduz o número de chamadas para percorrer histórico antigo.
+
 Inbound já existente passa por enriquecimento sob bloqueio da linha: preenche referências, anexos e caminhos ausentes, preservando texto já preenchido, transcrição, estado humano, origem e arquivos existentes. IDs conflitantes não são combinados. Username válido também é preservado. `mensagens_enriquecidas` registra o número de recuperações efetivas, sem contar repetição idêntica. Opt-out explícito em texto recuperado ou transcrição já salva entra em `ai_optouts` na mesma transação, pelo índice `(channel, external_user_id)`, sem substituir recusa já registrada. Mensagens da loja não geram opt-out.
 
 Stories mantêm `storyReference` para o gatilho de prefetch. Posts/reels usam `postReference`. Fotos/áudios/vídeos são guardados no bucket com caminhos determinísticos. Vídeo usa `message_type='document'`, conforme a constraint atual, e `raw_payload.mediaType='video'`; havendo capa da Meta, `videoFramePath` aponta para a imagem. Se a API não fornecer capa, o lote deve mostrar `sem imagem` e o usuário do Instagram. Não há promessa de reconstrução de mídia expirada.

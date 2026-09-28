@@ -1,4 +1,4 @@
-export const REVISION = 'atendimento-sync-20260928-r4';
+export const REVISION = 'atendimento-sync-20260928-r5';
 export const RECOVERY_FROM = '2026-09-26T20:37:00.000Z'; // 17:37, America/Maceio.
 export const ACCOUNT_ID = '17841454587986765';
 export const GRAPH_VERSION = 'v25.0';

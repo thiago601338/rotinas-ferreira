@@ -63,7 +63,7 @@ async function syncDirect(sql: any, graph: Graph, hours: number | undefined, cou
   counts.conversas_inacessiveis_total = gaps.length;
   while (Date.now() < deadline - 5000) {
     let page;
-    try { page = await graph.get('me/conversations', { platform: 'instagram', fields: 'id,updated_time', limit: 25, after }); }
+    try { page = await graph.get('me/conversations', { platform: 'instagram', fields: 'id,updated_time', limit: 50, after }); }
     catch (error: any) { error.operation = 'conversas_pagina'; throw error; }
     const conversations = list(page);
     for (; index < conversations.length; index++) {
